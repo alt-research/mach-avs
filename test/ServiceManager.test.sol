@@ -104,38 +104,6 @@ contract EigenLayerDeployer is Test {
 
     address public constant CONTRACT_OWNER = address(101);
 
-    address eigenLayerProxyAdminAddress;
-    address eigenLayerPauserRegAddress;
-    address slasherAddress;
-    address delegationAddress;
-    address strategyManagerAddress;
-    address eigenPodManagerAddress;
-    address podAddress;
-    address delayedWithdrawalRouterAddress;
-    address eigenPodBeaconAddress;
-    address beaconChainOracleAddress;
-    address emptyContractAddress;
-    address operationsMultisig;
-    address executorMultisig;
-
-    uint256 public initialBeaconChainOracleThreshold = 3;
-
-    // addresses excluded from fuzzing due to abnormal behavior. TODO: @Sidu28 define this better and give it a clearer name
-    mapping(address => bool) fuzzedAddressMapping;
-
-    //ensures that a passed in address is not set to true in the fuzzedAddressMapping
-    modifier fuzzedAddress(address addr) virtual {
-        cheats.assume(fuzzedAddressMapping[addr] == false);
-        _;
-    }
-
-    modifier cannotReinit() {
-        cheats.expectRevert(
-            bytes("Initializable: contract is already initialized")
-        );
-        _;
-    }
-
     function _deployEigenLayerContractsLocal() internal {
         pauser = address(69);
         unpauser = address(489);
@@ -273,7 +241,7 @@ contract EigenLayerDeployer is Test {
             abi.encodeWithSelector(
                 EigenPodManager.initialize.selector,
                 type(uint256).max, // maxPods
-                beaconChainOracleAddress,
+                address(0),
                 CONTRACT_OWNER,
                 pauserRegistry,
                 0 /*initialPausedStatus*/

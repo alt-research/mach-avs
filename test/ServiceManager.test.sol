@@ -66,10 +66,6 @@ import "forge-std/Test.sol";
 contract EigenLayerDeployer is Test {
     Vm cheats = Vm(HEVM_ADDRESS);
 
-    // EigenLayer contracts
-    ProxyAdmin public proxyAdmin;
-    PauserRegistry public pauserRegistry;
-
     Slasher public slasher;
     DelegationManager public delegation;
     StrategyManager public strategyManager;
@@ -99,25 +95,16 @@ contract EigenLayerDeployer is Test {
     uint64 MAX_RESTAKED_BALANCE_GWEI_PER_VALIDATOR = 32e9;
     uint64 GOERLI_GENESIS_TIME = 1616508000;
 
-    address pauser;
-    address unpauser;
     address theMultiSig = address(420);
     address operator = address(0x4206904396bF2f8b173350ADdEc5007A52664293); //sk: e88d9d864d5d731226020c5d2f02b62a4ce2a4534a39c225d32d3db795f83319
     address _challenger = address(0x6966904396bF2f8b173350bCcec5007A52669873);
 
     address public constant CONTRACT_OWNER = address(101);
 
-    function _deployEigenLayerContractsLocal() internal {
-        pauser = address(69);
-        unpauser = address(489);
-        // deploy proxy admin for ability to upgrade proxy contracts
-        proxyAdmin = new ProxyAdmin();
-
-        //deploy pauser registry
-        address[] memory pausers = new address[](1);
-        pausers[0] = pauser;
-        pauserRegistry = new PauserRegistry(pausers, unpauser);
-
+    function _deployEigenLayerContractsLocal(
+        ProxyAdmin proxyAdmin,
+        PauserRegistry pauserRegistry
+    ) internal {
         /**
          * First, deploy upgradeable proxy contracts that **will point** to the implementations. Since the implementation contracts are
          * not yet deployed, we give these proxies an empty contract as the initial implementation, to act as if they have no code.
@@ -330,13 +317,6 @@ contract ServiceManagerTest is EigenLayerDeployer {
 
     address public constant ALICE = address(102);
 
-    uint256 churnApproverPrivateKey =
-        uint256(keccak256("churnApproverPrivateKey"));
-    address churnApprover = cheats.addr(churnApproverPrivateKey);
-    bytes32 defaultSalt = bytes32(uint256(keccak256("defaultSalt")));
-
-    address ejector = address(uint160(uint256(keccak256("ejector"))));
-
     BLSRegistryCoordinatorWithIndices public registryCoordinatorImplementation;
     StakeRegistry public stakeRegistryImplementation;
     BLSPubkeyRegistry public blsPubkeyRegistryImplementation;
@@ -355,13 +335,13 @@ contract ServiceManagerTest is EigenLayerDeployer {
     uint16 defaultKickBIPsOfTotalStake = 150;
     uint8 numQuorums = 1;
 
-    function _setUpAVS() internal {
+    function _setUpAVS(
+        ProxyAdmin proxyAdmin,
+        PauserRegistry pauserRegistry
+    ) internal {
         // Compendium
         //
         compendium = new BLSPublicKeyCompendium();
-
-        vm.startPrank(CONTRACT_OWNER);
-
         // make the CONTRACT_OWNER the owner of the serviceManager contract
         serviceManager = ServiceManager(
             address(
@@ -479,8 +459,8 @@ contract ServiceManagerTest is EigenLayerDeployer {
                 address(registryCoordinatorImplementation),
                 abi.encodeWithSelector(
                     BLSRegistryCoordinatorWithIndices.initialize.selector,
-                    churnApprover,
-                    ejector,
+                    address(0),
+                    address(0),
                     operatorSetParams,
                     pauserRegistry,
                     0 /*initialPausedStatus*/
@@ -524,20 +504,27 @@ contract ServiceManagerTest is EigenLayerDeployer {
                 IRiscZeroVerifier(address(43))
             )
         );
-
-        vm.stopPrank();
     }
 
     function setUp() public {
         vm.startPrank(CONTRACT_OWNER);
-        _deployEigenLayerContractsLocal();
+
+        address pauser = address(69);
+        address unpauser = address(489);
+        address[] memory pausers = new address[](1);
+        pausers[0] = pauser;
+        PauserRegistry pauserRegistry = new PauserRegistry(pausers, unpauser);
+        ProxyAdmin proxyAdmin = new ProxyAdmin();
+
+        _deployEigenLayerContractsLocal(proxyAdmin, pauserRegistry);
+
+        _setUpAVS(proxyAdmin, pauserRegistry);
 
         IStrategy[] memory strategiesToWhitelist = new IStrategy[](1);
         strategiesToWhitelist[0] = wethStrat;
         strategyManager.addStrategiesToDepositWhitelist(strategiesToWhitelist);
-        vm.stopPrank();
 
-        _setUpAVS();
+        vm.stopPrank();
     }
 
     function testRegister() public {

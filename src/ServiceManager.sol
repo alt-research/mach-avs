@@ -125,7 +125,8 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
         uint256 l2BlockNumber
     ) external {
         // Make sure there are no other alert, OR the currently alert is not the earliest error.
-        if (l2BlockNumber >= latestAlertBlockNumber()) {
+        uint256 latestBlockNumber = latestAlertBlockNumber();
+        if (latestBlockNumber != 0 && l2BlockNumber >= latestBlockNumber) {
             revert UselessAlert();
         }
 
@@ -175,7 +176,8 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
         uint256 l2BlockNumber = proposal.l2BlockNumber;
 
         // Make sure there are no other alert, OR the currently alert is not the earliest error.
-        if (l2BlockNumber >= latestAlertBlockNumber()) {
+        uint256 latestBlockNumber = latestAlertBlockNumber();
+        if (latestBlockNumber != 0 && l2BlockNumber >= latestBlockNumber) {
             revert UselessAlert();
         }
 

@@ -85,7 +85,7 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
         imageId = _imageId;
     }
 
-    function clearAlters() external onlyOwner {
+    function clearAlerts() external onlyOwner {
         delete l2OutputAlerts;
         noProvedIndex = 0;
     }
@@ -151,7 +151,7 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
             l2BlockNumber
         );
 
-        _pushAlter(
+        _pushAlert(
             invalidOutputRoot,
             expectOutputRoot,
             0,
@@ -196,7 +196,7 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
             l2BlockNumber
         );
 
-        _pushAlter(
+        _pushAlert(
             proposal.outputRoot,
             expectOutputRoot,
             invalidOutputIndex,
@@ -263,7 +263,7 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
             .invalidOutputIndex;
 
         // if the output root not to eq the `expectOutputRoot`,
-        // means the alter is invalid, now we just delete it,
+        // means the alert is invalid, now we just delete it,
         // TODO: in future version, we need slash the submitter.
         if (outputRoot != l2OutputAlerts[noProvedIndex - 1].expectOutputRoot) {
             if (noProvedIndex < alertsLength) {
@@ -280,8 +280,8 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
         emit SubmittedBlockProve(invalidOutputIndex, outputRoot, l2BlockNumber);
     }
 
-    /// @notice push new alter
-    function _pushAlter(
+    /// @notice push new alert
+    function _pushAlert(
         bytes32 invalidOutputRoot,
         bytes32 expectOutputRoot,
         uint256 invalidOutputIndex,

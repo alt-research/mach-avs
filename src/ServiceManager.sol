@@ -96,7 +96,7 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
     }
 
     /// @notice Return the latest no proved alert 's block number, if not exist, just return 0.
-    function latestNoProvedBlockNumber() external view returns (uint256) {
+    function latestUnprovedBlockNumber() external view returns (uint256) {
         if (noProvedIndex == 0) {
             return 0;
         }

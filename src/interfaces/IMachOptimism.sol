@@ -38,7 +38,7 @@ interface IMachOptimism {
     function latestAlertBlockNumber() external view returns (uint256);
 
     /// @notice Return the latest no proved alert 's block number, if not exist, just return 0.
-    function latestNoProvedBlockNumber() external view returns (uint256);
+    function latestUnprovedBlockNumber() external view returns (uint256);
 
     /// @notice Submit alert for verifier found a op block output mismatch.
     ///         It just a warning without any prove, the prover verifier should

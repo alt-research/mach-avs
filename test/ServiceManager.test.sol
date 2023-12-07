@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.12;
 
+import {IRiscZeroVerifier} from "../src/interfaces/IMachOptimism.sol";
+import {IMachOptimismL2OutputOracle} from "../src/interfaces/IMachOptimismL2OutputOracle.sol";
+
 import {IBLSRegistryCoordinatorWithIndices, ServiceManager, ServiceManagerBase} from "../src/ServiceManager.sol";
 import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import "eigenlayer-contracts/src/contracts/strategies/StrategyBase.sol";
@@ -503,6 +506,24 @@ contract ServiceManagerTest is EigenLayerDeployer {
         );
 
         operatorStateRetriever = new BLSOperatorStateRetriever();
+
+        serviceManagerImplementation = new ServiceManager(
+            IBLSRegistryCoordinatorWithIndices(address(registryCoordinator)),
+            ISlasher(address(slasher))
+        );
+
+        proxyAdmin.upgradeAndCall(
+            TransparentUpgradeableProxy(payable(address(serviceManager))),
+            address(serviceManagerImplementation),
+            abi.encodeWithSelector(
+                ServiceManager.initialize.selector,
+                pauserRegistry,
+                CONTRACT_OWNER,
+                keccak256("imageID"),
+                IMachOptimismL2OutputOracle(address(42)),
+                IRiscZeroVerifier(address(43))
+            )
+        );
 
         vm.stopPrank();
     }

@@ -46,12 +46,12 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
 
     /// @notice Initializes the contract with provided parameters.
     function initialize(
-        IMachOptimismL2OutputOracle l2OutputOracle_,
-        IRiscZeroVerifier verifier_,
-        bytes32 _imageId,
         IPauserRegistry pauserRegistry_,
-        address initialOwner_
-    ) public initializer {
+        address initialOwner_,
+        bytes32 imageId_,
+        IMachOptimismL2OutputOracle l2OutputOracle_,
+        IRiscZeroVerifier verifier_
+    ) external {
         super.initialize(pauserRegistry_, initialOwner_);
         if (address(l2OutputOracle_) == address(0)) {
             revert ZeroAddress();
@@ -59,12 +59,12 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
         if (address(verifier_) == address(0)) {
             revert ZeroAddress();
         }
-        if (_imageId == bytes32(0)) {
+        if (imageId_ == bytes32(0)) {
             revert ZeroValue();
         }
         l2OutputOracle = l2OutputOracle_;
         verifier = verifier_;
-        imageId = _imageId;
+        imageId = imageId_;
     }
 
     /// @notice Called in the event of challenge resolution, in order to forward a call to the Slasher, which 'freezes' the `operator`.
@@ -75,8 +75,8 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
         // slasher.freezeOperator(operatorAddr);
     }
 
-    function setImageId(bytes32 _imageId) external onlyOwner {
-        imageId = _imageId;
+    function setImageId(bytes32 imageId_) external onlyOwner {
+        imageId = imageId_;
     }
 
     function clearAlerts() external onlyOwner {
@@ -96,7 +96,7 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
     }
 
     /// @notice Return the latest no proved alert 's block number, if not exist, just return 0.
-    function latestNoProvedBlockNumber() public view returns (uint256) {
+    function latestNoProvedBlockNumber() external view returns (uint256) {
         if (noProvedIndex == 0) {
             return 0;
         }
@@ -201,7 +201,7 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
 
     /// @notice Submit a bonsai prove receipt to mach contract.
     function submitProve(
-        bytes32 _imageId,
+        bytes32 imageId_,
         bytes calldata journal,
         CallbackAuthorization calldata auth
     ) external {
@@ -220,7 +220,7 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
         }
 
         // receipt.meta.preStateDigest, which just is the imageId in risc0
-        if (imageId != _imageId) {
+        if (imageId != imageId_) {
             revert ProveImageIdMismatch();
         }
 

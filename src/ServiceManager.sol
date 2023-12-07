@@ -18,7 +18,6 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
     IRiscZeroVerifier public verifier;
     // The imageId for risc0 guest code.
     bytes32 public imageId;
-    address public accel;
     event Freeze(address freezed);
 
     struct L2OutputAlert {
@@ -68,15 +67,10 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
         imageId = _imageId;
     }
 
-    function setAccel(address accel_) external onlyOwner {
-        accel = accel_;
-    }
-
     /// @notice Called in the event of challenge resolution, in order to forward a call to the Slasher, which 'freezes' the `operator`.
     /// @dev The Slasher contract is under active development and its interface expected to change.
     ///      We recommend writing slashing logic without integrating with the Slasher at this point in time.
-    function freezeOperator(address operatorAddr) external override {
-        require(msg.sender == accel, "NotAccel");
+    function freezeOperator(address operatorAddr) external override onlyOwner {
         emit Freeze(operatorAddr);
         // slasher.freezeOperator(operatorAddr);
     }

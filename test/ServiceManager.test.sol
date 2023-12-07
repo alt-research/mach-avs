@@ -311,32 +311,6 @@ contract EigenLayerDeployer is Test {
     }
 }
 
-// ISlasher interface for performing slashing operations.
-interface IAccelSlasher {
-    /// @notice Slashes a user by a given number of basis points.
-    /// @param slashedUser The address of the user to be slashed.
-    /// @param beneficiary The address that will receive the slashed amount.
-    /// @param bps The number of basis points by which the user is slashed.
-    /// @return amount the amount slashed
-    function slash(
-        address slashedUser,
-        address beneficiary,
-        uint256 bps
-    ) external returns (uint256);
-}
-
-contract AccelMock {
-    IAccelSlasher serviceManager;
-
-    function setServiceManager(IAccelSlasher serviceManager_) external {
-        serviceManager = serviceManager_;
-    }
-
-    function slash(address slashed) external {
-        IAccelSlasher(serviceManager).slash(slashed, address(0), 1e4);
-    }
-}
-
 contract ServiceManagerTest is EigenLayerDeployer {
     using BN254 for BN254.G1Point;
 

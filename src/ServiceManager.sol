@@ -20,18 +20,10 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
     bytes32 public imageId;
     event Freeze(address freezed);
 
-    struct L2OutputAlert {
-        uint256 l2BlockNumber;
-        uint256 invalidOutputIndex;
-        bytes32 invalidOutputRoot;
-        bytes32 expectOutputRoot;
-        address submitter;
-    }
-
     // Alerts for blocks, the tail is for earliest block.
     // For the proved output, if there are exist a early block alert
     // we will make it not proved!
-    L2OutputAlert[] internal l2OutputAlerts;
+    IMachOptimism.L2OutputAlert[] internal l2OutputAlerts;
     // The next index for no proved alert,
     // `l2OutputAlerts[provedIndex - 1]` is the first no proved alerts,
     // if is 0, means all alert is proved,
@@ -82,6 +74,21 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
     function clearAlerts() external onlyOwner {
         delete l2OutputAlerts;
         provedIndex = 0;
+    }
+
+    function getAlert(uint256 index) external view returns (L2OutputAlert memory) {
+        if (index >= l2OutputAlerts.length) {
+            revert InvalidIndex();
+        }
+        return l2OutputAlerts[index];
+    }
+
+    function getAlertsLength() public view returns (uint256) {
+        return l2OutputAlerts.length;
+    }
+
+    function getProvedIndex() public view returns (uint256) {
+        return provedIndex;
     }
 
     /// @notice Return the latest alert 's block number, if not exist, just return 0.
@@ -177,6 +184,7 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
 
         // Make sure there are no other alert, OR the currently alert is not the earliest error.
         uint256 latestBlockNumber = latestAlertBlockNumber();
+
         if (latestBlockNumber != 0 && l2BlockNumber >= latestBlockNumber) {
             revert UselessAlert();
         }
@@ -205,7 +213,8 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
     function submitProve(
         bytes32 imageId_,
         bytes calldata journal,
-        CallbackAuthorization calldata auth
+        bytes calldata seal,
+        bytes32 postStateDigest
     ) external {
         uint256 alertsLength = l2OutputAlerts.length;
 
@@ -230,14 +239,7 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
             revert InvalidJournal();
         }
 
-        if (
-            !verifier.verify(
-                auth.seal,
-                imageId,
-                auth.postStateDigest,
-                sha256(journal)
-            )
-        ) {
+        if (!verifier.verify(seal, imageId, postStateDigest, sha256(journal))) {
             revert ProveVerifyFailed();
         }
 
@@ -246,32 +248,58 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
         // TODO: check block header and parent output root.
         uint256 l2BlockNumber = 0;
         bytes32 outputRoot = bytes32(0);
-        (, l2BlockNumber, , outputRoot) = abi.decode(
+        bytes32 headerHash = bytes32(0);
+        bytes32 parentHeaderHash = bytes32(0);
+
+        (headerHash, l2BlockNumber, parentHeaderHash, outputRoot) = abi.decode(
             journal,
             (bytes32, uint256, bytes32, bytes32)
         );
 
-        if (l2BlockNumber != l2OutputAlerts[provedIndex - 1].l2BlockNumber) {
+        L2OutputAlert memory alert = l2OutputAlerts[provedIndex - 1];
+
+        if (l2BlockNumber != alert.l2BlockNumber) {
             revert ProveBlockNumberMismatch();
         }
 
-        uint256 invalidOutputIndex = l2OutputAlerts[provedIndex - 1]
-            .invalidOutputIndex;
+        uint256 invalidOutputIndex = alert.invalidOutputIndex;
 
         // if the output root not to eq the `expectOutputRoot`,
         // means the alert is invalid, now we just delete it,
         // TODO: in future version, we need slash the submitter.
-        if (outputRoot != l2OutputAlerts[provedIndex - 1].expectOutputRoot) {
-            if (provedIndex < alertsLength) {
-                for (uint i = provedIndex; i < alertsLength; i++) {
-                    l2OutputAlerts[i] = l2OutputAlerts[i + 1];
+        if (outputRoot != alert.expectOutputRoot) {
+            if (outputRoot == alert.invalidOutputRoot) {
+                if (provedIndex < alertsLength) {
+                    for (uint256 i = provedIndex; i < alertsLength; i++) {
+                        l2OutputAlerts[i] = l2OutputAlerts[i + 1];
+                    }
                 }
-            }
 
-            l2OutputAlerts.pop();
+                l2OutputAlerts.pop();
+
+                emit AlertDelete(
+                    invalidOutputIndex,
+                    alert.expectOutputRoot,
+                    outputRoot,
+                    l2BlockNumber,
+                    alert.submitter
+                );
+            } else {
+                l2OutputAlerts[provedIndex - 1].expectOutputRoot = outputRoot;
+                l2OutputAlerts[provedIndex - 1].submitter = msg.sender;
+
+                emit AlertReset(
+                    invalidOutputIndex,
+                    alert.invalidOutputRoot,
+                    outputRoot,
+                    l2BlockNumber,
+                    alert.submitter,
+                    msg.sender
+                );
+            }
         }
 
-        provedIndex -= 1;
+        provedIndex = provedIndex - 1;
 
         emit SubmittedBlockProve(invalidOutputIndex, outputRoot, l2BlockNumber);
     }

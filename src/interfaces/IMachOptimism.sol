@@ -31,6 +31,33 @@ interface IMachOptimism {
         uint256 indexed l2BlockNumber
     );
 
+    event AlertDelete(
+        uint256 indexed invalidOutputIndex,
+        bytes32 expectOutputRoot,
+        bytes32 OutputRoot,
+        uint256 indexed l2BlockNumber,
+        address indexed submitter
+    );
+    event AlertReset(
+        uint256 indexed invalidOutputIndex,
+        bytes32 invalidOutputRoot,
+        bytes32 expectOutputRoot,
+        uint256 indexed l2BlockNumber,
+        address fromSubmitter,
+        address indexed toSubmitter
+    );
+
+    struct L2OutputAlert {
+        uint256 l2BlockNumber;
+        uint256 invalidOutputIndex;
+        bytes32 invalidOutputRoot;
+        bytes32 expectOutputRoot;
+        address submitter;
+    }
+
+    /// Returns the datas for alert by its index.
+    function getAlert(uint256 index) external view returns (L2OutputAlert memory);
+
     /// @notice Return the latest alert 's block number, if not exist, just return 0.
     ///         TODO: we can add more view functions to get details info about alert.
     ///         This function just used for verifier check if need commit more
@@ -70,6 +97,7 @@ interface IMachOptimism {
     function submitProve(
         bytes32 imageId_,
         bytes calldata journal,
-        CallbackAuthorization calldata auth
+        bytes calldata seal,
+        bytes32 postStateDigest
     ) external;
 }

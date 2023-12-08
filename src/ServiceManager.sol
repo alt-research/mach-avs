@@ -29,7 +29,7 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
     // if is 0, means all alert is proved,
     // if provedIndex == l2OutputAlerts.length, means all alert is not proved,
     // the prover just need prove the earliest no proved alert,
-    uint256 provedIndex;
+    uint256 public provedIndex;
 
     constructor(
         IBLSRegistryCoordinatorWithIndices _registryCoordinator,

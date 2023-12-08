@@ -33,11 +33,11 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
     // we will make it not proved!
     L2OutputAlert[] internal l2OutputAlerts;
     // The next index for no proved alert,
-    // `l2OutputAlerts[noProvedIndex - 1]` is the first no proved alerts,
+    // `l2OutputAlerts[provedIndex - 1]` is the first no proved alerts,
     // if is 0, means all alert is proved,
-    // if noProvedIndex == l2OutputAlerts.length, means all alert is not proved,
+    // if provedIndex == l2OutputAlerts.length, means all alert is not proved,
     // the prover just need prove the earliest no proved alert,
-    uint256 noProvedIndex;
+    uint256 provedIndex;
 
     constructor(
         IBLSRegistryCoordinatorWithIndices _registryCoordinator,
@@ -81,7 +81,7 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
 
     function clearAlerts() external onlyOwner {
         delete l2OutputAlerts;
-        noProvedIndex = 0;
+        provedIndex = 0;
     }
 
     /// @notice Return the latest alert 's block number, if not exist, just return 0.
@@ -97,18 +97,18 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
 
     /// @notice Return the latest no proved alert 's block number, if not exist, just return 0.
     function latestUnprovedBlockNumber() external view returns (uint256) {
-        if (noProvedIndex == 0) {
+        if (provedIndex == 0) {
             return 0;
         }
 
-        if (noProvedIndex > l2OutputAlerts.length) {
-            revert InvalidNoProvedIndex();
+        if (provedIndex > l2OutputAlerts.length) {
+            revert InvalidProvedIndex();
         }
 
         return
             l2OutputAlerts.length == 0
                 ? 0
-                : l2OutputAlerts[noProvedIndex - 1].l2BlockNumber;
+                : l2OutputAlerts[provedIndex - 1].l2BlockNumber;
     }
 
     /// @notice Submit alert for verifier found a op block output mismatch.
@@ -209,12 +209,12 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
     ) external {
         uint256 alertsLength = l2OutputAlerts.length;
 
-        if (alertsLength == 0 || noProvedIndex == 0) {
+        if (alertsLength == 0 || provedIndex == 0) {
             revert NoAlert();
         }
 
-        if (noProvedIndex > alertsLength) {
-            revert InvalidNoProvedIndex();
+        if (provedIndex > alertsLength) {
+            revert InvalidProvedIndex();
         }
 
         if (imageId == bytes32(0)) {
@@ -251,19 +251,19 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
             (bytes32, uint256, bytes32, bytes32)
         );
 
-        if (l2BlockNumber != l2OutputAlerts[noProvedIndex - 1].l2BlockNumber) {
+        if (l2BlockNumber != l2OutputAlerts[provedIndex - 1].l2BlockNumber) {
             revert ProveBlockNumberMismatch();
         }
 
-        uint256 invalidOutputIndex = l2OutputAlerts[noProvedIndex - 1]
+        uint256 invalidOutputIndex = l2OutputAlerts[provedIndex - 1]
             .invalidOutputIndex;
 
         // if the output root not to eq the `expectOutputRoot`,
         // means the alert is invalid, now we just delete it,
         // TODO: in future version, we need slash the submitter.
-        if (outputRoot != l2OutputAlerts[noProvedIndex - 1].expectOutputRoot) {
-            if (noProvedIndex < alertsLength) {
-                for (uint i = noProvedIndex; i < alertsLength; i++) {
+        if (outputRoot != l2OutputAlerts[provedIndex - 1].expectOutputRoot) {
+            if (provedIndex < alertsLength) {
+                for (uint i = provedIndex; i < alertsLength; i++) {
                     l2OutputAlerts[i] = l2OutputAlerts[i + 1];
                 }
             }
@@ -271,7 +271,7 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
             l2OutputAlerts.pop();
         }
 
-        noProvedIndex -= 1;
+        provedIndex -= 1;
 
         emit SubmittedBlockProve(invalidOutputIndex, outputRoot, l2BlockNumber);
     }
@@ -295,7 +295,7 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
         );
 
         // For the proved output, if there are exist a early block alert
-        // we will make it not proved! so we just set to `length - 1`
-        noProvedIndex = l2OutputAlerts.length - 1;
+        // we will make it not proved! so we just set to `length`
+        provedIndex = l2OutputAlerts.length;
     }
 }

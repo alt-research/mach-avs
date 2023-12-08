@@ -17,7 +17,7 @@ error ZeroValue();
 error UselessAlert();
 error InvalidAlert();
 error InvalidAlertType();
-error InvalidNoProvedIndex();
+error InvalidProvedIndex();
 
 error ProveImageIdMismatch();
 error ProveBlockNumberMismatch();

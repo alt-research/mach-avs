@@ -76,7 +76,9 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
         provedIndex = 0;
     }
 
-    function getAlert(uint256 index) external view returns (L2OutputAlert memory) {
+    function getAlert(
+        uint256 index
+    ) external view returns (L2OutputAlert memory) {
         if (index >= l2OutputAlerts.length) {
             revert InvalidIndex();
         }

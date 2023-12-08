@@ -13,3 +13,5 @@ remappings = [
     "eigenlayer-middleware/=lib/eigenlayer-middleware/",
     "forge-std/=lib/forge-std/src/",
 ]
+
+fs_permissions = [{ access = "read-write", path = "."}]

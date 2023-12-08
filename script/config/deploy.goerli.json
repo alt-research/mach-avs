@@ -1,0 +1,36 @@
+{
+  "pk": "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
+  "permissions": {
+    "owner": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "upgrader": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "churner": "0x0000000000000000000000000000000000000000",
+    "ejector": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+  },
+  "slasher": "0xD11d60b669Ecf7bE10329726043B3ac07B380C22",
+  "strategyManager": "0x779d1b5315df083e3F9E94cB495983500bA8E907",
+  "delegation": "0x1b7b8F6b258f95Cf9596EabB9aa18B62940Eb0a8",
+  "strategies": {
+    "rETH": "0x879944A8cB437a5f8061361f82A6d4EED59070b5",
+    "stETH": "0xB613E78E2068d7489bb66419fB1cfa11275d14da"
+  },
+  "minimumStakes": [1000000000000000],
+  "strategyWeights": [
+    [
+      {
+        "0_strategy": "0xB613E78E2068d7489bb66419fB1cfa11275d14da",
+        "1_multiplier": 1070136092289993178
+      },
+      {
+        "0_strategy": "0x879944A8cB437a5f8061361f82A6d4EED59070b5",
+        "1_multiplier": 1071364636818145808
+      }
+    ]
+  ],
+  "operatorSetParams": [
+    {
+      "0_maxOperatorCount": 30,
+      "1_kickBIPsOfOperatorStake": 11000,
+      "2_kickBIPsOfTotalStake": 50
+    }
+  ]
+}

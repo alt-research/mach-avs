@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.12;
 
+import {IRiscZeroVerifier} from "../src/interfaces/IMachOptimism.sol";
+import {IMachOptimismL2OutputOracle} from "../src/interfaces/IMachOptimismL2OutputOracle.sol";
+
 import {IBLSRegistryCoordinatorWithIndices, ServiceManager, ServiceManagerBase} from "../src/ServiceManager.sol";
 import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import "eigenlayer-contracts/src/contracts/strategies/StrategyBase.sol";
@@ -63,10 +66,6 @@ import "forge-std/Test.sol";
 contract EigenLayerDeployer is Test {
     Vm cheats = Vm(HEVM_ADDRESS);
 
-    // EigenLayer contracts
-    ProxyAdmin public proxyAdmin;
-    PauserRegistry public pauserRegistry;
-
     Slasher public slasher;
     DelegationManager public delegation;
     StrategyManager public strategyManager;
@@ -96,57 +95,16 @@ contract EigenLayerDeployer is Test {
     uint64 MAX_RESTAKED_BALANCE_GWEI_PER_VALIDATOR = 32e9;
     uint64 GOERLI_GENESIS_TIME = 1616508000;
 
-    address pauser;
-    address unpauser;
     address theMultiSig = address(420);
     address operator = address(0x4206904396bF2f8b173350ADdEc5007A52664293); //sk: e88d9d864d5d731226020c5d2f02b62a4ce2a4534a39c225d32d3db795f83319
     address _challenger = address(0x6966904396bF2f8b173350bCcec5007A52669873);
 
     address public constant CONTRACT_OWNER = address(101);
 
-    address eigenLayerProxyAdminAddress;
-    address eigenLayerPauserRegAddress;
-    address slasherAddress;
-    address delegationAddress;
-    address strategyManagerAddress;
-    address eigenPodManagerAddress;
-    address podAddress;
-    address delayedWithdrawalRouterAddress;
-    address eigenPodBeaconAddress;
-    address beaconChainOracleAddress;
-    address emptyContractAddress;
-    address operationsMultisig;
-    address executorMultisig;
-
-    uint256 public initialBeaconChainOracleThreshold = 3;
-
-    // addresses excluded from fuzzing due to abnormal behavior. TODO: @Sidu28 define this better and give it a clearer name
-    mapping(address => bool) fuzzedAddressMapping;
-
-    //ensures that a passed in address is not set to true in the fuzzedAddressMapping
-    modifier fuzzedAddress(address addr) virtual {
-        cheats.assume(fuzzedAddressMapping[addr] == false);
-        _;
-    }
-
-    modifier cannotReinit() {
-        cheats.expectRevert(
-            bytes("Initializable: contract is already initialized")
-        );
-        _;
-    }
-
-    function _deployEigenLayerContractsLocal() internal {
-        pauser = address(69);
-        unpauser = address(489);
-        // deploy proxy admin for ability to upgrade proxy contracts
-        proxyAdmin = new ProxyAdmin();
-
-        //deploy pauser registry
-        address[] memory pausers = new address[](1);
-        pausers[0] = pauser;
-        pauserRegistry = new PauserRegistry(pausers, unpauser);
-
+    function _deployEigenLayerContractsLocal(
+        ProxyAdmin proxyAdmin,
+        PauserRegistry pauserRegistry
+    ) internal {
         /**
          * First, deploy upgradeable proxy contracts that **will point** to the implementations. Since the implementation contracts are
          * not yet deployed, we give these proxies an empty contract as the initial implementation, to act as if they have no code.
@@ -273,7 +231,7 @@ contract EigenLayerDeployer is Test {
             abi.encodeWithSelector(
                 EigenPodManager.initialize.selector,
                 type(uint256).max, // maxPods
-                beaconChainOracleAddress,
+                address(0),
                 CONTRACT_OWNER,
                 pauserRegistry,
                 0 /*initialPausedStatus*/
@@ -343,32 +301,6 @@ contract EigenLayerDeployer is Test {
     }
 }
 
-// ISlasher interface for performing slashing operations.
-interface IAccelSlasher {
-    /// @notice Slashes a user by a given number of basis points.
-    /// @param slashedUser The address of the user to be slashed.
-    /// @param beneficiary The address that will receive the slashed amount.
-    /// @param bps The number of basis points by which the user is slashed.
-    /// @return amount the amount slashed
-    function slash(
-        address slashedUser,
-        address beneficiary,
-        uint256 bps
-    ) external returns (uint256);
-}
-
-contract AccelMock {
-    IAccelSlasher serviceManager;
-
-    function setServiceManager(IAccelSlasher serviceManager_) external {
-        serviceManager = serviceManager_;
-    }
-
-    function slash(address slashed) external {
-        IAccelSlasher(serviceManager).slash(slashed, address(0), 1e4);
-    }
-}
-
 contract ServiceManagerTest is EigenLayerDeployer {
     using BN254 for BN254.G1Point;
 
@@ -384,13 +316,6 @@ contract ServiceManagerTest is EigenLayerDeployer {
     string defaultSocket = "69.69.69.69:420";
 
     address public constant ALICE = address(102);
-
-    uint256 churnApproverPrivateKey =
-        uint256(keccak256("churnApproverPrivateKey"));
-    address churnApprover = cheats.addr(churnApproverPrivateKey);
-    bytes32 defaultSalt = bytes32(uint256(keccak256("defaultSalt")));
-
-    address ejector = address(uint160(uint256(keccak256("ejector"))));
 
     BLSRegistryCoordinatorWithIndices public registryCoordinatorImplementation;
     StakeRegistry public stakeRegistryImplementation;
@@ -410,13 +335,13 @@ contract ServiceManagerTest is EigenLayerDeployer {
     uint16 defaultKickBIPsOfTotalStake = 150;
     uint8 numQuorums = 1;
 
-    function _setUpAVS() internal {
+    function _setUpAVS(
+        ProxyAdmin proxyAdmin,
+        PauserRegistry pauserRegistry
+    ) internal {
         // Compendium
         //
         compendium = new BLSPublicKeyCompendium();
-
-        vm.startPrank(CONTRACT_OWNER);
-
         // make the CONTRACT_OWNER the owner of the serviceManager contract
         serviceManager = ServiceManager(
             address(
@@ -534,8 +459,8 @@ contract ServiceManagerTest is EigenLayerDeployer {
                 address(registryCoordinatorImplementation),
                 abi.encodeWithSelector(
                     BLSRegistryCoordinatorWithIndices.initialize.selector,
-                    churnApprover,
-                    ejector,
+                    address(0),
+                    address(0),
                     operatorSetParams,
                     pauserRegistry,
                     0 /*initialPausedStatus*/
@@ -562,19 +487,44 @@ contract ServiceManagerTest is EigenLayerDeployer {
 
         operatorStateRetriever = new BLSOperatorStateRetriever();
 
-        vm.stopPrank();
+        serviceManagerImplementation = new ServiceManager(
+            IBLSRegistryCoordinatorWithIndices(address(registryCoordinator)),
+            ISlasher(address(slasher))
+        );
+
+        proxyAdmin.upgradeAndCall(
+            TransparentUpgradeableProxy(payable(address(serviceManager))),
+            address(serviceManagerImplementation),
+            abi.encodeWithSelector(
+                ServiceManager.initialize.selector,
+                pauserRegistry,
+                CONTRACT_OWNER,
+                keccak256("imageID"),
+                IMachOptimismL2OutputOracle(address(42)),
+                IRiscZeroVerifier(address(43))
+            )
+        );
     }
 
     function setUp() public {
         vm.startPrank(CONTRACT_OWNER);
-        _deployEigenLayerContractsLocal();
+
+        address pauser = address(69);
+        address unpauser = address(489);
+        address[] memory pausers = new address[](1);
+        pausers[0] = pauser;
+        PauserRegistry pauserRegistry = new PauserRegistry(pausers, unpauser);
+        ProxyAdmin proxyAdmin = new ProxyAdmin();
+
+        _deployEigenLayerContractsLocal(proxyAdmin, pauserRegistry);
+
+        _setUpAVS(proxyAdmin, pauserRegistry);
 
         IStrategy[] memory strategiesToWhitelist = new IStrategy[](1);
         strategiesToWhitelist[0] = wethStrat;
         strategyManager.addStrategiesToDepositWhitelist(strategiesToWhitelist);
-        vm.stopPrank();
 
-        _setUpAVS();
+        vm.stopPrank();
     }
 
     function testRegister() public {

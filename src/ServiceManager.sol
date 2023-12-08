@@ -87,9 +87,6 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
         return l2OutputAlerts.length;
     }
 
-    function getProvedIndex() public view returns (uint256) {
-        return provedIndex;
-    }
 
     /// @notice Return the latest alert 's block number, if not exist, just return 0.
     ///         TODO: we can add more view functions to get details info about alert.

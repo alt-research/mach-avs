@@ -5,8 +5,9 @@ pragma solidity ^0.8.12;
 import "forge-std/Script.sol";
 import "../test/ServiceManager.test.sol";
 
-// anvil --fork-url https://eth-goerli.g.alchemy.com/v2/<api-key>
-// FILE='/Users/x/z/avs/script/config/deploy.goerli.json' forge script script/Deploy.s.sol:Deploy --rpc-url http://127.0.0.1:8545 --broadcast -vvvv --slow
+// anvil --fork-url https://eth-goerli.g.alchemy.com/v2/apikey
+// FILE='/home/x/z/avs/script/config/deploy.goerli.json' forge script script/Deploy.s.sol:Deploy --rpc-url http://127.0.0.1:8545 --broadcast -vvvv --slow
+
 contract Deploy is Script, AVSDeployer {
     using BN254 for BN254.G1Point;
 
@@ -148,6 +149,15 @@ contract Deploy is Script, AVSDeployer {
 
         signedMessageHash = BN254.scalar_mul(messageHash, privKey);
         compendium.registerBLSPublicKey(signedMessageHash, pubKeyG1, pubKeyG2);
+
+        bytes memory quorumNumbers = new bytes(1);
+        quorumNumbers[0] = bytes1(0);
+        string memory defaultSocket = "69.69.69.69:420";
+        registryCoordinator.registerOperatorWithCoordinator(
+            quorumNumbers,
+            pubKeyG1,
+            defaultSocket
+        );
 
         vm.stopBroadcast();
     }

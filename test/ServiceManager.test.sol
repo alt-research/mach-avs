@@ -81,7 +81,6 @@ contract EigenLayerDeployer is Test {
     StrategyBase public wethStrat;
     StrategyBase public eigenStrat;
     StrategyBase public baseStrategyImplementation;
-    EmptyContract public emptyContract;
 
     mapping(uint256 => IStrategy) public strategies;
 
@@ -102,14 +101,14 @@ contract EigenLayerDeployer is Test {
     address public constant CONTRACT_OWNER = address(101);
 
     function _deployEigenLayerContractsLocal(
+        EmptyContract emptyContract,
         ProxyAdmin proxyAdmin,
         PauserRegistry pauserRegistry
-    ) internal {
+    ) internal returns (Slasher, StrategyManager) {
         /**
          * First, deploy upgradeable proxy contracts that **will point** to the implementations. Since the implementation contracts are
          * not yet deployed, we give these proxies an empty contract as the initial implementation, to act as if they have no code.
          */
-        emptyContract = new EmptyContract();
         delegation = DelegationManager(
             address(
                 new TransparentUpgradeableProxy(
@@ -298,46 +297,42 @@ contract EigenLayerDeployer is Test {
                 )
             )
         );
+
+        return (slasher, strategyManager);
     }
 }
 
-contract ServiceManagerTest is EigenLayerDeployer {
-    using BN254 for BN254.G1Point;
+contract AVSDeployer {
+    BLSPublicKeyCompendium compendium;
+    BLSOperatorStateRetriever public operatorStateRetriever;
 
     ServiceManager public serviceManager;
     ServiceManager public serviceManagerImplementation;
 
-    BLSPublicKeyCompendium compendium;
-
-    BN254.G1Point pubKeyG1;
-    BN254.G2Point pubKeyG2;
-    BN254.G1Point signedMessageHash;
-    uint256 privKey = 69;
-    string defaultSocket = "69.69.69.69:420";
-
-    address public constant ALICE = address(102);
-
+    BLSRegistryCoordinatorWithIndices public registryCoordinator;
     BLSRegistryCoordinatorWithIndices public registryCoordinatorImplementation;
+
+    StakeRegistry public stakeRegistry;
     StakeRegistry public stakeRegistryImplementation;
+
+    BLSPubkeyRegistry public blsPubkeyRegistry;
     BLSPubkeyRegistry public blsPubkeyRegistryImplementation;
+
+    IndexRegistry public indexRegistry;
     IndexRegistry public indexRegistryImplementation;
 
-    BLSOperatorStateRetriever public operatorStateRetriever;
-    BLSRegistryCoordinatorWithIndices public registryCoordinator;
-    StakeRegistry public stakeRegistry;
-    BLSPubkeyRegistry public blsPubkeyRegistry;
-    IndexRegistry public indexRegistry;
-
-    IBLSRegistryCoordinatorWithIndices.OperatorSetParam[] operatorSetParams;
-
-    uint32 defaultMaxOperatorCount = 10;
-    uint16 defaultKickBIPsOfOperatorStake = 15000;
-    uint16 defaultKickBIPsOfTotalStake = 150;
-    uint8 numQuorums = 1;
-
-    function _setUpAVS(
+    function _deployAVS(
+        address contractOwner,
+        EmptyContract emptyContract,
         ProxyAdmin proxyAdmin,
-        PauserRegistry pauserRegistry
+        PauserRegistry pauserRegistry,
+        Slasher slasher,
+        StrategyManager strategyManager,
+        IVoteWeigher.StrategyAndWeightingMultiplier[][]
+            memory quorumStrategiesConsideredAndMultipliers,
+        uint96[] memory minimumStakeForQuorum,
+        IBLSRegistryCoordinatorWithIndices.OperatorSetParam[]
+            memory operatorSetParams
     ) internal {
         // Compendium
         //
@@ -399,29 +394,6 @@ contract ServiceManagerTest is EigenLayerDeployer {
             serviceManager
         );
 
-        // setup the dummy quorum strategies
-        IVoteWeigher.StrategyAndWeightingMultiplier[][]
-            memory quorumStrategiesConsideredAndMultipliers = new IVoteWeigher.StrategyAndWeightingMultiplier[][](
-                numQuorums
-            );
-        for (
-            uint256 i = 0;
-            i < quorumStrategiesConsideredAndMultipliers.length;
-            i++
-        ) {
-            quorumStrategiesConsideredAndMultipliers[
-                i
-            ] = new IVoteWeigher.StrategyAndWeightingMultiplier[](1);
-            quorumStrategiesConsideredAndMultipliers[i][0] = IVoteWeigher
-                .StrategyAndWeightingMultiplier(wethStrat, 1);
-        }
-
-        // setup the dummy minimum stake for quorum
-        uint96[] memory minimumStakeForQuorum = new uint96[](numQuorums);
-        for (uint256 i; i < minimumStakeForQuorum.length; i++) {
-            minimumStakeForQuorum[i] = 1000;
-        }
-
         proxyAdmin.upgradeAndCall(
             TransparentUpgradeableProxy(payable(address(stakeRegistry))),
             address(stakeRegistryImplementation),
@@ -439,34 +411,19 @@ contract ServiceManagerTest is EigenLayerDeployer {
             blsPubkeyRegistry,
             indexRegistry
         );
-        {
-            delete operatorSetParams;
-            for (uint i = 0; i < numQuorums; i++) {
-                // hard code these for now
-                operatorSetParams.push(
-                    IBLSRegistryCoordinatorWithIndices.OperatorSetParam({
-                        maxOperatorCount: defaultMaxOperatorCount,
-                        kickBIPsOfOperatorStake: defaultKickBIPsOfOperatorStake,
-                        kickBIPsOfTotalStake: defaultKickBIPsOfTotalStake
-                    })
-                );
-            }
 
-            proxyAdmin.upgradeAndCall(
-                TransparentUpgradeableProxy(
-                    payable(address(registryCoordinator))
-                ),
-                address(registryCoordinatorImplementation),
-                abi.encodeWithSelector(
-                    BLSRegistryCoordinatorWithIndices.initialize.selector,
-                    address(0),
-                    address(0),
-                    operatorSetParams,
-                    pauserRegistry,
-                    0 /*initialPausedStatus*/
-                )
-            );
-        }
+        proxyAdmin.upgradeAndCall(
+            TransparentUpgradeableProxy(payable(address(registryCoordinator))),
+            address(registryCoordinatorImplementation),
+            abi.encodeWithSelector(
+                BLSRegistryCoordinatorWithIndices.initialize.selector,
+                address(0),
+                address(0),
+                operatorSetParams,
+                pauserRegistry,
+                0 /*initialPausedStatus*/
+            )
+        );
 
         blsPubkeyRegistryImplementation = new BLSPubkeyRegistry(
             registryCoordinator,
@@ -498,13 +455,19 @@ contract ServiceManagerTest is EigenLayerDeployer {
             abi.encodeWithSelector(
                 ServiceManager.initialize.selector,
                 pauserRegistry,
-                CONTRACT_OWNER,
+                contractOwner,
                 keccak256("imageID"),
                 IMachOptimismL2OutputOracle(address(42)),
                 IRiscZeroVerifier(address(43))
             )
         );
     }
+}
+
+contract ServiceManagerTest is AVSDeployer, EigenLayerDeployer {
+    using BN254 for BN254.G1Point;
+
+    address public constant ALICE = address(102);
 
     function setUp() public {
         vm.startPrank(CONTRACT_OWNER);
@@ -516,9 +479,68 @@ contract ServiceManagerTest is EigenLayerDeployer {
         PauserRegistry pauserRegistry = new PauserRegistry(pausers, unpauser);
         ProxyAdmin proxyAdmin = new ProxyAdmin();
 
-        _deployEigenLayerContractsLocal(proxyAdmin, pauserRegistry);
+        EmptyContract emptyContract = new EmptyContract();
+        (
+            Slasher slasher,
+            StrategyManager strategyManager
+        ) = _deployEigenLayerContractsLocal(
+                emptyContract,
+                proxyAdmin,
+                pauserRegistry
+            );
 
-        _setUpAVS(proxyAdmin, pauserRegistry);
+        {
+            uint8 numQuorums = 1;
+            // setup the dummy quorum strategies
+            IVoteWeigher.StrategyAndWeightingMultiplier[][]
+                memory quorumStrategiesConsideredAndMultipliers = new IVoteWeigher.StrategyAndWeightingMultiplier[][](
+                    numQuorums
+                );
+            for (
+                uint256 i = 0;
+                i < quorumStrategiesConsideredAndMultipliers.length;
+                i++
+            ) {
+                quorumStrategiesConsideredAndMultipliers[
+                    i
+                ] = new IVoteWeigher.StrategyAndWeightingMultiplier[](1);
+                quorumStrategiesConsideredAndMultipliers[i][0] = IVoteWeigher
+                    .StrategyAndWeightingMultiplier(wethStrat, 1);
+            }
+
+            // setup the dummy minimum stake for quorum
+            uint96[] memory minimumStakeForQuorum = new uint96[](numQuorums);
+            for (uint256 i; i < minimumStakeForQuorum.length; i++) {
+                minimumStakeForQuorum[i] = 1000;
+            }
+
+            IBLSRegistryCoordinatorWithIndices.OperatorSetParam[]
+                memory operatorSetParams = new IBLSRegistryCoordinatorWithIndices.OperatorSetParam[](
+                    numQuorums
+                );
+
+            for (uint i = 0; i < numQuorums; i++) {
+                // hard code these for now
+                operatorSetParams[i] = IBLSRegistryCoordinatorWithIndices
+                    .OperatorSetParam({
+                        maxOperatorCount: 10,
+                        kickBIPsOfOperatorStake: 15000,
+                        kickBIPsOfTotalStake: 150
+                    });
+            }
+
+            _deployAVS(
+                CONTRACT_OWNER,
+                emptyContract,
+                proxyAdmin,
+                pauserRegistry,
+                slasher,
+                strategyManager,
+                quorumStrategiesConsideredAndMultipliers,
+                minimumStakeForQuorum,
+                operatorSetParams
+            );
+        }
 
         IStrategy[] memory strategiesToWhitelist = new IStrategy[](1);
         strategiesToWhitelist[0] = wethStrat;
@@ -529,10 +551,15 @@ contract ServiceManagerTest is EigenLayerDeployer {
 
     function testRegister() public {
         uint256 amountToDeposit = 1000 ether;
+        uint256 privKey = 69;
 
         vm.startPrank(CONTRACT_OWNER);
         weth.transfer(ALICE, amountToDeposit);
         vm.stopPrank();
+
+        BN254.G1Point memory pubKeyG1;
+        BN254.G2Point memory pubKeyG2;
+        BN254.G1Point memory signedMessageHash;
 
         pubKeyG1 = BN254.generatorG1().scalar_mul(privKey);
         //privKey*G2
@@ -576,10 +603,6 @@ contract ServiceManagerTest is EigenLayerDeployer {
             "amountToDeposit mismatch"
         );
 
-        address[] memory operators = new address[](1);
-        operators[0] = ALICE;
-        stakeRegistry.updateStakes(operators);
-
         require(
             stakeRegistry.weightOfOperatorForQuorum(0, ALICE) ==
                 amountToDeposit / 1 ether,
@@ -588,6 +611,7 @@ contract ServiceManagerTest is EigenLayerDeployer {
 
         bytes memory quorumNumbers = new bytes(1);
         quorumNumbers[0] = bytes1(0);
+        string memory defaultSocket = "69.69.69.69:420";
         registryCoordinator.registerOperatorWithCoordinator(
             quorumNumbers,
             pubKeyG1,

@@ -119,10 +119,10 @@ contract Deploy is Script, AVSDeployer {
                 stakerOptOutWindowBlocks: 0
             });
         string memory emptyStringForMetadataURI;
-        delegation.registerAsOperator(
-            operatorDetails,
-            emptyStringForMetadataURI
-        );
+        // delegation.registerAsOperator(
+        //     operatorDetails,
+        //     emptyStringForMetadataURI
+        // );
 
         BN254.G1Point memory messageHash = compendium.getMessageHash(admin);
 
@@ -148,6 +148,15 @@ contract Deploy is Script, AVSDeployer {
 
         signedMessageHash = BN254.scalar_mul(messageHash, privKey);
         compendium.registerBLSPublicKey(signedMessageHash, pubKeyG1, pubKeyG2);
+
+        bytes memory quorumNumbers = new bytes(1);
+        quorumNumbers[0] = bytes1(0);
+        string memory defaultSocket = "69.69.69.69:420";
+        registryCoordinator.registerOperatorWithCoordinator(
+            quorumNumbers,
+            pubKeyG1,
+            defaultSocket
+        );
 
         vm.stopBroadcast();
     }

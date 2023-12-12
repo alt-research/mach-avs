@@ -3,6 +3,7 @@ pragma solidity ^0.8.12;
 
 import {IRiscZeroVerifier} from "../src/interfaces/IMachOptimism.sol";
 import {IMachOptimismL2OutputOracle} from "../src/interfaces/IMachOptimismL2OutputOracle.sol";
+import {RiscZeroGroth16Verifier, ControlID} from "../src/groth16/RiscZeroGroth16Verifier.sol";
 
 import {IBLSRegistryCoordinatorWithIndices, ServiceManager, ServiceManagerBase} from "../src/ServiceManager.sol";
 import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
@@ -456,9 +457,14 @@ contract AVSDeployer {
                 ServiceManager.initialize.selector,
                 pauserRegistry,
                 contractOwner,
-                keccak256("imageID"),
-                IMachOptimismL2OutputOracle(address(42)),
-                IRiscZeroVerifier(address(43))
+                0xf8ea046803fdc1fe07d3b56188ff60e3e3c23b771395f9c1244e800b788a4dcc,
+                IMachOptimismL2OutputOracle(
+                    address(0xAaE1866Bc68c49ede8b779d6c5Ad61b0C3FeAB86)
+                ),
+                new RiscZeroGroth16Verifier(
+                    ControlID.CONTROL_ID_0,
+                    ControlID.CONTROL_ID_1
+                )
             )
         );
     }

@@ -36,6 +36,14 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
         ISlasher _slasher
     ) ServiceManagerBase(_registryCoordinator, _slasher) {}
 
+    modifier onlyValidOperator() {
+        bytes32 operatorId = registryCoordinator.getOperatorId(msg.sender);
+        if (operatorId == bytes32(0)) {
+            revert NotOperator();
+        }
+        _;
+    }
+
     /// @notice Initializes the contract with provided parameters.
     function initialize(
         IPauserRegistry pauserRegistry_,
@@ -128,7 +136,7 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
         bytes32 invalidOutputRoot,
         bytes32 expectOutputRoot,
         uint256 l2BlockNumber
-    ) external {
+    ) external onlyValidOperator {
         // Make sure there are no other alert, OR the currently alert is not the earliest error.
         uint256 latestBlockNumber = latestAlertBlockNumber();
         if (latestBlockNumber != 0 && l2BlockNumber >= latestBlockNumber) {
@@ -170,7 +178,7 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
     function alertBlockOutputOracleMismatch(
         uint256 invalidOutputIndex,
         bytes32 expectOutputRoot
-    ) external {
+    ) external onlyValidOperator {
         if (invalidOutputIndex >= l2OutputOracle.latestOutputIndex()) {
             revert InvalidAlertType();
         }
@@ -213,7 +221,7 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
         bytes calldata journal,
         bytes calldata seal,
         bytes32 postStateDigest
-    ) external {
+    ) external onlyValidOperator {
         uint256 alertsLength = l2OutputAlerts.length;
 
         if (alertsLength == 0 || provedIndex == 0) {

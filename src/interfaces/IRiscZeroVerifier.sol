@@ -14,7 +14,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-pragma solidity ^0.8.12;
+pragma solidity ^0.8.9;
 
 /// @notice Indicator for the overall system at the end of execution covered by this proof.
 enum SystemExitCode {
@@ -32,7 +32,7 @@ struct ExitCode {
 
 /// @notice Data associated with a receipt which is used for both input and
 /// output of global state.
-struct ReceiptMetadata {
+struct ReceiptClaim {
     /// Digest of the SystemState of a segment just before execution has begun.
     bytes32 preStateDigest;
     /// Digest of the SystemState of a segment just after execution has completed.
@@ -45,34 +45,33 @@ struct ReceiptMetadata {
     bytes32 output;
 }
 
-library ReceiptMetadataLib {
+library ReceiptClaimLib {
+    // TODO: This tag name needs to be updated.
+    // This is blocked on tests that need to embed an updated receipt blob.
     bytes32 constant TAG_DIGEST = sha256("risc0.ReceiptMeta");
 
-    function digest(
-        ReceiptMetadata memory meta
-    ) internal pure returns (bytes32) {
-        return
-            sha256(
-                abi.encodePacked(
-                    TAG_DIGEST,
-                    // down
-                    meta.input,
-                    meta.preStateDigest,
-                    meta.postStateDigest,
-                    meta.output,
-                    // data
-                    uint32(meta.exitCode.system) << 24,
-                    uint32(meta.exitCode.user) << 24,
-                    // down.length
-                    uint16(4) << 8
-                )
-            );
+    function digest(ReceiptClaim memory claim) internal pure returns (bytes32) {
+        return sha256(
+            abi.encodePacked(
+                TAG_DIGEST,
+                // down
+                claim.input,
+                claim.preStateDigest,
+                claim.postStateDigest,
+                claim.output,
+                // data
+                uint32(claim.exitCode.system) << 24,
+                uint32(claim.exitCode.user) << 24,
+                // down.length
+                uint16(4) << 8
+            )
+        );
     }
 }
 
 struct Receipt {
     bytes seal;
-    ReceiptMetadata meta;
+    ReceiptClaim claim;
 }
 
 interface IRiscZeroVerifier {
@@ -84,21 +83,17 @@ interface IRiscZeroVerifier {
     ///     given image ID, post-state digest, and journal. Asserts that the input hash
     //      is all-zeros (i.e. no committed input) and the exit code is (Halted, 0).
     /// @return true if the receipt passes the verification checks.
-    function verify(
-        bytes calldata seal,
-        bytes32 imageId,
-        bytes32 postStateDigest,
-        bytes32 journalHash
-    ) external view returns (bool);
+    function verify(bytes calldata seal, bytes32 imageId, bytes32 postStateDigest, bytes32 journalHash)
+        external
+        view
+        returns (bool);
 
     /// @notice verifies that the given seal is a valid Groth16 RISC Zero proof of execution over the
     ///     given image ID, post-state digest, and full journal. Asserts that the input hash
     //      is all-zeros (i.e. no committed input) and the exit code is (Halted, 0).
     /// @return true if the receipt passes the verification checks.
-    function verify(
-        bytes memory seal,
-        bytes32 imageId,
-        bytes32 postStateDigest,
-        bytes calldata journal
-    ) external view returns (bool);
+    function verify(bytes memory seal, bytes32 imageId, bytes32 postStateDigest, bytes calldata journal)
+        external
+        view
+        returns (bool);
 }

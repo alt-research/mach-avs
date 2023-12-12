@@ -26,3 +26,4 @@ error ProveOutputRootMismatch();
 error ProveVerifyFailed();
 error InvalidJournal();
 error NoAlert();
+error NotOperator();

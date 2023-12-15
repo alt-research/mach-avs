@@ -51,7 +51,7 @@ import {IStrategy} from "eigenlayer-contracts/src/contracts/interfaces/IStrategy
 
 import {BitmapUtils} from "eigenlayer-middleware/src/libraries/BitmapUtils.sol";
 import {OperatorStateRetriever} from "eigenlayer-middleware/src/OperatorStateRetriever.sol";
-import {RegistryCoordinator, ISignatureUtils} from "eigenlayer-middleware/src/RegistryCoordinator.sol";
+import {RegistryCoordinator, ISignatureUtils, IServiceManager} from "eigenlayer-middleware/src/RegistryCoordinator.sol";
 import {BN254, BLSApkRegistry} from "eigenlayer-middleware/src/BLSApkRegistry.sol";
 import {IStakeRegistry, StakeRegistry} from "eigenlayer-middleware/src/StakeRegistry.sol";
 import {IndexRegistry} from "eigenlayer-middleware/src/IndexRegistry.sol";
@@ -308,8 +308,8 @@ contract EigenLayerDeployer is Test {
 contract AVSDeployer {
     OperatorStateRetriever public operatorStateRetriever;
 
-    ServiceManager public serviceManager;
-    ServiceManager public serviceManagerImplementation;
+    IServiceManager public serviceManager;
+    IServiceManager public serviceManagerImplementation;
 
     RegistryCoordinator public registryCoordinator;
     RegistryCoordinator public registryCoordinatorImplementation;
@@ -335,7 +335,7 @@ contract AVSDeployer {
         IRegistryCoordinator.OperatorSetParam[] memory operatorSetParams
     ) internal {
         // make the CONTRACT_OWNER the owner of the serviceManager contract
-        serviceManager = ServiceManager(
+        serviceManager = IServiceManager(
             address(
                 new TransparentUpgradeableProxy(
                     address(emptyContract),
@@ -391,8 +391,7 @@ contract AVSDeployer {
         );
 
         registryCoordinatorImplementation = new RegistryCoordinator(
-            delegationManager,
-            slasher,
+            serviceManager,
             stakeRegistry,
             blsApkRegistry,
             indexRegistry
@@ -403,9 +402,14 @@ contract AVSDeployer {
 
         operatorStateRetriever = new OperatorStateRetriever();
 
-        serviceManagerImplementation = new ServiceManager(
-            IRegistryCoordinator(address(registryCoordinator)),
-            ISlasher(address(slasher))
+        serviceManagerImplementation = IServiceManager(
+            address(
+                new ServiceManager(
+                    IDelegationManager(address(delegationManager)),
+                    IRegistryCoordinator(address(registryCoordinator)),
+                    IStakeRegistry(address(stakeRegistry))
+                )
+            )
         );
 
         proxyAdmin.upgrade(
@@ -622,7 +626,7 @@ contract ServiceManagerTest is AVSDeployer, EigenLayerDeployer {
         bytes32 digestHash = delegationManager
             .calculateOperatorAVSRegistrationDigestHash(
                 ALICE,
-                address(registryCoordinator),
+                address(serviceManager),
                 salt,
                 expiry
             );

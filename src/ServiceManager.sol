@@ -8,26 +8,15 @@
 
 pragma solidity =0.8.12;
 import {ISlasher} from "eigenlayer-contracts/src/contracts/interfaces/ISlasher.sol";
+import {IDelegationManager} from "eigenlayer-contracts/src/contracts/interfaces/IDelegationManager.sol";
 import "eigenlayer-contracts/src/contracts/interfaces/IPauserRegistry.sol";
-import {IRegistryCoordinator} from "eigenlayer-middleware/src/interfaces/IRegistryCoordinator.sol";
 import "./Error.sol";
 import {IMachOptimism, CallbackAuthorization, IRiscZeroVerifier} from "./interfaces/IMachOptimism.sol";
 import {IMachOptimismL2OutputOracle} from "./interfaces/IMachOptimismL2OutputOracle.sol";
 import {OwnableUpgradeable} from "@openzeppelin-upgrades/contracts/access/OwnableUpgradeable.sol";
+import {ServiceManagerBase, IRegistryCoordinator, IStakeRegistry} from "eigenlayer-middleware/src/ServiceManagerBase.sol";
 
-interface IServiceManager {
-    // ServiceManager proxies to the slasher
-    function slasher() external view returns (ISlasher);
-
-    /// @notice function that causes the ServiceManager to freeze the operator on EigenLayer, through a call to the Slasher contract
-    /// @dev this function should contain slashing logic to make sure operators are not needlessly being slashed
-    /// THIS IS ONLY A TEMPORARY PLACE HOLDER UNTIL SLASHING IS FULLY IMPLEMENTED
-    function freezeOperator(address operator) external;
-}
-
-contract ServiceManager is IMachOptimism, IServiceManager, OwnableUpgradeable {
-    IRegistryCoordinator public registryCoordinator;
-    ISlasher public slasher;
+contract ServiceManager is IMachOptimism, ServiceManagerBase {
     IMachOptimismL2OutputOracle public l2OutputOracle;
     IRiscZeroVerifier public verifier;
     // The imageId for risc0 guest code.
@@ -45,10 +34,17 @@ contract ServiceManager is IMachOptimism, IServiceManager, OwnableUpgradeable {
     // the prover just need prove the earliest no proved alert,
     uint256 public provedIndex;
 
-    constructor(IRegistryCoordinator _registryCoordinator, ISlasher _slasher) {
-        registryCoordinator = _registryCoordinator;
-        slasher = _slasher;
-    }
+    constructor(
+        IDelegationManager _delegationManager,
+        IRegistryCoordinator _registryCoordinator,
+        IStakeRegistry _stakeRegistry
+    )
+        ServiceManagerBase(
+            _delegationManager,
+            _registryCoordinator,
+            _stakeRegistry
+        )
+    {}
 
     modifier onlyValidOperator() {
         bytes32 operatorId = registryCoordinator.getOperatorId(msg.sender);
@@ -77,14 +73,6 @@ contract ServiceManager is IMachOptimism, IServiceManager, OwnableUpgradeable {
         l2OutputOracle = l2OutputOracle_;
         verifier = verifier_;
         imageId = imageId_;
-    }
-
-    /// @notice Called in the event of challenge resolution, in order to forward a call to the Slasher, which 'freezes' the `operator`.
-    /// @dev The Slasher contract is under active development and its interface expected to change.
-    ///      We recommend writing slashing logic without integrating with the Slasher at this point in time.
-    function freezeOperator(address operatorAddr) external override onlyOwner {
-        emit Freeze(operatorAddr);
-        // slasher.freezeOperator(operatorAddr);
     }
 
     function setImageId(bytes32 imageId_) external onlyOwner {

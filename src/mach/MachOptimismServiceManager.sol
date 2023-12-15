@@ -10,18 +10,17 @@ pragma solidity =0.8.12;
 import {ISlasher} from "eigenlayer-contracts/src/contracts/interfaces/ISlasher.sol";
 import {IDelegationManager} from "eigenlayer-contracts/src/contracts/interfaces/IDelegationManager.sol";
 import "eigenlayer-contracts/src/contracts/interfaces/IPauserRegistry.sol";
-import "./Error.sol";
-import {IMachOptimism, CallbackAuthorization, IRiscZeroVerifier} from "./interfaces/IMachOptimism.sol";
-import {IMachOptimismL2OutputOracle} from "./interfaces/IMachOptimismL2OutputOracle.sol";
 import {OwnableUpgradeable} from "@openzeppelin-upgrades/contracts/access/OwnableUpgradeable.sol";
 import {ServiceManagerBase, IRegistryCoordinator, IStakeRegistry} from "eigenlayer-middleware/src/ServiceManagerBase.sol";
+import "../Error.sol";
+import {IMachOptimism, CallbackAuthorization, IRiscZeroVerifier} from "./interfaces/IMachOptimism.sol";
+import {IMachOptimismL2OutputOracle} from "./interfaces/IMachOptimismL2OutputOracle.sol";
 
-contract ServiceManager is IMachOptimism, ServiceManagerBase {
+contract MachOptimismServiceManager is IMachOptimism, ServiceManagerBase {
     IMachOptimismL2OutputOracle public l2OutputOracle;
     IRiscZeroVerifier public verifier;
     // The imageId for risc0 guest code.
     bytes32 public imageId;
-    event Freeze(address freezed);
 
     // Alerts for blocks, the tail is for earliest block.
     // For the proved output, if there are exist a early block alert

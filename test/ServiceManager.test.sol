@@ -1,11 +1,14 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.12;
+import "forge-std/Test.sol";
+
+import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 import {IRiscZeroVerifier} from "../src/interfaces/IMachOptimism.sol";
 import {IMachOptimismL2OutputOracle} from "../src/interfaces/IMachOptimismL2OutputOracle.sol";
 import {RiscZeroGroth16Verifier, ControlID} from "../src/groth16/RiscZeroGroth16Verifier.sol";
 
-import {IBLSRegistryCoordinatorWithIndices, ServiceManager, ServiceManagerBase} from "../src/ServiceManager.sol";
+import {IRegistryCoordinator, ServiceManager} from "../src/ServiceManager.sol";
 import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import "eigenlayer-contracts/src/contracts/strategies/StrategyBase.sol";
 
@@ -44,31 +47,21 @@ import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.so
 import {Slasher} from "eigenlayer-contracts/src/contracts/core/Slasher.sol";
 import {ISlasher} from "eigenlayer-contracts/src/contracts/interfaces/ISlasher.sol";
 import {PauserRegistry} from "eigenlayer-contracts/src/contracts/permissions/PauserRegistry.sol";
-import {IStrategyManager} from "eigenlayer-contracts/src/contracts/interfaces/IStrategyManager.sol";
 import {IStrategy} from "eigenlayer-contracts/src/contracts/interfaces/IStrategy.sol";
-import {ISignatureUtils} from "eigenlayer-contracts/src/contracts/interfaces/ISignatureUtils.sol";
 
 import {BitmapUtils} from "eigenlayer-middleware/src/libraries/BitmapUtils.sol";
-import {BN254, BLSPublicKeyCompendium} from "eigenlayer-middleware/src/BLSPublicKeyCompendium.sol";
-import {BLSOperatorStateRetriever} from "eigenlayer-middleware/src/BLSOperatorStateRetriever.sol";
-import {BLSRegistryCoordinatorWithIndices} from "eigenlayer-middleware/src/BLSRegistryCoordinatorWithIndices.sol";
-import {BLSPubkeyRegistry} from "eigenlayer-middleware/src/BLSPubkeyRegistry.sol";
-import {StakeRegistry} from "eigenlayer-middleware/src/StakeRegistry.sol";
+import {OperatorStateRetriever} from "eigenlayer-middleware/src/OperatorStateRetriever.sol";
+import {RegistryCoordinator, ISignatureUtils} from "eigenlayer-middleware/src/RegistryCoordinator.sol";
+import {BN254, BLSApkRegistry} from "eigenlayer-middleware/src/BLSApkRegistry.sol";
+import {IStakeRegistry, StakeRegistry} from "eigenlayer-middleware/src/StakeRegistry.sol";
 import {IndexRegistry} from "eigenlayer-middleware/src/IndexRegistry.sol";
-import {IServiceManager} from "eigenlayer-middleware/src/interfaces/IServiceManager.sol";
-import {IBLSPubkeyRegistry} from "eigenlayer-middleware/src/interfaces/IBLSPubkeyRegistry.sol";
-import {IRegistryCoordinator} from "eigenlayer-middleware/src/interfaces/IRegistryCoordinator.sol";
-import {IVoteWeigher} from "eigenlayer-middleware/src/interfaces/IVoteWeigher.sol";
-import {IStakeRegistry} from "eigenlayer-middleware/src/interfaces/IStakeRegistry.sol";
-import {IIndexRegistry} from "eigenlayer-middleware/src/interfaces/IIndexRegistry.sol";
-
-import "forge-std/Test.sol";
+import {IBLSApkRegistry} from "eigenlayer-middleware/src/BLSApkRegistryStorage.sol";
 
 contract EigenLayerDeployer is Test {
     Vm cheats = Vm(HEVM_ADDRESS);
 
     Slasher public slasher;
-    DelegationManager public delegation;
+    DelegationManager public delegationManager;
     StrategyManager public strategyManager;
     EigenPodManager public eigenPodManager;
     IEigenPod public pod;
@@ -105,12 +98,12 @@ contract EigenLayerDeployer is Test {
         EmptyContract emptyContract,
         ProxyAdmin proxyAdmin,
         PauserRegistry pauserRegistry
-    ) internal returns (Slasher, StrategyManager) {
+    ) internal returns (Slasher, StrategyManager, IDelegationManager) {
         /**
          * First, deploy upgradeable proxy contracts that **will point** to the implementations. Since the implementation contracts are
          * not yet deployed, we give these proxies an empty contract as the initial implementation, to act as if they have no code.
          */
-        delegation = DelegationManager(
+        delegationManager = DelegationManager(
             address(
                 new TransparentUpgradeableProxy(
                     address(emptyContract),
@@ -174,84 +167,93 @@ contract EigenLayerDeployer is Test {
             eigenPodManager
         );
         StrategyManager strategyManagerImplementation = new StrategyManager(
-            delegation,
+            delegationManager,
             eigenPodManager,
             slasher
         );
         Slasher slasherImplementation = new Slasher(
             strategyManager,
-            delegation
+            delegationManager
         );
-        EigenPodManager eigenPodManagerImplementation = new EigenPodManager(
-            ethPOSDeposit,
-            eigenPodBeacon,
-            strategyManager,
-            slasher,
-            delegation
-        );
-        DelayedWithdrawalRouter delayedWithdrawalRouterImplementation = new DelayedWithdrawalRouter(
-                eigenPodManager
-            );
 
-        // Third, upgrade the proxy contracts to use the correct implementation contracts and initialize them.
-        proxyAdmin.upgradeAndCall(
-            TransparentUpgradeableProxy(payable(address(delegation))),
-            address(delegationImplementation),
-            abi.encodeWithSelector(
-                DelegationManager.initialize.selector,
-                CONTRACT_OWNER,
-                pauserRegistry,
-                0 /*initialPausedStatus*/
-            )
-        );
-        proxyAdmin.upgradeAndCall(
-            TransparentUpgradeableProxy(payable(address(strategyManager))),
-            address(strategyManagerImplementation),
-            abi.encodeWithSelector(
-                StrategyManager.initialize.selector,
-                CONTRACT_OWNER,
-                CONTRACT_OWNER,
-                pauserRegistry,
-                0 /*initialPausedStatus*/
-            )
-        );
-        proxyAdmin.upgradeAndCall(
-            TransparentUpgradeableProxy(payable(address(slasher))),
-            address(slasherImplementation),
-            abi.encodeWithSelector(
-                Slasher.initialize.selector,
-                CONTRACT_OWNER,
-                pauserRegistry,
-                0 /*initialPausedStatus*/
-            )
-        );
-        proxyAdmin.upgradeAndCall(
-            TransparentUpgradeableProxy(payable(address(eigenPodManager))),
-            address(eigenPodManagerImplementation),
-            abi.encodeWithSelector(
-                EigenPodManager.initialize.selector,
-                type(uint256).max, // maxPods
-                address(0),
-                CONTRACT_OWNER,
-                pauserRegistry,
-                0 /*initialPausedStatus*/
-            )
-        );
-        uint256 initPausedStatus = 0;
-        uint256 withdrawalDelayBlocks = PARTIAL_WITHDRAWAL_FRAUD_PROOF_PERIOD_BLOCKS;
-        proxyAdmin.upgradeAndCall(
-            TransparentUpgradeableProxy(
-                payable(address(delayedWithdrawalRouter))
-            ),
-            address(delayedWithdrawalRouterImplementation),
-            abi.encodeWithSelector(
-                DelayedWithdrawalRouter.initialize.selector,
-                CONTRACT_OWNER,
-                pauserRegistry,
-                initPausedStatus,
-                withdrawalDelayBlocks
-            )
-        );
+        {
+            // Third, upgrade the proxy contracts to use the correct implementation contracts and initialize them.
+            proxyAdmin.upgradeAndCall(
+                TransparentUpgradeableProxy(
+                    payable(address(delegationManager))
+                ),
+                address(delegationImplementation),
+                abi.encodeWithSelector(
+                    DelegationManager.initialize.selector,
+                    CONTRACT_OWNER,
+                    pauserRegistry,
+                    0 /*initialPausedStatus*/,
+                    10
+                )
+            );
+            proxyAdmin.upgradeAndCall(
+                TransparentUpgradeableProxy(payable(address(strategyManager))),
+                address(strategyManagerImplementation),
+                abi.encodeWithSelector(
+                    StrategyManager.initialize.selector,
+                    CONTRACT_OWNER,
+                    CONTRACT_OWNER,
+                    pauserRegistry,
+                    0 /*initialPausedStatus*/
+                )
+            );
+            proxyAdmin.upgradeAndCall(
+                TransparentUpgradeableProxy(payable(address(slasher))),
+                address(slasherImplementation),
+                abi.encodeWithSelector(
+                    Slasher.initialize.selector,
+                    CONTRACT_OWNER,
+                    pauserRegistry,
+                    0 /*initialPausedStatus*/
+                )
+            );
+        }
+        {
+            EigenPodManager eigenPodManagerImplementation = new EigenPodManager(
+                ethPOSDeposit,
+                eigenPodBeacon,
+                strategyManager,
+                slasher,
+                delegationManager
+            );
+            proxyAdmin.upgradeAndCall(
+                TransparentUpgradeableProxy(payable(address(eigenPodManager))),
+                address(eigenPodManagerImplementation),
+                abi.encodeWithSelector(
+                    EigenPodManager.initialize.selector,
+                    type(uint256).max, // maxPods
+                    address(0),
+                    CONTRACT_OWNER,
+                    pauserRegistry,
+                    0 /*initialPausedStatus*/
+                )
+            );
+        }
+        {
+            DelayedWithdrawalRouter delayedWithdrawalRouterImplementation = new DelayedWithdrawalRouter(
+                    eigenPodManager
+                );
+            uint256 initPausedStatus = 0;
+            uint256 withdrawalDelayBlocks = PARTIAL_WITHDRAWAL_FRAUD_PROOF_PERIOD_BLOCKS;
+            proxyAdmin.upgradeAndCall(
+                TransparentUpgradeableProxy(
+                    payable(address(delayedWithdrawalRouter))
+                ),
+                address(delayedWithdrawalRouterImplementation),
+                abi.encodeWithSelector(
+                    DelayedWithdrawalRouter.initialize.selector,
+                    CONTRACT_OWNER,
+                    pauserRegistry,
+                    initPausedStatus,
+                    withdrawalDelayBlocks
+                )
+            );
+        }
 
         //simple ERC20 (**NOT** WETH-like!), used in a test strategy
         weth = new ERC20PresetFixedSupply(
@@ -299,25 +301,24 @@ contract EigenLayerDeployer is Test {
             )
         );
 
-        return (slasher, strategyManager);
+        return (slasher, strategyManager, delegationManager);
     }
 }
 
 contract AVSDeployer {
-    BLSPublicKeyCompendium compendium;
-    BLSOperatorStateRetriever public operatorStateRetriever;
+    OperatorStateRetriever public operatorStateRetriever;
 
     ServiceManager public serviceManager;
     ServiceManager public serviceManagerImplementation;
 
-    BLSRegistryCoordinatorWithIndices public registryCoordinator;
-    BLSRegistryCoordinatorWithIndices public registryCoordinatorImplementation;
+    RegistryCoordinator public registryCoordinator;
+    RegistryCoordinator public registryCoordinatorImplementation;
 
     StakeRegistry public stakeRegistry;
     StakeRegistry public stakeRegistryImplementation;
 
-    BLSPubkeyRegistry public blsPubkeyRegistry;
-    BLSPubkeyRegistry public blsPubkeyRegistryImplementation;
+    BLSApkRegistry public blsApkRegistry;
+    BLSApkRegistry public blsApkRegistryImplementation;
 
     IndexRegistry public indexRegistry;
     IndexRegistry public indexRegistryImplementation;
@@ -328,16 +329,11 @@ contract AVSDeployer {
         ProxyAdmin proxyAdmin,
         PauserRegistry pauserRegistry,
         Slasher slasher,
-        StrategyManager strategyManager,
-        IVoteWeigher.StrategyAndWeightingMultiplier[][]
-            memory quorumStrategiesConsideredAndMultipliers,
+        IDelegationManager delegationManager,
+        IStakeRegistry.StrategyParams[][] memory strategyParams,
         uint96[] memory minimumStakeForQuorum,
-        IBLSRegistryCoordinatorWithIndices.OperatorSetParam[]
-            memory operatorSetParams
+        IRegistryCoordinator.OperatorSetParam[] memory operatorSetParams
     ) internal {
-        // Compendium
-        //
-        compendium = new BLSPublicKeyCompendium();
         // make the CONTRACT_OWNER the owner of the serviceManager contract
         serviceManager = ServiceManager(
             address(
@@ -349,7 +345,7 @@ contract AVSDeployer {
             )
         );
 
-        registryCoordinator = BLSRegistryCoordinatorWithIndices(
+        registryCoordinator = RegistryCoordinator(
             address(
                 new TransparentUpgradeableProxy(
                     address(emptyContract),
@@ -379,7 +375,7 @@ contract AVSDeployer {
             )
         );
 
-        blsPubkeyRegistry = BLSPubkeyRegistry(
+        blsApkRegistry = BLSApkRegistry(
             address(
                 new TransparentUpgradeableProxy(
                     address(emptyContract),
@@ -391,63 +387,56 @@ contract AVSDeployer {
 
         stakeRegistryImplementation = new StakeRegistry(
             registryCoordinator,
-            strategyManager,
-            serviceManager
+            delegationManager
         );
 
-        proxyAdmin.upgradeAndCall(
-            TransparentUpgradeableProxy(payable(address(stakeRegistry))),
-            address(stakeRegistryImplementation),
-            abi.encodeWithSelector(
-                StakeRegistry.initialize.selector,
-                minimumStakeForQuorum,
-                quorumStrategiesConsideredAndMultipliers
-            )
-        );
-
-        registryCoordinatorImplementation = new BLSRegistryCoordinatorWithIndices(
+        registryCoordinatorImplementation = new RegistryCoordinator(
+            delegationManager,
             slasher,
-            serviceManager,
             stakeRegistry,
-            blsPubkeyRegistry,
+            blsApkRegistry,
             indexRegistry
         );
+        blsApkRegistryImplementation = new BLSApkRegistry(registryCoordinator);
 
-        proxyAdmin.upgradeAndCall(
-            TransparentUpgradeableProxy(payable(address(registryCoordinator))),
-            address(registryCoordinatorImplementation),
-            abi.encodeWithSelector(
-                BLSRegistryCoordinatorWithIndices.initialize.selector,
-                address(0),
-                address(0),
-                operatorSetParams,
-                pauserRegistry,
-                0 /*initialPausedStatus*/
-            )
-        );
+        indexRegistryImplementation = new IndexRegistry(registryCoordinator);
 
-        blsPubkeyRegistryImplementation = new BLSPubkeyRegistry(
-            registryCoordinator,
-            BLSPublicKeyCompendium(address(compendium))
+        operatorStateRetriever = new OperatorStateRetriever();
+
+        serviceManagerImplementation = new ServiceManager(
+            IRegistryCoordinator(address(registryCoordinator)),
+            ISlasher(address(slasher))
         );
 
         proxyAdmin.upgrade(
-            TransparentUpgradeableProxy(payable(address(blsPubkeyRegistry))),
-            address(blsPubkeyRegistryImplementation)
+            TransparentUpgradeableProxy(payable(address(blsApkRegistry))),
+            address(blsApkRegistryImplementation)
         );
-
-        indexRegistryImplementation = new IndexRegistry(registryCoordinator);
 
         proxyAdmin.upgrade(
             TransparentUpgradeableProxy(payable(address(indexRegistry))),
             address(indexRegistryImplementation)
         );
 
-        operatorStateRetriever = new BLSOperatorStateRetriever();
+        proxyAdmin.upgrade(
+            TransparentUpgradeableProxy(payable(address(stakeRegistry))),
+            address(stakeRegistryImplementation)
+        );
 
-        serviceManagerImplementation = new ServiceManager(
-            IBLSRegistryCoordinatorWithIndices(address(registryCoordinator)),
-            ISlasher(address(slasher))
+        proxyAdmin.upgradeAndCall(
+            TransparentUpgradeableProxy(payable(address(registryCoordinator))),
+            address(registryCoordinatorImplementation),
+            abi.encodeWithSelector(
+                RegistryCoordinator.initialize.selector,
+                contractOwner,
+                contractOwner,
+                contractOwner,
+                pauserRegistry,
+                0 /*initialPausedStatus*/,
+                operatorSetParams,
+                minimumStakeForQuorum,
+                strategyParams
+            )
         );
 
         proxyAdmin.upgradeAndCall(
@@ -455,8 +444,6 @@ contract AVSDeployer {
             address(serviceManagerImplementation),
             abi.encodeWithSelector(
                 ServiceManager.initialize.selector,
-                pauserRegistry,
-                contractOwner,
                 0xf8ea046803fdc1fe07d3b56188ff60e3e3c23b771395f9c1244e800b788a4dcc,
                 IMachOptimismL2OutputOracle(
                     address(0xAaE1866Bc68c49ede8b779d6c5Ad61b0C3FeAB86)
@@ -473,7 +460,7 @@ contract AVSDeployer {
 contract ServiceManagerTest is AVSDeployer, EigenLayerDeployer {
     using BN254 for BN254.G1Point;
 
-    address public constant ALICE = address(102);
+    address public constant ALICE = 0x1326324f5A9fb193409E10006e4EA41b970Df321;
 
     function setUp() public {
         vm.startPrank(CONTRACT_OWNER);
@@ -486,21 +473,48 @@ contract ServiceManagerTest is AVSDeployer, EigenLayerDeployer {
         ProxyAdmin proxyAdmin = new ProxyAdmin();
 
         EmptyContract emptyContract = new EmptyContract();
-        (
-            Slasher slasher,
-            StrategyManager strategyManager
-        ) = _deployEigenLayerContractsLocal(
+        Slasher slasher;
+        StrategyManager strategyManager;
+        IDelegationManager delegationManager;
+        {
+            (
+                slasher,
+                strategyManager,
+                delegationManager
+            ) = _deployEigenLayerContractsLocal(
                 emptyContract,
                 proxyAdmin,
                 pauserRegistry
             );
+        }
 
         {
             uint8 numQuorums = 1;
-            // setup the dummy quorum strategies
-            IVoteWeigher.StrategyAndWeightingMultiplier[][]
-                memory quorumStrategiesConsideredAndMultipliers = new IVoteWeigher.StrategyAndWeightingMultiplier[][](
+
+            // setup the dummy minimum stake for quorum
+            uint96[] memory minimumStakeForQuorum = new uint96[](numQuorums);
+            for (uint256 i; i < minimumStakeForQuorum.length; i++) {
+                minimumStakeForQuorum[i] = 1000;
+            }
+
+            IRegistryCoordinator.OperatorSetParam[]
+                memory operatorSetParams = new IRegistryCoordinator.OperatorSetParam[](
                     numQuorums
+                );
+
+            for (uint i = 0; i < numQuorums; i++) {
+                // hard code these for now
+                operatorSetParams[i] = IRegistryCoordinator.OperatorSetParam({
+                    maxOperatorCount: 10,
+                    kickBIPsOfOperatorStake: 15000,
+                    kickBIPsOfTotalStake: 150
+                });
+            }
+
+            // setup the dummy quorum strategies
+            IStakeRegistry.StrategyParams[][]
+                memory quorumStrategiesConsideredAndMultipliers = new IStakeRegistry.StrategyParams[][](
+                    1
                 );
             for (
                 uint256 i = 0;
@@ -509,30 +523,9 @@ contract ServiceManagerTest is AVSDeployer, EigenLayerDeployer {
             ) {
                 quorumStrategiesConsideredAndMultipliers[
                     i
-                ] = new IVoteWeigher.StrategyAndWeightingMultiplier[](1);
-                quorumStrategiesConsideredAndMultipliers[i][0] = IVoteWeigher
-                    .StrategyAndWeightingMultiplier(wethStrat, 1);
-            }
-
-            // setup the dummy minimum stake for quorum
-            uint96[] memory minimumStakeForQuorum = new uint96[](numQuorums);
-            for (uint256 i; i < minimumStakeForQuorum.length; i++) {
-                minimumStakeForQuorum[i] = 1000;
-            }
-
-            IBLSRegistryCoordinatorWithIndices.OperatorSetParam[]
-                memory operatorSetParams = new IBLSRegistryCoordinatorWithIndices.OperatorSetParam[](
-                    numQuorums
-                );
-
-            for (uint i = 0; i < numQuorums; i++) {
-                // hard code these for now
-                operatorSetParams[i] = IBLSRegistryCoordinatorWithIndices
-                    .OperatorSetParam({
-                        maxOperatorCount: 10,
-                        kickBIPsOfOperatorStake: 15000,
-                        kickBIPsOfTotalStake: 150
-                    });
+                ] = new IStakeRegistry.StrategyParams[](1);
+                quorumStrategiesConsideredAndMultipliers[i][0] = IStakeRegistry
+                    .StrategyParams(wethStrat, uint96(1e18));
             }
 
             _deployAVS(
@@ -541,7 +534,7 @@ contract ServiceManagerTest is AVSDeployer, EigenLayerDeployer {
                 proxyAdmin,
                 pauserRegistry,
                 slasher,
-                strategyManager,
+                delegationManager,
                 quorumStrategiesConsideredAndMultipliers,
                 minimumStakeForQuorum,
                 operatorSetParams
@@ -556,31 +549,11 @@ contract ServiceManagerTest is AVSDeployer, EigenLayerDeployer {
     }
 
     function testRegister() public {
-        uint256 amountToDeposit = 1000 ether;
-        uint256 privKey = 69;
+        uint256 amountToDeposit = 1000;
 
         vm.startPrank(CONTRACT_OWNER);
         weth.transfer(ALICE, amountToDeposit);
         vm.stopPrank();
-
-        BN254.G1Point memory pubKeyG1;
-        BN254.G2Point memory pubKeyG2;
-        BN254.G1Point memory signedMessageHash;
-
-        pubKeyG1 = BN254.generatorG1().scalar_mul(privKey);
-        //privKey*G2
-        pubKeyG2.X[
-            1
-        ] = 19101821850089705274637533855249918363070101489527618151493230256975900223847;
-        pubKeyG2.X[
-            0
-        ] = 5334410886741819556325359147377682006012228123419628681352847439302316235957;
-        pubKeyG2.Y[
-            1
-        ] = 354176189041917478648604979334478067325821134838555150300539079146482658331;
-        pubKeyG2.Y[
-            0
-        ] = 4185483097059047421902184823581361466320657066600218863748375739772335928910;
 
         vm.startPrank(ALICE);
 
@@ -591,14 +564,10 @@ contract ServiceManagerTest is AVSDeployer, EigenLayerDeployer {
                 stakerOptOutWindowBlocks: 0
             });
         string memory emptyStringForMetadataURI;
-        delegation.registerAsOperator(
+        delegationManager.registerAsOperator(
             operatorDetails,
             emptyStringForMetadataURI
         );
-
-        BN254.G1Point memory messageHash = compendium.getMessageHash(ALICE);
-        signedMessageHash = BN254.scalar_mul(messageHash, privKey);
-        compendium.registerBLSPublicKey(signedMessageHash, pubKeyG1, pubKeyG2);
 
         weth.approve(address(strategyManager), amountToDeposit);
 
@@ -611,21 +580,72 @@ contract ServiceManagerTest is AVSDeployer, EigenLayerDeployer {
 
         require(
             stakeRegistry.weightOfOperatorForQuorum(0, ALICE) ==
-                amountToDeposit / 1 ether,
+                amountToDeposit,
             "weight mismatch"
         );
+
+        uint256 privKey = 69;
+        IBLSApkRegistry.PubkeyRegistrationParams
+            memory pubkeyRegistrationParams;
+
+        BN254.G1Point memory messageHash = registryCoordinator
+            .pubkeyRegistrationMessageHash(ALICE);
+
+        pubkeyRegistrationParams.pubkeyRegistrationSignature = BN254.scalar_mul(
+            messageHash,
+            privKey
+        );
+        pubkeyRegistrationParams.pubkeyG1 = BN254.generatorG1().scalar_mul(
+            privKey
+        );
+
+        //privKey*G2
+        pubkeyRegistrationParams.pubkeyG2.X[
+            1
+        ] = 19101821850089705274637533855249918363070101489527618151493230256975900223847;
+        pubkeyRegistrationParams.pubkeyG2.X[
+            0
+        ] = 5334410886741819556325359147377682006012228123419628681352847439302316235957;
+        pubkeyRegistrationParams.pubkeyG2.Y[
+            1
+        ] = 354176189041917478648604979334478067325821134838555150300539079146482658331;
+        pubkeyRegistrationParams.pubkeyG2.Y[
+            0
+        ] = 4185483097059047421902184823581361466320657066600218863748375739772335928910;
+
+        ISignatureUtils.SignatureWithSaltAndExpiry
+            memory signatureWithSaltAndExpiry;
+
+        uint256 expiry = block.timestamp + 10;
+        bytes32 salt = bytes32(uint256(keccak256("defaultSalt")));
+
+        bytes32 digestHash = delegationManager
+            .calculateOperatorAVSRegistrationDigestHash(
+                ALICE,
+                address(registryCoordinator),
+                salt,
+                expiry
+            );
+
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(privKey, digestHash);
+
+        signatureWithSaltAndExpiry.expiry = expiry;
+        signatureWithSaltAndExpiry.signature = abi.encodePacked(r, s, v);
+        signatureWithSaltAndExpiry.salt = salt;
 
         bytes memory quorumNumbers = new bytes(1);
         quorumNumbers[0] = bytes1(0);
         string memory defaultSocket = "69.69.69.69:420";
-        registryCoordinator.registerOperatorWithCoordinator(
+
+        registryCoordinator.registerOperator(
             quorumNumbers,
-            pubKeyG1,
-            defaultSocket
+            defaultSocket,
+            pubkeyRegistrationParams,
+            signatureWithSaltAndExpiry
         );
         assertEq(
             registryCoordinator.getOperatorId(ALICE),
-            BN254.hashG1Point(pubKeyG1),
+            BN254.hashG1Point(pubkeyRegistrationParams.pubkeyG1),
             "operator ID mismatch"
         );
         vm.stopPrank();

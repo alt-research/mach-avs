@@ -7,13 +7,27 @@
 // work, software, application, source code, documentation and any other documents
 
 pragma solidity =0.8.12;
+import {ISlasher} from "eigenlayer-contracts/src/contracts/interfaces/ISlasher.sol";
 import "eigenlayer-contracts/src/contracts/interfaces/IPauserRegistry.sol";
-import {IBLSRegistryCoordinatorWithIndices, ServiceManagerBase, IBLSRegistryCoordinatorWithIndices, ISlasher} from "eigenlayer-middleware/src/ServiceManagerBase.sol";
+import {IRegistryCoordinator} from "eigenlayer-middleware/src/interfaces/IRegistryCoordinator.sol";
 import "./Error.sol";
 import {IMachOptimism, CallbackAuthorization, IRiscZeroVerifier} from "./interfaces/IMachOptimism.sol";
 import {IMachOptimismL2OutputOracle} from "./interfaces/IMachOptimismL2OutputOracle.sol";
+import {OwnableUpgradeable} from "@openzeppelin-upgrades/contracts/access/OwnableUpgradeable.sol";
 
-contract ServiceManager is IMachOptimism, ServiceManagerBase {
+interface IServiceManager {
+    // ServiceManager proxies to the slasher
+    function slasher() external view returns (ISlasher);
+
+    /// @notice function that causes the ServiceManager to freeze the operator on EigenLayer, through a call to the Slasher contract
+    /// @dev this function should contain slashing logic to make sure operators are not needlessly being slashed
+    /// THIS IS ONLY A TEMPORARY PLACE HOLDER UNTIL SLASHING IS FULLY IMPLEMENTED
+    function freezeOperator(address operator) external;
+}
+
+contract ServiceManager is IMachOptimism, IServiceManager, OwnableUpgradeable {
+    IRegistryCoordinator public registryCoordinator;
+    ISlasher public slasher;
     IMachOptimismL2OutputOracle public l2OutputOracle;
     IRiscZeroVerifier public verifier;
     // The imageId for risc0 guest code.
@@ -31,10 +45,10 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
     // the prover just need prove the earliest no proved alert,
     uint256 public provedIndex;
 
-    constructor(
-        IBLSRegistryCoordinatorWithIndices _registryCoordinator,
-        ISlasher _slasher
-    ) ServiceManagerBase(_registryCoordinator, _slasher) {}
+    constructor(IRegistryCoordinator _registryCoordinator, ISlasher _slasher) {
+        registryCoordinator = _registryCoordinator;
+        slasher = _slasher;
+    }
 
     modifier onlyValidOperator() {
         bytes32 operatorId = registryCoordinator.getOperatorId(msg.sender);
@@ -46,13 +60,11 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
 
     /// @notice Initializes the contract with provided parameters.
     function initialize(
-        IPauserRegistry pauserRegistry_,
-        address initialOwner_,
         bytes32 imageId_,
         IMachOptimismL2OutputOracle l2OutputOracle_,
         IRiscZeroVerifier verifier_
-    ) external {
-        super.initialize(pauserRegistry_, initialOwner_);
+    ) external initializer {
+        __Ownable_init();
         if (address(l2OutputOracle_) == address(0)) {
             revert ZeroAddress();
         }

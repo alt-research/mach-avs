@@ -137,8 +137,11 @@ contract MachOptimismServiceManager is IMachOptimism, ServiceManagerBase {
         uint256 l2BlockNumber
     ) external onlyValidOperator {
         // Make sure there are no other alert, OR the currently alert is not the earliest error.
-        uint256 latestBlockNumber = latestAlertBlockNumber();
-        if (latestBlockNumber != 0 && l2BlockNumber >= latestBlockNumber) {
+        uint256 latestAlertBlockNumber = latestAlertBlockNumber();
+        if (
+            latestAlertBlockNumber != 0 &&
+            l2BlockNumber >= latestAlertBlockNumber
+        ) {
             revert UselessAlert();
         }
 
@@ -269,9 +272,8 @@ contract MachOptimismServiceManager is IMachOptimism, ServiceManagerBase {
 
         uint256 invalidOutputIndex = alert.invalidOutputIndex;
 
-        // if the output root not to eq the `expectOutputRoot`,
-        // means the alert is invalid, now we just delete it,
-        // TODO: in future version, we need slash the submitter.
+        // if the output root is not equal to the expectOutputRoot, the alert is invalid.
+        // TODO: In the future, we need to slash the submitter. For now we just delete it.
         if (outputRoot != alert.expectOutputRoot) {
             if (outputRoot == alert.invalidOutputRoot) {
                 if (provedIndex < alertsLength) {

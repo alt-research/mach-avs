@@ -10,18 +10,17 @@ pragma solidity =0.8.12;
 import {ISlasher} from "eigenlayer-contracts/src/contracts/interfaces/ISlasher.sol";
 import {IDelegationManager} from "eigenlayer-contracts/src/contracts/interfaces/IDelegationManager.sol";
 import "eigenlayer-contracts/src/contracts/interfaces/IPauserRegistry.sol";
-import "./Error.sol";
-import {IMachOptimism, CallbackAuthorization, IRiscZeroVerifier} from "./interfaces/IMachOptimism.sol";
-import {IMachOptimismL2OutputOracle} from "./interfaces/IMachOptimismL2OutputOracle.sol";
 import {OwnableUpgradeable} from "@openzeppelin-upgrades/contracts/access/OwnableUpgradeable.sol";
 import {ServiceManagerBase, IRegistryCoordinator, IStakeRegistry} from "eigenlayer-middleware/src/ServiceManagerBase.sol";
+import "../Error.sol";
+import {IMachOptimism, CallbackAuthorization, IRiscZeroVerifier} from "./interfaces/IMachOptimism.sol";
+import {IMachOptimismL2OutputOracle} from "./interfaces/IMachOptimismL2OutputOracle.sol";
 
-contract ServiceManager is IMachOptimism, ServiceManagerBase {
+contract MachOptimismServiceManager is IMachOptimism, ServiceManagerBase {
     IMachOptimismL2OutputOracle public l2OutputOracle;
     IRiscZeroVerifier public verifier;
     // The imageId for risc0 guest code.
     bytes32 public imageId;
-    event Freeze(address freezed);
 
     // Alerts for blocks, the tail is for earliest block.
     // For the proved output, if there are exist a early block alert
@@ -138,12 +137,15 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
         uint256 l2BlockNumber
     ) external onlyValidOperator {
         // Make sure there are no other alert, OR the currently alert is not the earliest error.
-        uint256 latestBlockNumber = latestAlertBlockNumber();
-        if (latestBlockNumber != 0 && l2BlockNumber >= latestBlockNumber) {
+        uint256 latestAlertBlockNumber = latestAlertBlockNumber();
+        if (
+            latestAlertBlockNumber != 0 &&
+            l2BlockNumber >= latestAlertBlockNumber
+        ) {
             revert UselessAlert();
         }
 
-        if (l2BlockNumber == 0) {
+        if (l2BlockNumber == 0 || invalidOutputRoot == expectOutputRoot) {
             revert InvalidAlert();
         }
 
@@ -195,7 +197,7 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
             revert UselessAlert();
         }
 
-        if (l2BlockNumber == 0) {
+        if (l2BlockNumber == 0 || proposal.outputRoot == expectOutputRoot) {
             revert InvalidAlert();
         }
 
@@ -270,9 +272,8 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
 
         uint256 invalidOutputIndex = alert.invalidOutputIndex;
 
-        // if the output root not to eq the `expectOutputRoot`,
-        // means the alert is invalid, now we just delete it,
-        // TODO: in future version, we need slash the submitter.
+        // if the output root is not equal to the expectOutputRoot, the alert is invalid.
+        // TODO: In the future, we need to slash the submitter. For now we just delete it.
         if (outputRoot != alert.expectOutputRoot) {
             if (outputRoot == alert.invalidOutputRoot) {
                 if (provedIndex < alertsLength) {
@@ -308,6 +309,35 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
         provedIndex = provedIndex - 1;
 
         emit SubmittedBlockProve(invalidOutputIndex, outputRoot, l2BlockNumber);
+    }
+
+    function clearBlockAlertsUpTo(uint256 l2BlockNumber) external onlyOwner {
+        require(l2BlockNumber > 0, "Invalid l2BlockNumber");
+
+        uint256 alertsLength = l2OutputAlerts.length;
+
+        if (alertsLength == 0 || provedIndex == 0) {
+            revert("No alerts to clear");
+        }
+
+        if (provedIndex > alertsLength) {
+            revert("Invalid provedIndex");
+        }
+
+        // Iterate through the alerts and clear those up to l2BlockNumber
+        for (uint256 i = provedIndex - 1; i < alertsLength; i++) {
+            if (l2OutputAlerts[i].l2BlockNumber <= l2BlockNumber) {
+                // Clear the alert by shifting the subsequent alerts
+                for (uint256 j = i; j < alertsLength - 1; j++) {
+                    l2OutputAlerts[j] = l2OutputAlerts[j + 1];
+                }
+                l2OutputAlerts.pop();
+            } else {
+                break; // Stop once we reach an alert with a higher l2BlockNumber
+            }
+        }
+
+        provedIndex = l2OutputAlerts.length;
     }
 
     /// @notice push new alert

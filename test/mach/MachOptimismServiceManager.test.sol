@@ -4,11 +4,11 @@ import "forge-std/Test.sol";
 
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
-import {IRiscZeroVerifier} from "../src/interfaces/IMachOptimism.sol";
-import {IMachOptimismL2OutputOracle} from "../src/interfaces/IMachOptimismL2OutputOracle.sol";
-import {RiscZeroGroth16Verifier, ControlID} from "../src/groth16/RiscZeroGroth16Verifier.sol";
+import {IRiscZeroVerifier} from "../../src/mach/interfaces/IMachOptimism.sol";
+import {IMachOptimismL2OutputOracle} from "../../src/mach/interfaces/IMachOptimismL2OutputOracle.sol";
+import {RiscZeroGroth16Verifier, ControlID} from "../../src/mach/groth16/RiscZeroGroth16Verifier.sol";
 
-import {IRegistryCoordinator, ServiceManager} from "../src/ServiceManager.sol";
+import {IRegistryCoordinator, MachOptimismServiceManager} from "../../src/mach/MachOptimismServiceManager.sol";
 import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import "eigenlayer-contracts/src/contracts/strategies/StrategyBase.sol";
 
@@ -404,7 +404,7 @@ contract AVSDeployer {
 
         serviceManagerImplementation = IServiceManager(
             address(
-                new ServiceManager(
+                new MachOptimismServiceManager(
                     IDelegationManager(address(delegationManager)),
                     IRegistryCoordinator(address(registryCoordinator)),
                     IStakeRegistry(address(stakeRegistry))
@@ -447,7 +447,7 @@ contract AVSDeployer {
             TransparentUpgradeableProxy(payable(address(serviceManager))),
             address(serviceManagerImplementation),
             abi.encodeWithSelector(
-                ServiceManager.initialize.selector,
+                MachOptimismServiceManager.initialize.selector,
                 0xf8ea046803fdc1fe07d3b56188ff60e3e3c23b771395f9c1244e800b788a4dcc,
                 IMachOptimismL2OutputOracle(
                     address(0xAaE1866Bc68c49ede8b779d6c5Ad61b0C3FeAB86)

@@ -145,7 +145,7 @@ contract MachOptimismServiceManager is IMachOptimism, ServiceManagerBase {
             revert UselessAlert();
         }
 
-        if (l2BlockNumber == 0) {
+        if (l2BlockNumber == 0 || invalidOutputRoot == expectOutputRoot) {
             revert InvalidAlert();
         }
 
@@ -197,7 +197,7 @@ contract MachOptimismServiceManager is IMachOptimism, ServiceManagerBase {
             revert UselessAlert();
         }
 
-        if (l2BlockNumber == 0) {
+        if (l2BlockNumber == 0 || proposal.outputRoot == expectOutputRoot) {
             revert InvalidAlert();
         }
 
@@ -309,6 +309,35 @@ contract MachOptimismServiceManager is IMachOptimism, ServiceManagerBase {
         provedIndex = provedIndex - 1;
 
         emit SubmittedBlockProve(invalidOutputIndex, outputRoot, l2BlockNumber);
+    }
+
+    function clearBlockAlertsUpTo(uint256 l2BlockNumber) external onlyOwner {
+        require(l2BlockNumber > 0, "Invalid l2BlockNumber");
+
+        uint256 alertsLength = l2OutputAlerts.length;
+
+        if (alertsLength == 0 || provedIndex == 0) {
+            revert("No alerts to clear");
+        }
+
+        if (provedIndex > alertsLength) {
+            revert("Invalid provedIndex");
+        }
+
+        // Iterate through the alerts and clear those up to l2BlockNumber
+        for (uint256 i = provedIndex - 1; i < alertsLength; i++) {
+            if (l2OutputAlerts[i].l2BlockNumber <= l2BlockNumber) {
+                // Clear the alert by shifting the subsequent alerts
+                for (uint256 j = i; j < alertsLength - 1; j++) {
+                    l2OutputAlerts[j] = l2OutputAlerts[j + 1];
+                }
+                l2OutputAlerts.pop();
+            } else {
+                break; // Stop once we reach an alert with a higher l2BlockNumber
+            }
+        }
+
+        provedIndex = l2OutputAlerts.length;
     }
 
     /// @notice push new alert

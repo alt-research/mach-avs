@@ -18,7 +18,6 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
     IRiscZeroVerifier public verifier;
     // The imageId for risc0 guest code.
     bytes32 public imageId;
-    event Freeze(address freezed);
 
     // Alerts for blocks, the tail is for earliest block.
     // For the proved output, if there are exist a early block alert
@@ -30,6 +29,7 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
     // if provedIndex == l2OutputAlerts.length, means all alert is not proved,
     // the prover just need prove the earliest no proved alert,
     uint256 public provedIndex;
+    event Freeze(address freezed);
 
     constructor(
         IBLSRegistryCoordinatorWithIndices _registryCoordinator,
@@ -42,6 +42,14 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
             revert NotOperator();
         }
         _;
+    }
+
+    /// @notice Called in the event of challenge resolution, in order to forward a call to the Slasher, which 'freezes' the `operator`.
+    /// @dev The Slasher contract is under active development and its interface expected to change.
+    ///      We recommend writing slashing logic without integrating with the Slasher at this point in time.
+    function freezeOperator(address operatorAddr) external override onlyOwner {
+        emit Freeze(operatorAddr);
+        // slasher.freezeOperator(operatorAddr);
     }
 
     /// @notice Initializes the contract with provided parameters.
@@ -65,14 +73,6 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
         l2OutputOracle = l2OutputOracle_;
         verifier = verifier_;
         imageId = imageId_;
-    }
-
-    /// @notice Called in the event of challenge resolution, in order to forward a call to the Slasher, which 'freezes' the `operator`.
-    /// @dev The Slasher contract is under active development and its interface expected to change.
-    ///      We recommend writing slashing logic without integrating with the Slasher at this point in time.
-    function freezeOperator(address operatorAddr) external override onlyOwner {
-        emit Freeze(operatorAddr);
-        // slasher.freezeOperator(operatorAddr);
     }
 
     function setImageId(bytes32 imageId_) external onlyOwner {
@@ -138,12 +138,15 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
         uint256 l2BlockNumber
     ) external onlyValidOperator {
         // Make sure there are no other alert, OR the currently alert is not the earliest error.
-        uint256 latestBlockNumber = latestAlertBlockNumber();
-        if (latestBlockNumber != 0 && l2BlockNumber >= latestBlockNumber) {
+        uint256 latestAlertBlockNumber = latestAlertBlockNumber();
+        if (
+            latestAlertBlockNumber != 0 &&
+            l2BlockNumber >= latestAlertBlockNumber
+        ) {
             revert UselessAlert();
         }
 
-        if (l2BlockNumber == 0) {
+        if (l2BlockNumber == 0 || invalidOutputRoot == expectOutputRoot) {
             revert InvalidAlert();
         }
 
@@ -195,7 +198,7 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
             revert UselessAlert();
         }
 
-        if (l2BlockNumber == 0) {
+        if (l2BlockNumber == 0 || proposal.outputRoot == expectOutputRoot) {
             revert InvalidAlert();
         }
 
@@ -270,9 +273,8 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
 
         uint256 invalidOutputIndex = alert.invalidOutputIndex;
 
-        // if the output root not to eq the `expectOutputRoot`,
-        // means the alert is invalid, now we just delete it,
-        // TODO: in future version, we need slash the submitter.
+        // if the output root is not equal to the expectOutputRoot, the alert is invalid.
+        // TODO: In the future, we need to slash the submitter. For now we just delete it.
         if (outputRoot != alert.expectOutputRoot) {
             if (outputRoot == alert.invalidOutputRoot) {
                 if (provedIndex < alertsLength) {
@@ -282,6 +284,8 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
                 }
 
                 l2OutputAlerts.pop();
+
+                _clearBlockAlertsUpTo(l2BlockNumber);
 
                 emit AlertDelete(
                     invalidOutputIndex,
@@ -308,6 +312,35 @@ contract ServiceManager is IMachOptimism, ServiceManagerBase {
         provedIndex = provedIndex - 1;
 
         emit SubmittedBlockProve(invalidOutputIndex, outputRoot, l2BlockNumber);
+    }
+
+    function _clearBlockAlertsUpTo(uint256 l2BlockNumber) internal {
+        require(l2BlockNumber > 0, "Invalid l2BlockNumber");
+
+        uint256 alertsLength = l2OutputAlerts.length;
+
+        if (alertsLength == 0 || provedIndex == 0) {
+            revert("No alerts to clear");
+        }
+
+        if (provedIndex > alertsLength) {
+            revert("Invalid provedIndex");
+        }
+
+        // Iterate through the alerts and clear those up to l2BlockNumber
+        for (uint256 i = provedIndex - 1; i < alertsLength; i++) {
+            if (l2OutputAlerts[i].l2BlockNumber <= l2BlockNumber) {
+                // Clear the alert by shifting the subsequent alerts
+                for (uint256 j = i; j < alertsLength - 1; j++) {
+                    l2OutputAlerts[j] = l2OutputAlerts[j + 1];
+                }
+                l2OutputAlerts.pop();
+            } else {
+                break; // Stop once we reach an alert with a higher l2BlockNumber
+            }
+        }
+
+        provedIndex = l2OutputAlerts.length;
     }
 
     /// @notice push new alert

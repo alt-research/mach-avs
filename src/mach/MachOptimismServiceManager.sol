@@ -137,10 +137,10 @@ contract MachOptimismServiceManager is IMachOptimism, ServiceManagerBase {
         uint256 l2BlockNumber
     ) external onlyValidOperator {
         // Make sure there are no other alert, OR the currently alert is not the earliest error.
-        uint256 latestAlertBlockNumber = latestAlertBlockNumber();
+        uint256 latestBlockNumber = latestAlertBlockNumber();
         if (
-            latestAlertBlockNumber != 0 &&
-            l2BlockNumber >= latestAlertBlockNumber
+            latestBlockNumber != 0 &&
+            l2BlockNumber >= latestBlockNumber
         ) {
             revert UselessAlert();
         }
@@ -222,12 +222,17 @@ contract MachOptimismServiceManager is IMachOptimism, ServiceManagerBase {
         bytes32 imageId_,
         bytes calldata journal,
         bytes calldata seal,
-        bytes32 postStateDigest
+        bytes32 postStateDigest,
+        uint256 perL2OutputIndex
     ) external onlyValidOperator {
         uint256 alertsLength = l2OutputAlerts.length;
 
         if (alertsLength == 0 || provedIndex == 0) {
             revert NoAlert();
+        }
+
+        if (perL2OutputIndex == 0) {
+            revert InvalidIndex();
         }
 
         if (provedIndex > alertsLength) {
@@ -251,23 +256,38 @@ contract MachOptimismServiceManager is IMachOptimism, ServiceManagerBase {
             revert ProveVerifyFailed();
         }
 
+        // Got the per l2 ouput root info by index
+        IMachOptimismL2OutputOracle.OutputProposal memory checkpoint = l2OutputOracle.getL2Output(perL2OutputIndex);
+        if (checkpoint.l2BlockNumber == 0 || checkpoint.outputRoot == bytes32(0)) {
+            revert InvalidPerCheckpoint();
+        }
+
         // Now we can trust the receipt.
         // this data is defend in guest.
         // TODO: check block header and parent output root.
         uint256 l2BlockNumber = 0;
         bytes32 outputRoot = bytes32(0);
         bytes32 headerHash = bytes32(0);
-        bytes32 parentHeaderHash = bytes32(0);
+        bytes32 perCheckpointOutputRoot = bytes32(0);
+        uint256 parentCheckpointNumber = 0;
 
-        (headerHash, l2BlockNumber, parentHeaderHash, outputRoot) = abi.decode(
+        (headerHash, l2BlockNumber, perCheckpointOutputRoot, parentCheckpointNumber, outputRoot) = abi.decode(
             journal,
-            (bytes32, uint256, bytes32, bytes32)
+            (bytes32, uint256, bytes32, uint256, bytes32)
         );
 
         L2OutputAlert memory alert = l2OutputAlerts[provedIndex - 1];
 
         if (l2BlockNumber != alert.l2BlockNumber) {
             revert ProveBlockNumberMismatch();
+        }
+
+        if (parentCheckpointNumber != checkpoint.l2BlockNumber) {
+            revert ParentCheckpointNumberMismatch();
+        }
+
+        if (perCheckpointOutputRoot != checkpoint.outputRoot) {
+            revert ParentCheckpointOutputRootMismatch();
         }
 
         uint256 invalidOutputIndex = alert.invalidOutputIndex;

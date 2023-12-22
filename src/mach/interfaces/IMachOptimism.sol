@@ -98,6 +98,7 @@ interface IMachOptimism {
         bytes32 imageId_,
         bytes calldata journal,
         bytes calldata seal,
-        bytes32 postStateDigest
+        bytes32 postStateDigest,
+        uint256 perL2OutputIndex
     ) external;
 }

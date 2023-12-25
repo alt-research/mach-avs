@@ -53,6 +53,12 @@ contract MachOptimismServiceManager is IMachOptimism, ServiceManagerBase {
         _;
     }
 
+    ///  @notice Get the address for RegistryCoordinator,
+    ///  it help the verifier to check if self is a valid operator.
+    function getRegistryCoordinatorAddress()  public view returns (address) {
+        return address(registryCoordinator);
+    }
+
     /// @notice Initializes the contract with provided parameters.
     function initialize(
         bytes32 imageId_,

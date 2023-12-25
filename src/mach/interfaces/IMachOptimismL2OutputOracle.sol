@@ -46,7 +46,7 @@ interface IMachOptimismL2OutputOracle {
     );
 
     /// @notice Getter for the output proposal submission interval.
-    function submissionInterval() external view returns (uint256);
+    function SUBMISSION_INTERVAL() external view returns (uint256);
 
     /// @notice Getter for the proposer address. This will be removed in the
     ///         future, use `proposer` instead.

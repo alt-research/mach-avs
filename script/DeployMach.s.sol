@@ -6,36 +6,9 @@ import "forge-std/Script.sol";
 import "../test/ServiceManager.test.sol";
 
 // anvil --fork-url https://eth-goerli.g.alchemy.com/v2/<api-key>
-// FILE='/home/x/z/avs/script/config/deploy.goerli.json' forge script script/Deploy.s.sol:Deploy --rpc-url http://127.0.0.1:8545 --broadcast -vvvv --slow
-contract Deploy is Script, AVSDeployer {
+// FILE='/home/x/z/avs/script/config/deploy.goerli.json' forge script script/DeployMach.s.sol:DeployMach --rpc-url http://127.0.0.1:8545 --broadcast -vvvv --slow
+contract DeployMach is Script, AVSDeployer {
     using BN254 for BN254.G1Point;
-
-    // function _parseStakeRegistryParams(
-    //     string memory data
-    // )
-    //     internal
-    //     pure
-    //     returns (
-    //         uint96[] memory minimumStakeForQuourm,
-    //         IVoteWeigher.StrategyAndWeightingMultiplier[][]
-    //             memory strategyAndWeightingMultipliers
-    //     )
-    // {
-    //     bytes memory stakesConfigsRaw = stdJson.parseRaw(
-    //         data,
-    //         ".minimumStakes"
-    //     );
-    //     minimumStakeForQuourm = abi.decode(stakesConfigsRaw, (uint96[]));
-
-    //     bytes memory strategyConfigsRaw = stdJson.parseRaw(
-    //         data,
-    //         ".strategyWeights"
-    //     );
-    //     strategyAndWeightingMultipliers = abi.decode(
-    //         strategyConfigsRaw,
-    //         (IVoteWeigher.StrategyAndWeightingMultiplier[][])
-    //     );
-    // }
 
     function _parseRegistryCoordinatorParams(
         string memory data
@@ -93,8 +66,6 @@ contract Deploy is Script, AVSDeployer {
                 address churner,
                 address ejector
             ) = _parseRegistryCoordinatorParams(data);
-
-            // setup the dummy quorum strategies
 
             IStakeRegistry.StrategyParams[][]
                 memory quorumStrategiesConsideredAndMultipliers = new IStakeRegistry.StrategyParams[][](

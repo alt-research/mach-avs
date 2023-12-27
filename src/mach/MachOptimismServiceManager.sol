@@ -145,8 +145,8 @@ contract MachOptimismServiceManager is IMachOptimism, ServiceManagerBase {
         uint256 l2BlockNumber
     ) external onlyValidOperator {
         // Make sure there are no other alert, OR the currently alert is not the earliest error.
-        uint256 latestBlockNumber = latestAlertBlockNumber();
-        if (latestBlockNumber != 0 && l2BlockNumber >= latestBlockNumber) {
+        uint256 latestAlertBlockNum = latestAlertBlockNumber();
+        if (latestAlertBlockNum != 0 && l2BlockNumber >= latestAlertBlockNum) {
             revert UselessAlert();
         }
 
@@ -196,9 +196,9 @@ contract MachOptimismServiceManager is IMachOptimism, ServiceManagerBase {
         uint256 l2BlockNumber = proposal.l2BlockNumber;
 
         // Make sure there are no other alert, OR the currently alert is not the earliest error.
-        uint256 latestBlockNumber = latestAlertBlockNumber();
+        uint256 latestAlertBlockNum = latestAlertBlockNumber();
 
-        if (latestBlockNumber != 0 && l2BlockNumber >= latestBlockNumber) {
+        if (latestAlertBlockNum != 0 && l2BlockNumber >= latestAlertBlockNum) {
             revert UselessAlert();
         }
 

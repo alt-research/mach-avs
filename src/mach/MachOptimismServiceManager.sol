@@ -12,6 +12,7 @@ import {IDelegationManager} from "eigenlayer-contracts/src/contracts/interfaces/
 import "eigenlayer-contracts/src/contracts/interfaces/IPauserRegistry.sol";
 import {OwnableUpgradeable} from "@openzeppelin-upgrades/contracts/access/OwnableUpgradeable.sol";
 import {ServiceManagerBase, IRegistryCoordinator, IStakeRegistry} from "eigenlayer-middleware/src/ServiceManagerBase.sol";
+import {IBLSApkRegistry} from "eigenlayer-middleware/src/interfaces/IRegistryCoordinator.sol";
 import "../Error.sol";
 import {IMachOptimism, CallbackAuthorization, IRiscZeroVerifier} from "./interfaces/IMachOptimism.sol";
 import {IMachOptimismL2OutputOracle} from "./interfaces/IMachOptimismL2OutputOracle.sol";
@@ -46,7 +47,8 @@ contract MachOptimismServiceManager is IMachOptimism, ServiceManagerBase {
     {}
 
     modifier onlyValidOperator() {
-        bytes32 operatorId = registryCoordinator.getOperatorId(msg.sender);
+        IBLSApkRegistry blsApkRegistry = registryCoordinator.blsApkRegistry();
+        bytes32 operatorId = blsApkRegistry.getOperatorId(msg.sender);
         if (operatorId == bytes32(0)) {
             revert NotOperator();
         }
@@ -55,7 +57,7 @@ contract MachOptimismServiceManager is IMachOptimism, ServiceManagerBase {
 
     ///  @notice Get the address for RegistryCoordinator,
     ///  it help the verifier to check if self is a valid operator.
-    function getRegistryCoordinatorAddress()  public view returns (address) {
+    function getRegistryCoordinatorAddress() public view returns (address) {
         return address(registryCoordinator);
     }
 
@@ -144,10 +146,7 @@ contract MachOptimismServiceManager is IMachOptimism, ServiceManagerBase {
     ) external onlyValidOperator {
         // Make sure there are no other alert, OR the currently alert is not the earliest error.
         uint256 latestBlockNumber = latestAlertBlockNumber();
-        if (
-            latestBlockNumber != 0 &&
-            l2BlockNumber >= latestBlockNumber
-        ) {
+        if (latestBlockNumber != 0 && l2BlockNumber >= latestBlockNumber) {
             revert UselessAlert();
         }
 
@@ -263,8 +262,11 @@ contract MachOptimismServiceManager is IMachOptimism, ServiceManagerBase {
         }
 
         // Got the per l2 ouput root info by index
-        IMachOptimismL2OutputOracle.OutputProposal memory checkpoint = l2OutputOracle.getL2Output(perL2OutputIndex);
-        if (checkpoint.l2BlockNumber == 0 || checkpoint.outputRoot == bytes32(0)) {
+        IMachOptimismL2OutputOracle.OutputProposal
+            memory checkpoint = l2OutputOracle.getL2Output(perL2OutputIndex);
+        if (
+            checkpoint.l2BlockNumber == 0 || checkpoint.outputRoot == bytes32(0)
+        ) {
             revert InvalidPerCheckpoint();
         }
 
@@ -277,10 +279,13 @@ contract MachOptimismServiceManager is IMachOptimism, ServiceManagerBase {
         bytes32 perCheckpointOutputRoot = bytes32(0);
         uint256 parentCheckpointNumber = 0;
 
-        (headerHash, l2BlockNumber, perCheckpointOutputRoot, parentCheckpointNumber, outputRoot) = abi.decode(
-            journal,
-            (bytes32, uint256, bytes32, uint256, bytes32)
-        );
+        (
+            headerHash,
+            l2BlockNumber,
+            perCheckpointOutputRoot,
+            parentCheckpointNumber,
+            outputRoot
+        ) = abi.decode(journal, (bytes32, uint256, bytes32, uint256, bytes32));
 
         L2OutputAlert memory alert = l2OutputAlerts[provedIndex - 1];
 

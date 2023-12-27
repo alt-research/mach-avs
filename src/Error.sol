@@ -18,7 +18,7 @@ error UselessAlert();
 error InvalidAlert();
 error InvalidAlertType();
 error InvalidProvedIndex();
-error InvalidPerCheckpoint();
+error InvalidCheckpoint();
 error InvalidIndex();
 
 error ProveImageIdMismatch();

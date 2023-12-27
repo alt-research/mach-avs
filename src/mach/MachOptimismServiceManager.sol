@@ -228,7 +228,7 @@ contract MachOptimismServiceManager is IMachOptimism, ServiceManagerBase {
         bytes calldata journal,
         bytes calldata seal,
         bytes32 postStateDigest,
-        uint256 perL2OutputIndex
+        uint256 l2OutputIndex
     ) external onlyValidOperator {
         uint256 alertsLength = l2OutputAlerts.length;
 
@@ -236,7 +236,7 @@ contract MachOptimismServiceManager is IMachOptimism, ServiceManagerBase {
             revert NoAlert();
         }
 
-        if (perL2OutputIndex == 0) {
+        if (l2OutputIndex == 0) {
             revert InvalidIndex();
         }
 
@@ -263,11 +263,11 @@ contract MachOptimismServiceManager is IMachOptimism, ServiceManagerBase {
 
         // Got the per l2 ouput root info by index
         IMachOptimismL2OutputOracle.OutputProposal
-            memory checkpoint = l2OutputOracle.getL2Output(perL2OutputIndex);
+            memory checkpoint = l2OutputOracle.getL2Output(l2OutputIndex);
         if (
             checkpoint.l2BlockNumber == 0 || checkpoint.outputRoot == bytes32(0)
         ) {
-            revert InvalidPerCheckpoint();
+            revert InvalidCheckpoint();
         }
 
         // Now we can trust the receipt.
@@ -276,13 +276,13 @@ contract MachOptimismServiceManager is IMachOptimism, ServiceManagerBase {
         uint256 l2BlockNumber = 0;
         bytes32 outputRoot = bytes32(0);
         bytes32 headerHash = bytes32(0);
-        bytes32 perCheckpointOutputRoot = bytes32(0);
+        bytes32 checkpointOutputRoot = bytes32(0);
         uint256 parentCheckpointNumber = 0;
 
         (
             headerHash,
             l2BlockNumber,
-            perCheckpointOutputRoot,
+            checkpointOutputRoot,
             parentCheckpointNumber,
             outputRoot
         ) = abi.decode(journal, (bytes32, uint256, bytes32, uint256, bytes32));
@@ -297,7 +297,7 @@ contract MachOptimismServiceManager is IMachOptimism, ServiceManagerBase {
             revert ParentCheckpointNumberMismatch();
         }
 
-        if (perCheckpointOutputRoot != checkpoint.outputRoot) {
+        if (checkpointOutputRoot != checkpoint.outputRoot) {
             revert ParentCheckpointOutputRootMismatch();
         }
 

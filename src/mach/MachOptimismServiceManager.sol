@@ -12,6 +12,7 @@ import {IDelegationManager} from "eigenlayer-contracts/src/contracts/interfaces/
 import "eigenlayer-contracts/src/contracts/interfaces/IPauserRegistry.sol";
 import {OwnableUpgradeable} from "@openzeppelin-upgrades/contracts/access/OwnableUpgradeable.sol";
 import {ServiceManagerBase, IRegistryCoordinator, IStakeRegistry} from "eigenlayer-middleware/src/ServiceManagerBase.sol";
+import {IBLSApkRegistry} from "eigenlayer-middleware/src/interfaces/IRegistryCoordinator.sol";
 import "../Error.sol";
 import {IMachOptimism, CallbackAuthorization, IRiscZeroVerifier} from "./interfaces/IMachOptimism.sol";
 import {IMachOptimismL2OutputOracle} from "./interfaces/IMachOptimismL2OutputOracle.sol";
@@ -46,11 +47,18 @@ contract MachOptimismServiceManager is IMachOptimism, ServiceManagerBase {
     {}
 
     modifier onlyValidOperator() {
-        bytes32 operatorId = registryCoordinator.getOperatorId(msg.sender);
+        IBLSApkRegistry blsApkRegistry = registryCoordinator.blsApkRegistry();
+        bytes32 operatorId = blsApkRegistry.getOperatorId(msg.sender);
         if (operatorId == bytes32(0)) {
             revert NotOperator();
         }
         _;
+    }
+
+    ///  @notice Get the address for RegistryCoordinator,
+    ///  it help the verifier to check if self is a valid operator.
+    function getRegistryCoordinatorAddress() public view returns (address) {
+        return address(registryCoordinator);
     }
 
     /// @notice Initializes the contract with provided parameters.
@@ -137,11 +145,8 @@ contract MachOptimismServiceManager is IMachOptimism, ServiceManagerBase {
         uint256 l2BlockNumber
     ) external onlyValidOperator {
         // Make sure there are no other alert, OR the currently alert is not the earliest error.
-        uint256 latestAlertBlockNumber = latestAlertBlockNumber();
-        if (
-            latestAlertBlockNumber != 0 &&
-            l2BlockNumber >= latestAlertBlockNumber
-        ) {
+        uint256 latestAlertBlockNum = latestAlertBlockNumber();
+        if (latestAlertBlockNum != 0 && l2BlockNumber >= latestAlertBlockNum) {
             revert UselessAlert();
         }
 
@@ -191,9 +196,9 @@ contract MachOptimismServiceManager is IMachOptimism, ServiceManagerBase {
         uint256 l2BlockNumber = proposal.l2BlockNumber;
 
         // Make sure there are no other alert, OR the currently alert is not the earliest error.
-        uint256 latestBlockNumber = latestAlertBlockNumber();
+        uint256 latestAlertBlockNum = latestAlertBlockNumber();
 
-        if (latestBlockNumber != 0 && l2BlockNumber >= latestBlockNumber) {
+        if (latestAlertBlockNum != 0 && l2BlockNumber >= latestAlertBlockNum) {
             revert UselessAlert();
         }
 
@@ -222,12 +227,17 @@ contract MachOptimismServiceManager is IMachOptimism, ServiceManagerBase {
         bytes32 imageId_,
         bytes calldata journal,
         bytes calldata seal,
-        bytes32 postStateDigest
+        bytes32 postStateDigest,
+        uint256 l2OutputIndex
     ) external onlyValidOperator {
         uint256 alertsLength = l2OutputAlerts.length;
 
         if (alertsLength == 0 || provedIndex == 0) {
             revert NoAlert();
+        }
+
+        if (l2OutputIndex == 0) {
+            revert InvalidIndex();
         }
 
         if (provedIndex > alertsLength) {
@@ -251,23 +261,44 @@ contract MachOptimismServiceManager is IMachOptimism, ServiceManagerBase {
             revert ProveVerifyFailed();
         }
 
+        // Got the per l2 ouput root info by index
+        IMachOptimismL2OutputOracle.OutputProposal
+            memory checkpoint = l2OutputOracle.getL2Output(l2OutputIndex);
+        if (
+            checkpoint.l2BlockNumber == 0 || checkpoint.outputRoot == bytes32(0)
+        ) {
+            revert InvalidCheckpoint();
+        }
+
         // Now we can trust the receipt.
         // this data is defend in guest.
         // TODO: check block header and parent output root.
         uint256 l2BlockNumber = 0;
         bytes32 outputRoot = bytes32(0);
         bytes32 headerHash = bytes32(0);
-        bytes32 parentHeaderHash = bytes32(0);
+        bytes32 checkpointOutputRoot = bytes32(0);
+        uint256 parentCheckpointNumber = 0;
 
-        (headerHash, l2BlockNumber, parentHeaderHash, outputRoot) = abi.decode(
-            journal,
-            (bytes32, uint256, bytes32, bytes32)
-        );
+        (
+            headerHash,
+            l2BlockNumber,
+            checkpointOutputRoot,
+            parentCheckpointNumber,
+            outputRoot
+        ) = abi.decode(journal, (bytes32, uint256, bytes32, uint256, bytes32));
 
         L2OutputAlert memory alert = l2OutputAlerts[provedIndex - 1];
 
         if (l2BlockNumber != alert.l2BlockNumber) {
             revert ProveBlockNumberMismatch();
+        }
+
+        if (parentCheckpointNumber != checkpoint.l2BlockNumber) {
+            revert ParentCheckpointNumberMismatch();
+        }
+
+        if (checkpointOutputRoot != checkpoint.outputRoot) {
+            revert ParentCheckpointOutputRootMismatch();
         }
 
         uint256 invalidOutputIndex = alert.invalidOutputIndex;

@@ -604,18 +604,18 @@ contract ServiceManagerTest is AVSDeployer, EigenLayerDeployer {
         );
 
         //privKey*G2
-        pubkeyRegistrationParams.pubkeyG2.X[
-            1
-        ] = 19101821850089705274637533855249918363070101489527618151493230256975900223847;
-        pubkeyRegistrationParams.pubkeyG2.X[
-            0
-        ] = 5334410886741819556325359147377682006012228123419628681352847439302316235957;
-        pubkeyRegistrationParams.pubkeyG2.Y[
-            1
-        ] = 354176189041917478648604979334478067325821134838555150300539079146482658331;
-        pubkeyRegistrationParams.pubkeyG2.Y[
-            0
-        ] = 4185483097059047421902184823581361466320657066600218863748375739772335928910;
+        pubkeyRegistrationParams.pubkeyG2.X[1] = uint256(
+            0x2A3B3F7EF4F62985AF31809FDC531483E5F1CD67AA1BCF0F8AC0D17E158AA967
+        );
+        pubkeyRegistrationParams.pubkeyG2.X[0] = uint256(
+            0x0BCB2B68B6C68A5AEA7FE75B5446C4CA410461FA226C2487D07EB2C504639CB5
+        );
+        pubkeyRegistrationParams.pubkeyG2.Y[1] = uint256(
+            0x00C874E4FCFB88D5C98A0240BC6F7F37D45F2226CA147317B3A2B7243DDB6C1B
+        );
+        pubkeyRegistrationParams.pubkeyG2.Y[0] = uint256(
+            0x0940E64478DB51FE630CC540DBEABEA34D072A54FD7C743056E18174F9A1B64E
+        );
 
         ISignatureUtils.SignatureWithSaltAndExpiry
             memory signatureWithSaltAndExpiry;

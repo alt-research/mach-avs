@@ -3,7 +3,7 @@ pragma solidity ^0.8.12;
 // solhint-disable
 
 import "forge-std/Script.sol";
-import "../test/ServiceManager.test.sol";
+import "../test/mach/MachOptimismServiceManager.test.sol";
 
 // anvil --fork-url https://eth-goerli.g.alchemy.com/v2/<api-key>
 // FILE='/home/x/z/avs/script/config/deploy.goerli.json' forge script script/DeployMach.s.sol:DeployMach --rpc-url http://127.0.0.1:8545 --broadcast -vvvv --slow

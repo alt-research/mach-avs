@@ -47,7 +47,7 @@ contract MachOptimismServiceManager is IMachOptimism, ServiceManagerBase {
     {}
 
     modifier onlyValidOperator() {
-        IBLSApkRegistry blsApkRegistry = registryCoordinator.blsApkRegistry();
+        IBLSApkRegistry blsApkRegistry = _registryCoordinator.blsApkRegistry();
         bytes32 operatorId = blsApkRegistry.getOperatorId(msg.sender);
         if (operatorId == bytes32(0)) {
             revert NotOperator();
@@ -58,7 +58,7 @@ contract MachOptimismServiceManager is IMachOptimism, ServiceManagerBase {
     ///  @notice Get the address for RegistryCoordinator,
     ///  it help the verifier to check if self is a valid operator.
     function getRegistryCoordinatorAddress() public view returns (address) {
-        return address(registryCoordinator);
+        return address(_registryCoordinator);
     }
 
     /// @notice Initializes the contract with provided parameters.

@@ -4,11 +4,7 @@ import "forge-std/Test.sol";
 
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
-import {IRiscZeroVerifier} from "../../src/mach/interfaces/IMachOptimism.sol";
-import {IMachOptimismL2OutputOracle} from "../../src/mach/interfaces/IMachOptimismL2OutputOracle.sol";
-import {RiscZeroGroth16Verifier, ControlID} from "../../src/mach/groth16/RiscZeroGroth16Verifier.sol";
-
-import {IRegistryCoordinator, MachOptimismServiceManager} from "../../src/mach/MachOptimismServiceManager.sol";
+import {IRegistryCoordinator, VitalServiceManager, ServiceManagerBase} from "../../src/vital/VitalServiceManager.sol";
 import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import "eigenlayer-contracts/src/contracts/strategies/StrategyBase.sol";
 
@@ -305,7 +301,7 @@ contract EigenLayerDeployer is Test {
     }
 }
 
-contract MachAVSDeployer {
+contract VitalAVSDeployer {
     OperatorStateRetriever public operatorStateRetriever;
 
     IServiceManager public serviceManager;
@@ -404,7 +400,7 @@ contract MachAVSDeployer {
 
         serviceManagerImplementation = IServiceManager(
             address(
-                new MachOptimismServiceManager(
+                new VitalServiceManager(
                     IDelegationManager(address(delegationManager)),
                     IRegistryCoordinator(address(registryCoordinator)),
                     IStakeRegistry(address(stakeRegistry))
@@ -447,22 +443,14 @@ contract MachAVSDeployer {
             TransparentUpgradeableProxy(payable(address(serviceManager))),
             address(serviceManagerImplementation),
             abi.encodeWithSelector(
-                MachOptimismServiceManager.initialize.selector,
-                contractOwner,
-                0x4897914108ad60b48256f1053b714afcc2e8c15f3b43bdfbf24f50b81c0f2967,
-                IMachOptimismL2OutputOracle(
-                    address(0xAaE1866Bc68c49ede8b779d6c5Ad61b0C3FeAB86)
-                ),
-                new RiscZeroGroth16Verifier(
-                    ControlID.CONTROL_ID_0,
-                    ControlID.CONTROL_ID_1
-                )
+                ServiceManagerBase.initialize.selector,
+                contractOwner
             )
         );
     }
 }
 
-contract MachServiceManagerTest is MachAVSDeployer, EigenLayerDeployer {
+contract VitalServiceManagerTest is VitalAVSDeployer, EigenLayerDeployer {
     using BN254 for BN254.G1Point;
 
     address public constant ALICE = 0x1326324f5A9fb193409E10006e4EA41b970Df321;

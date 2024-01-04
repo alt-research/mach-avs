@@ -63,11 +63,13 @@ contract MachOptimismServiceManager is IMachOptimism, ServiceManagerBase {
 
     /// @notice Initializes the contract with provided parameters.
     function initialize(
+        address contractOwner,
         bytes32 imageId_,
         IMachOptimismL2OutputOracle l2OutputOracle_,
         IRiscZeroVerifier verifier_
     ) external initializer {
         __Ownable_init();
+        _transferOwnership(contractOwner);
         if (address(l2OutputOracle_) == address(0)) {
             revert ZeroAddress();
         }

@@ -6,7 +6,7 @@ import "forge-std/Script.sol";
 import "../test/mach/MachOptimismServiceManager.test.sol";
 
 // anvil --fork-url https://eth-goerli.g.alchemy.com/v2/<api-key>
-// FILE='/home/x/z/avs/script/config/deploy.goerli.json' forge script script/DeployMach.s.sol:DeployMach --rpc-url http://127.0.0.1:8545 --broadcast -vvvv --slow
+// FILE='/home/x/z/avs/script/config/deploy.goerli.json' forge script script/DeployMach.s.sol:DeployMach --rpc-url https://eth-goerli.g.alchemy.com/v2/yrjJO10jcntqSFM8cCaJrKH-_gdVSzs5 --broadcast -vvvv --slow
 contract DeployMach is Script, MachAVSDeployer {
     using BN254 for BN254.G1Point;
 

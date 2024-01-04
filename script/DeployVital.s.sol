@@ -3,11 +3,11 @@ pragma solidity ^0.8.12;
 // solhint-disable
 
 import "forge-std/Script.sol";
-import "../test/mach/MachOptimismServiceManager.test.sol";
+import "../test/vital/VitalServiceManager.test.sol";
 
-// anvil --fork-url https://eth-goerli.g.alchemy.com/v2/<api-key>
-// FILE='/home/x/z/avs/script/config/deploy.goerli.json' forge script script/DeployMach.s.sol:DeployMach --rpc-url http://127.0.0.1:8545 --broadcast -vvvv --slow
-contract DeployMach is Script, MachAVSDeployer {
+// anvil --fork-url https://eth-sepolia.g.alchemy.com/v2/yrjJO10jcntqSFM8cCaJrKH-_gdVSzs5
+// FILE='/home/x/z/avs/script/config/deploy.goerli.json' forge script script/DeployVital.s.sol:DeployVital --rpc-url https://eth-goerli.g.alchemy.com/v2/yrjJO10jcntqSFM8cCaJrKH-_gdVSzs5 --broadcast -vvvv --slow
+contract DeployVital is Script, VitalAVSDeployer {
     using BN254 for BN254.G1Point;
 
     function _parseRegistryCoordinatorParams(

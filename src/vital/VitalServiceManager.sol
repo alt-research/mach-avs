@@ -14,6 +14,7 @@ import {OwnableUpgradeable} from "@openzeppelin-upgrades/contracts/access/Ownabl
 import {ServiceManagerBase, IRegistryCoordinator, IStakeRegistry} from "eigenlayer-middleware/src/ServiceManagerBase.sol";
 import {IBLSApkRegistry} from "eigenlayer-middleware/src/interfaces/IRegistryCoordinator.sol";
 import "../Error.sol";
+import {RollupStorage} from "../RollupStorage.sol";
 
 interface IVoteWeigher {
     /**
@@ -26,13 +27,14 @@ interface IVoteWeigher {
     ) external view returns (uint96);
 }
 
-contract VitalServiceManager is ServiceManagerBase {
+contract VitalServiceManager is RollupStorage, ServiceManagerBase {
     address public accel;
 
     event Freeze(address freezed);
     error NotAccel();
 
     constructor(
+        uint256 rollupChainID_,
         IDelegationManager _delegationManager,
         IRegistryCoordinator _registryCoordinator,
         IStakeRegistry _stakeRegistry
@@ -42,6 +44,7 @@ contract VitalServiceManager is ServiceManagerBase {
             _registryCoordinator,
             _stakeRegistry
         )
+        RollupStorage(block.chainid, rollupChainID_)
     {}
 
     /// @notice Sets the Accel proxy address.

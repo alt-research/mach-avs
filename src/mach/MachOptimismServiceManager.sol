@@ -14,10 +14,15 @@ import {OwnableUpgradeable} from "@openzeppelin-upgrades/contracts/access/Ownabl
 import {ServiceManagerBase, IRegistryCoordinator, IStakeRegistry} from "eigenlayer-middleware/src/ServiceManagerBase.sol";
 import {IBLSApkRegistry} from "eigenlayer-middleware/src/interfaces/IRegistryCoordinator.sol";
 import "../Error.sol";
+import {RollupStorage} from "../RollupStorage.sol";
 import {IMachOptimism, CallbackAuthorization, IRiscZeroVerifier} from "./interfaces/IMachOptimism.sol";
 import {IMachOptimismL2OutputOracle} from "./interfaces/IMachOptimismL2OutputOracle.sol";
 
-contract MachOptimismServiceManager is IMachOptimism, ServiceManagerBase {
+contract MachOptimismServiceManager is
+    IMachOptimism,
+    RollupStorage,
+    ServiceManagerBase
+{
     IMachOptimismL2OutputOracle public l2OutputOracle;
     IRiscZeroVerifier public verifier;
     // The imageId for risc0 guest code.
@@ -35,6 +40,7 @@ contract MachOptimismServiceManager is IMachOptimism, ServiceManagerBase {
     uint256 public provedIndex;
 
     constructor(
+        uint256 rollupChainID_,
         IDelegationManager _delegationManager,
         IRegistryCoordinator _registryCoordinator,
         IStakeRegistry _stakeRegistry
@@ -44,6 +50,7 @@ contract MachOptimismServiceManager is IMachOptimism, ServiceManagerBase {
             _registryCoordinator,
             _stakeRegistry
         )
+        RollupStorage(block.chainid, rollupChainID_)
     {}
 
     modifier onlyValidOperator() {

@@ -401,6 +401,7 @@ contract VitalAVSDeployer {
         serviceManagerImplementation = IServiceManager(
             address(
                 new VitalServiceManager(
+                    2,
                     IDelegationManager(address(delegationManager)),
                     IRegistryCoordinator(address(registryCoordinator)),
                     IStakeRegistry(address(stakeRegistry))

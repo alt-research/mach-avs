@@ -405,6 +405,7 @@ contract MachAVSDeployer {
         serviceManagerImplementation = IServiceManager(
             address(
                 new MachOptimismServiceManager(
+                    2,
                     IDelegationManager(address(delegationManager)),
                     IRegistryCoordinator(address(registryCoordinator)),
                     IStakeRegistry(address(stakeRegistry))

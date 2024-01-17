@@ -457,7 +457,7 @@ contract AVSDeployer {
                 ServiceManager.initialize.selector,
                 pauserRegistry,
                 contractOwner,
-                0xf8ea046803fdc1fe07d3b56188ff60e3e3c23b771395f9c1244e800b788a4dcc,
+                0x4897914108ad60b48256f1053b714afcc2e8c15f3b43bdfbf24f50b81c0f2967,
                 IMachOptimismL2OutputOracle(
                     address(0xAaE1866Bc68c49ede8b779d6c5Ad61b0C3FeAB86)
                 ),

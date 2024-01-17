@@ -6,7 +6,7 @@ import "forge-std/Script.sol";
 import "../test/ServiceManager.test.sol";
 
 // anvil --fork-url https://eth-goerli.g.alchemy.com/v2/<api-key>
-// FILE='/Users/x/z/avs/script/config/deploy.goerli.json' forge script script/Deploy.s.sol:Deploy --rpc-url http://127.0.0.1:8545 --broadcast -vvvv --slow
+// FILE='/home/x/z/avs/script/config/deploy.goerli.json' forge script script/Deploy.s.sol:Deploy --rpc-url http://127.0.0.1:8545 --broadcast -vvvv --slow
 contract Deploy is Script, AVSDeployer {
     using BN254 for BN254.G1Point;
 
@@ -109,22 +109,28 @@ contract Deploy is Script, AVSDeployer {
             );
         }
 
+        vm.stopBroadcast();
+
+        vm.startBroadcast(uint256(stdJson.readBytes32(data, ".pkOperator")));
+
+        address operator = stdJson.readAddress(data, ".operator");
+
         DelegationManager delegation = DelegationManager(
             stdJson.readAddress(data, ".delegation")
         );
         IDelegationManager.OperatorDetails
             memory operatorDetails = IDelegationManager.OperatorDetails({
-                earningsReceiver: admin,
+                earningsReceiver: operator,
                 delegationApprover: address(0),
                 stakerOptOutWindowBlocks: 0
             });
         string memory emptyStringForMetadataURI;
-        // delegation.registerAsOperator(
-        //     operatorDetails,
-        //     emptyStringForMetadataURI
-        // );
+        delegation.registerAsOperator(
+            operatorDetails,
+            emptyStringForMetadataURI
+        );
 
-        BN254.G1Point memory messageHash = compendium.getMessageHash(admin);
+        BN254.G1Point memory messageHash = compendium.getMessageHash(operator);
 
         uint256 privKey = 69;
         BN254.G1Point memory pubKeyG1;

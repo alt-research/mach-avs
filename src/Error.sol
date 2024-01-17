@@ -18,11 +18,14 @@ error UselessAlert();
 error InvalidAlert();
 error InvalidAlertType();
 error InvalidProvedIndex();
+error InvalidCheckpoint();
 error InvalidIndex();
 
 error ProveImageIdMismatch();
 error ProveBlockNumberMismatch();
 error ProveOutputRootMismatch();
+error ParentCheckpointNumberMismatch();
+error ParentCheckpointOutputRootMismatch();
 error ProveVerifyFailed();
 error InvalidJournal();
 error NoAlert();

@@ -30,3 +30,5 @@ error ProveVerifyFailed();
 error InvalidJournal();
 error NoAlert();
 error NotOperator();
+
+error InvalidStakedToken();

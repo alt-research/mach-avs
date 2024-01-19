@@ -444,6 +444,7 @@ contract MachAVSDeployer {
             )
         );
 
+        address[] memory allowlist = new address[](0);
         proxyAdmin.upgradeAndCall(
             TransparentUpgradeableProxy(payable(address(serviceManager))),
             address(serviceManagerImplementation),
@@ -457,7 +458,8 @@ contract MachAVSDeployer {
                 new RiscZeroGroth16Verifier(
                     ControlID.CONTROL_ID_0,
                     ControlID.CONTROL_ID_1
-                )
+                ),
+                allowlist
             )
         );
     }

@@ -18,6 +18,10 @@ import {RollupStorage} from "../RollupStorage.sol";
 import {IMachOptimism, CallbackAuthorization, IRiscZeroVerifier} from "./interfaces/IMachOptimism.sol";
 import {IMachOptimismL2OutputOracle} from "./interfaces/IMachOptimismL2OutputOracle.sol";
 
+interface IStake {
+    function stake(address to, uint256 id, uint256 amount) external;
+}
+
 contract MachOptimismServiceManager is
     IMachOptimism,
     RollupStorage,
@@ -27,6 +31,8 @@ contract MachOptimismServiceManager is
     IRiscZeroVerifier public verifier;
     // The imageId for risc0 guest code.
     bytes32 public imageId;
+
+    mapping(address => bool) public allowed;
 
     // Alerts for blocks, the tail is for earliest block.
     // For the proved output, if there are exist a early block alert
@@ -62,18 +68,13 @@ contract MachOptimismServiceManager is
         _;
     }
 
-    ///  @notice Get the address for RegistryCoordinator,
-    ///  it help the verifier to check if self is a valid operator.
-    function getRegistryCoordinatorAddress() public view returns (address) {
-        return address(_registryCoordinator);
-    }
-
     /// @notice Initializes the contract with provided parameters.
     function initialize(
         address contractOwner,
         bytes32 imageId_,
         IMachOptimismL2OutputOracle l2OutputOracle_,
-        IRiscZeroVerifier verifier_
+        IRiscZeroVerifier verifier_,
+        address[] calldata allowlist_
     ) external initializer {
         __Ownable_init();
         _transferOwnership(contractOwner);
@@ -89,6 +90,28 @@ contract MachOptimismServiceManager is
         l2OutputOracle = l2OutputOracle_;
         verifier = verifier_;
         imageId = imageId_;
+
+        for (uint256 i; i < allowlist_.length; i++) {
+            allowed[allowlist_[i]] = true;
+        }
+    }
+
+    function stake(
+        IStake stakedToken,
+        address to,
+        uint256 id,
+        uint256 amount
+    ) external {
+        if (!allowed[address(stakedToken)]) {
+            revert InvalidStakedToken();
+        }
+        stakedToken.stake(to, id, amount);
+    }
+
+    ///  @notice Get the address for RegistryCoordinator,
+    ///  it help the verifier to check if self is a valid operator.
+    function getRegistryCoordinatorAddress() public view returns (address) {
+        return address(_registryCoordinator);
     }
 
     function setImageId(bytes32 imageId_) external onlyOwner {

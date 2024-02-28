@@ -95,6 +95,10 @@ contract MachOptimismServiceManager is
         imageId = imageId_;
     }
 
+    function setRiscZeroVerifier(IRiscZeroVerifier verifier_) external onlyOwner {
+        verifier = verifier_;
+    }
+
     function clearAlerts() external onlyOwner {
         delete l2OutputAlerts;
         provedIndex = 0;

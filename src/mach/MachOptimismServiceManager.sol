@@ -96,6 +96,10 @@ contract MachOptimismServiceManager is
     }
 
     function setRiscZeroVerifier(IRiscZeroVerifier verifier_) external onlyOwner {
+        if (address(verifier_) == address(0)) {
+            revert ZeroAddress();
+        }
+
         verifier = verifier_;
     }
 

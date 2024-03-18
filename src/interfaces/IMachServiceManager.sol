@@ -5,6 +5,19 @@ import {IServiceManager} from "eigenlayer-middleware/interfaces/IServiceManager.
 import {IMachOptimism} from "../interfaces/IMachOptimism.sol";
 
 interface IMachServiceManager is IServiceManager {
+    struct AlertHeader {
+        uint256 l2BlockNumber;
+        bytes quorumNumbers; // each byte is a different quorum number
+        bytes quorumThresholdPercentages; // every bytes is an amount less than 100 specifying the percentage of stake
+            // the must have signed in the corresponding quorum in `quorumNumbers`
+        uint32 referenceBlockNumber;
+    }
+
+    struct ReducedAlertHeader {
+        uint256 l2BlockNumber;
+        uint32 referenceBlockNumber;
+    }
+
     /**
      * @notice Emitted when the alert confirmer is changed.
      * @param previousAddress The address of the previous alert confirmer

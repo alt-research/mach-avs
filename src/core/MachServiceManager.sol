@@ -16,14 +16,6 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
 
     uint8 internal constant PAUSED_CONFIRM_ALERT = 0;
 
-    struct AlertHeader {
-        uint256 l2BlockNumber;
-        bytes quorumNumbers; // each byte is a different quorum number
-        bytes quorumThresholdPercentages; // every bytes is an amount less than 100 specifying the percentage of stake
-            // the must have signed in the corresponding quorum in `quorumNumbers`
-        uint32 referenceBlockNumber;
-    }
-
     constructor(
         IAVSDirectory __avsDirectory,
         IRegistryCoordinator __registryCoordinator,
@@ -128,8 +120,23 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
         emit AlertConfirmerChanged(previousBatchConfirmer, alertConfirmer);
     }
 
+    /**
+     * @notice converts a alert header to a reduced alert header
+     * @param alertHeader the alert header to convert
+     */
+    function convertAlertHeaderToReducedAlertHeader(AlertHeader memory alertHeader)
+        internal
+        pure
+        returns (ReducedAlertHeader memory)
+    {
+        return ReducedAlertHeader({
+            l2BlockNumber: alertHeader.l2BlockNumber,
+            referenceBlockNumber: alertHeader.referenceBlockNumber
+        });
+    }
+
     /// @notice hash the alert header
     function hashAlertHeader(AlertHeader memory alertHeader) internal pure returns (bytes32) {
-        return keccak256(abi.encode(alertHeader));
+        return keccak256(abi.encode(convertAlertHeaderToReducedAlertHeader(alertHeader)));
     }
 }

@@ -18,4 +18,8 @@ interface IMachServiceManager is IServiceManager {
      * @param blockNumber The l2 block number
      */
     event AlertConfirmed(bytes32 indexed alertHeaderHash, uint256 blockNumber);
+
+    event AlertRemoved(uint256 blockNumber, address sender);
+
+    error InvalidStartIndex();
 }

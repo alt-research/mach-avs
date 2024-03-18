@@ -1,52 +1,21 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.9;
 
+import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {IMachServiceManager} from "../interfaces/IMachServiceManager.sol";
-import {IMachOptimismL2OutputOracle} from "../interfaces/IMachOptimismL2OutputOracle.sol";
-import {IMachOptimism, CallbackAuthorization, IRiscZeroVerifier} from "../interfaces/IMachOptimism.sol";
 
 abstract contract MachServiceManagerStorage is IMachServiceManager {
-    // The imageId for risc0 guest code.
-    bytes32 public imageId;
+    // CONSTANTS
+    uint256 public constant THRESHOLD_DENOMINATOR = 100;
 
-    IRiscZeroVerifier public verifier;
+    EnumerableSet.UintSet internal _l2Blocks;
 
-    // Alerts for blocks, the tail is for earliest block.
-    // For the proved output, if there are exist a early block alert
-    // we will make it not proved!
-    IMachOptimism.L2OutputAlert[] internal l2OutputAlerts;
+    /// @notice address that is permissioned to confirm alerts
+    address public alertConfirmer;
 
-    // The next index for no proved alert,
-    // `l2OutputAlerts[provedIndex - 1]` is the first no proved alerts,
-    // if is 0, means all alert is proved,
-    // if provedIndex == l2OutputAlerts.length, means all alert is not proved,
-    // the prover just need prove the earliest no proved alert,
-    uint256 public provedIndex;
-
-    IMachOptimismL2OutputOracle public l2OutputOracle;
-
-    // enable/disable whitelist
-
-    /// @notice push new alert
-    function _pushAlert(
-        bytes32 invalidOutputRoot,
-        bytes32 expectOutputRoot,
-        uint256 invalidOutputIndex,
-        uint256 l2BlockNumber,
-        address sender
-    ) internal {
-        l2OutputAlerts.push(
-            IMachOptimism.L2OutputAlert({
-                l2BlockNumber: l2BlockNumber,
-                invalidOutputIndex: invalidOutputIndex,
-                invalidOutputRoot: invalidOutputRoot,
-                expectOutputRoot: expectOutputRoot,
-                submitter: sender
-            })
-        );
-
-        // For the proved output, if there are exist a early block alert
-        // we will make it not proved! so we just set to `length`
-        provedIndex = l2OutputAlerts.length;
+    /// @notice when applied to a function, ensures that the function is only callable by the `alertConfirmer`.
+    modifier onlyAlertConfirmer() {
+        require(msg.sender == alertConfirmer, "onlyAlertConfirmer: not from alert confirmer");
+        _;
     }
 }

@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.9;
 
-import {IMachOptimisimServiceManager} from "../interfaces/IMachOptimisimServiceManager.sol";
+import {IMachServiceManager} from "../interfaces/IMachServiceManager.sol";
 import {IMachOptimismL2OutputOracle} from "../interfaces/IMachOptimismL2OutputOracle.sol";
 import {IMachOptimism, CallbackAuthorization, IRiscZeroVerifier} from "../interfaces/IMachOptimism.sol";
 
-abstract contract MachOptimismServiceManagerStorage is IMachOptimisimServiceManager {
+abstract contract MachServiceManagerStorage is IMachServiceManager {
     // The imageId for risc0 guest code.
     bytes32 public imageId;
 
@@ -24,6 +24,8 @@ abstract contract MachOptimismServiceManagerStorage is IMachOptimisimServiceMana
     uint256 public provedIndex;
 
     IMachOptimismL2OutputOracle public l2OutputOracle;
+
+    // enable/disable whitelist
 
     /// @notice push new alert
     function _pushAlert(

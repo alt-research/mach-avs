@@ -9,9 +9,9 @@ import {BLSSignatureChecker} from "eigenlayer-middleware/BLSSignatureChecker.sol
 import {IBLSApkRegistry} from "eigenlayer-middleware/interfaces/IBLSApkRegistry.sol";
 import {IMachOptimism, CallbackAuthorization, IRiscZeroVerifier} from "../interfaces/IMachOptimism.sol";
 import {IMachOptimismL2OutputOracle} from "../interfaces/IMachOptimismL2OutputOracle.sol";
-import {MachOptimismServiceManagerStorage} from "./MachOptimismServiceManagerStorage.sol";
+import {MachServiceManagerStorage} from "./MachServiceManagerStorage.sol";
 
-contract MachOptimismServiceManager is MachOptimismServiceManagerStorage, ServiceManagerBase, BLSSignatureChecker {
+contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BLSSignatureChecker {
     constructor(
         IAVSDirectory __avsDirectory,
         IRegistryCoordinator __registryCoordinator,

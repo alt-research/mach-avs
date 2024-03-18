@@ -4,7 +4,7 @@ pragma solidity ^0.8.9;
 import {IServiceManager} from "eigenlayer-middleware/interfaces/IServiceManager.sol";
 import {IMachOptimism} from "../interfaces/IMachOptimism.sol";
 
-interface IMachOptimisimServiceManager is IServiceManager, IMachOptimism {
+interface IMachServiceManager is IServiceManager, IMachOptimism {
     error ZeroAddress();
     error InvalidIndex();
     error InvalidProvedIndex();

@@ -19,7 +19,7 @@ import (
 	sdkutils "github.com/Layr-Labs/eigensdk-go/utils"
 )
 
-// Config contains all of the configuration information for a credible squaring aggregators and challengers.
+// Config contains all of the configuration information for a mach aggregators and challengers.
 // Operators use a separate config. (see config-files/operator.anvil.yaml)
 type Config struct {
 	EcdsaPrivateKey           *ecdsa.PrivateKey

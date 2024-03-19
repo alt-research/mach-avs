@@ -16,9 +16,7 @@ import (
 	"github.com/alt-research/avs/types"
 
 	"github.com/Layr-Labs/eigensdk-go/chainio/clients"
-	sdkelcontracts "github.com/Layr-Labs/eigensdk-go/chainio/clients/elcontracts"
 	"github.com/Layr-Labs/eigensdk-go/chainio/clients/eth"
-	"github.com/Layr-Labs/eigensdk-go/chainio/txmgr"
 	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
 	"github.com/Layr-Labs/eigensdk-go/logging"
 	sdklogging "github.com/Layr-Labs/eigensdk-go/logging"
@@ -30,29 +28,19 @@ import (
 	sdktypes "github.com/Layr-Labs/eigensdk-go/types"
 )
 
-const AVS_NAME = "incredible-squaring"
+const AVS_NAME = "mach"
 const SEM_VER = "0.0.1"
 
 type Operator struct {
-	config    types.NodeConfig
-	logger    logging.Logger
-	ethClient eth.EthClient
-	// TODO(samlaf): remove both avsWriter and eigenlayerWrite from operator
-	// they are only used for registration, so we should make a special registration package
-	// this way, auditing this operator code makes it obvious that operators don't need to
-	// write to the chain during the course of their normal operations
-	// writing to the chain should be done via the cli only
-	metricsReg       *prometheus.Registry
-	metrics          metrics.Metrics
-	nodeApi          *nodeapi.NodeApi
-	avsWriter        *chainio.AvsWriter
-	avsReader        chainio.AvsReaderer
-	avsSubscriber    chainio.AvsSubscriberer
-	eigenlayerReader sdkelcontracts.ELReader
-	eigenlayerWriter sdkelcontracts.ELWriter
-	blsKeypair       *bls.KeyPair
-	operatorId       bls.OperatorId
-	operatorAddr     common.Address
+	config       types.NodeConfig
+	logger       logging.Logger
+	metricsReg   *prometheus.Registry
+	metrics      metrics.Metrics
+	nodeApi      *nodeapi.NodeApi
+	avsReader    chainio.AvsReaderer
+	blsKeypair   *bls.KeyPair
+	operatorId   bls.OperatorId
+	operatorAddr common.Address
 	// receive new tasks in this chan (typically from mach service)
 	newTaskCreatedChan chan alert.Alert
 	// ip address of aggregator
@@ -60,7 +48,7 @@ type Operator struct {
 	// rpc client to send signed task responses to aggregator
 	aggregatorRpcClient AggregatorRpcClienter
 	// needed when opting in to avs (allow this service manager contract to slash operator)
-	credibleSquaringServiceManagerAddr common.Address
+	serviceManagerAddr common.Address
 }
 
 // TODO(samlaf): config is a mess right now, since the chainio client constructors
@@ -84,7 +72,7 @@ func NewOperatorFromConfig(c types.NodeConfig) (*Operator, error) {
 	// Setup Node Api
 	nodeApi := nodeapi.NewNodeApi(AVS_NAME, SEM_VER, c.NodeApiIpPortAddress, logger)
 
-	var ethRpcClient, ethWsClient eth.EthClient
+	var ethRpcClient eth.EthClient
 	if c.EnableMetrics {
 		rpcCallsCollector := rpccalls.NewCollector(AVS_NAME, reg)
 		ethRpcClient, err = eth.NewInstrumentedClient(c.EthRpcUrl, rpcCallsCollector)
@@ -92,20 +80,10 @@ func NewOperatorFromConfig(c types.NodeConfig) (*Operator, error) {
 			logger.Errorf("Cannot create http ethclient", "err", err)
 			return nil, err
 		}
-		ethWsClient, err = eth.NewInstrumentedClient(c.EthWsUrl, rpcCallsCollector)
-		if err != nil {
-			logger.Errorf("Cannot create ws ethclient", "err", err)
-			return nil, err
-		}
 	} else {
 		ethRpcClient, err = eth.NewClient(c.EthRpcUrl)
 		if err != nil {
 			logger.Errorf("Cannot create http ethclient", "err", err)
-			return nil, err
-		}
-		ethWsClient, err = eth.NewClient(c.EthWsUrl)
-		if err != nil {
-			logger.Errorf("Cannot create ws ethclient", "err", err)
 			return nil, err
 		}
 	}
@@ -152,16 +130,6 @@ func NewOperatorFromConfig(c types.NodeConfig) (*Operator, error) {
 	if err != nil {
 		panic(err)
 	}
-	txMgr := txmgr.NewSimpleTxManager(ethRpcClient, logger, signerV2, common.HexToAddress(c.OperatorAddress))
-
-	avsWriter, err := chainio.BuildAvsWriter(
-		txMgr, common.HexToAddress(c.AVSRegistryCoordinatorAddress),
-		common.HexToAddress(c.OperatorStateRetrieverAddress), ethRpcClient, logger,
-	)
-	if err != nil {
-		logger.Error("Cannot create AvsWriter", "err", err)
-		return nil, err
-	}
 
 	avsReader, err := chainio.BuildAvsReader(
 		common.HexToAddress(c.AVSRegistryCoordinatorAddress),
@@ -169,13 +137,6 @@ func NewOperatorFromConfig(c types.NodeConfig) (*Operator, error) {
 		ethRpcClient, logger)
 	if err != nil {
 		logger.Error("Cannot create AvsReader", "err", err)
-		return nil, err
-	}
-	avsSubscriber, err := chainio.BuildAvsSubscriber(common.HexToAddress(c.AVSRegistryCoordinatorAddress),
-		common.HexToAddress(c.OperatorStateRetrieverAddress), ethWsClient, logger,
-	)
-	if err != nil {
-		logger.Error("Cannot create AvsSubscriber", "err", err)
 		return nil, err
 	}
 
@@ -196,24 +157,19 @@ func NewOperatorFromConfig(c types.NodeConfig) (*Operator, error) {
 	}
 
 	operator := &Operator{
-		config:                             c,
-		logger:                             logger,
-		metricsReg:                         reg,
-		metrics:                            avsAndEigenMetrics,
-		nodeApi:                            nodeApi,
-		ethClient:                          ethRpcClient,
-		avsWriter:                          avsWriter,
-		avsReader:                          avsReader,
-		avsSubscriber:                      avsSubscriber,
-		eigenlayerReader:                   sdkClients.ElChainReader,
-		eigenlayerWriter:                   sdkClients.ElChainWriter,
-		blsKeypair:                         blsKeyPair,
-		operatorAddr:                       common.HexToAddress(c.OperatorAddress),
-		aggregatorServerIpPortAddr:         c.AggregatorServerIpPortAddress,
-		aggregatorRpcClient:                aggregatorRpcClient,
-		newTaskCreatedChan:                 make(chan alert.Alert),
-		credibleSquaringServiceManagerAddr: common.HexToAddress(c.AVSRegistryCoordinatorAddress),
-		operatorId:                         [32]byte{0}, // this is set below
+		config:                     c,
+		logger:                     logger,
+		metricsReg:                 reg,
+		metrics:                    avsAndEigenMetrics,
+		nodeApi:                    nodeApi,
+		avsReader:                  avsReader,
+		blsKeypair:                 blsKeyPair,
+		operatorAddr:               common.HexToAddress(c.OperatorAddress),
+		aggregatorServerIpPortAddr: c.AggregatorServerIpPortAddress,
+		aggregatorRpcClient:        aggregatorRpcClient,
+		newTaskCreatedChan:         make(chan alert.Alert),
+		serviceManagerAddr:         common.HexToAddress(c.AVSRegistryCoordinatorAddress),
+		operatorId:                 [32]byte{0}, // this is set below
 
 	}
 

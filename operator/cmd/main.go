@@ -18,9 +18,9 @@ import (
 func main() {
 	app := cli.NewApp()
 	app.Flags = []cli.Flag{config.ConfigFileFlag}
-	app.Name = "credible-squaring-operator"
-	app.Usage = "Credible Squaring Operator"
-	app.Description = "Service that reads numbers onchain, squares, signs, and sends them to the aggregator."
+	app.Name = "mach-operator"
+	app.Usage = "Mach Operator"
+	app.Description = "Service that handle the alert, and sends them to the aggregator."
 
 	app.Action = operatorMain
 	err := app.Run(os.Args)

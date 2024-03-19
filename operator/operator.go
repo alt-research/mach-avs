@@ -41,6 +41,7 @@ type Operator struct {
 	blsKeypair   *bls.KeyPair
 	operatorId   bls.OperatorId
 	operatorAddr common.Address
+	rpcServer    RpcServer
 	// receive new tasks in this chan (typically from mach service)
 	newTaskCreatedChan chan alert.Alert
 	// ip address of aggregator
@@ -156,6 +157,13 @@ func NewOperatorFromConfig(c types.NodeConfig) (*Operator, error) {
 		return nil, err
 	}
 
+	newTaskCreatedChan := make(chan alert.Alert)
+	rpcServer := RpcServer{
+		logger:             logger,
+		serverIpPortAddr:   c.OperatorServerIpPortAddr,
+		newTaskCreatedChan: newTaskCreatedChan,
+	}
+
 	operator := &Operator{
 		config:                     c,
 		logger:                     logger,
@@ -163,11 +171,12 @@ func NewOperatorFromConfig(c types.NodeConfig) (*Operator, error) {
 		metrics:                    avsAndEigenMetrics,
 		nodeApi:                    nodeApi,
 		avsReader:                  avsReader,
+		rpcServer:                  rpcServer,
 		blsKeypair:                 blsKeyPair,
 		operatorAddr:               common.HexToAddress(c.OperatorAddress),
 		aggregatorServerIpPortAddr: c.AggregatorServerIpPortAddress,
 		aggregatorRpcClient:        aggregatorRpcClient,
-		newTaskCreatedChan:         make(chan alert.Alert),
+		newTaskCreatedChan:         newTaskCreatedChan,
 		serviceManagerAddr:         common.HexToAddress(c.AVSRegistryCoordinatorAddress),
 		operatorId:                 [32]byte{0}, // this is set below
 
@@ -213,6 +222,11 @@ func (o *Operator) Start(ctx context.Context) error {
 		metricsErrChan = o.metrics.Start(ctx, o.metricsReg)
 	} else {
 		metricsErrChan = make(chan error, 1)
+	}
+
+	if err = o.rpcServer.startServer(ctx); err != nil {
+		o.logger.Error("Error start Rpc server", "err", err)
+		return err
 	}
 
 	for {

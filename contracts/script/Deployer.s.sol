@@ -18,6 +18,12 @@ import "eigenlayer-core/contracts/strategies/StrategyBaseTVLLimits.sol";
 
 import "forge-std/Script.sol";
 
+struct StrategyUnderlyingTokenConfig {
+    address tokenAddress;
+    string tokenName;
+    string tokenSymbol;
+}
+
 // forge script script/Deployer.s.sol --rpc-url $RPC_URL  --private-key $PRIVATE_KEY --broadcast -vvvv
 contract Deployer is Script {
     struct EigenLayerContracts {
@@ -49,6 +55,16 @@ contract Deployer is Script {
         uint256 AVS_DIRECTORY_INIT_PAUSED_STATUS;
         uint256 DELEGATION_MANAGER_INIT_PAUSED_STATUS;
         uint256 DELEGATION_MANAGER_MIN_WITHDRAWAL_DELAY_BLOCKS;
+        address STRATEGY_MANAGER_WHITELISTER;
+        uint256 STRATEGY_MANAGER_INIT_PAUSED_STATUS;
+        uint256 SLASHER_INIT_PAUSED_STATUS;
+        uint256 EIGENPOD_MANAGER_INIT_PAUSED_STATUS;
+        uint256 DELAYED_WITHDRAWAL_ROUTER_INIT_PAUSED_STATUS;
+        // one week in blocks -- 50400
+        uint32 DELAYED_WITHDRAWAL_ROUTER_INIT_WITHDRAWAL_DELAY_BLOCKS;
+        // Strategy Deployment
+        uint256 STRATEGY_MAX_PER_DEPOSIT;
+        uint256 STRATEGY_MAX_TOTAL_DEPOSITS;
     }
 
     function run() external {
@@ -176,6 +192,53 @@ contract Deployer is Script {
                 param.DELEGATION_MANAGER_MIN_WITHDRAWAL_DELAY_BLOCKS,
                 initializeStrategiesToSetDelayBlocks,
                 initializeWithdrawalDelayBlocks
+            )
+        );
+        // StrategyManager
+        eigenLayerContracts.eigenLayerProxyAdmin.upgradeAndCall(
+            TransparentUpgradeableProxy(payable(address(eigenLayerContracts.strategyManager))),
+            address(eigenLayerContracts.strategyManagerImplementation),
+            abi.encodeWithSelector(
+                StrategyManager.initialize.selector,
+                executorMultisig, //initialOwner
+                param.STRATEGY_MANAGER_WHITELISTER, //initial whitelister
+                eigenLayerContracts.eigenLayerPauserReg,
+                param.STRATEGY_MANAGER_INIT_PAUSED_STATUS
+            )
+        );
+        // Slasher
+        eigenLayerContracts.eigenLayerProxyAdmin.upgradeAndCall(
+            TransparentUpgradeableProxy(payable(address(eigenLayerContracts.slasher))),
+            address(eigenLayerContracts.slasherImplementation),
+            abi.encodeWithSelector(
+                Slasher.initialize.selector,
+                executorMultisig,
+                eigenLayerContracts.eigenLayerPauserReg,
+                param.SLASHER_INIT_PAUSED_STATUS
+            )
+        );
+        // EigenPodManager
+        eigenLayerContracts.eigenLayerProxyAdmin.upgradeAndCall(
+            TransparentUpgradeableProxy(payable(address(eigenLayerContracts.eigenPodManager))),
+            address(eigenLayerContracts.eigenPodManagerImplementation),
+            abi.encodeWithSelector(
+                EigenPodManager.initialize.selector,
+                eigenLayerContracts.beaconOracle,
+                msg.sender, // initialOwner is msg.sender for now to set forktimestamp later
+                eigenLayerContracts.eigenLayerPauserReg,
+                param.EIGENPOD_MANAGER_INIT_PAUSED_STATUS
+            )
+        );
+        // Delayed Withdrawal Router
+        eigenLayerContracts.eigenLayerProxyAdmin.upgradeAndCall(
+            TransparentUpgradeableProxy(payable(address(eigenLayerContracts.delayedWithdrawalRouter))),
+            address(eigenLayerContracts.delayedWithdrawalRouterImplementation),
+            abi.encodeWithSelector(
+                DelayedWithdrawalRouter.initialize.selector,
+                executorMultisig, // initialOwner
+                eigenLayerContracts.eigenLayerPauserReg,
+                param.DELAYED_WITHDRAWAL_ROUTER_INIT_PAUSED_STATUS,
+                param.DELAYED_WITHDRAWAL_ROUTER_INIT_WITHDRAWAL_DELAY_BLOCKS
             )
         );
         vm.stopBroadcast();

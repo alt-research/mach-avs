@@ -25,7 +25,7 @@ struct StrategyUnderlyingTokenConfig {
 }
 
 // forge script script/Deployer.s.sol --rpc-url $RPC_URL  --private-key $PRIVATE_KEY --broadcast -vvvv
-contract Deployer is Script {
+contract EigenLayerDeployer is Script {
     struct EigenLayerContracts {
         ProxyAdmin eigenLayerProxyAdmin;
         PauserRegistry eigenLayerPauserReg;
@@ -42,29 +42,37 @@ contract Deployer is Script {
         EigenPodManager eigenPodManagerImplementation;
         DelayedWithdrawalRouter delayedWithdrawalRouter;
         DelayedWithdrawalRouter delayedWithdrawalRouterImplementation;
-        IBeaconChainOracle beaconOracle;
         UpgradeableBeacon eigenPodBeacon;
         EigenPod eigenPodImplementation;
         StrategyBase baseStrategyImplementation;
     }
 
     struct Param {
-        uint64 EIGENPOD_MAX_RESTAKED_BALANCE_GWEI_PER_VALIDATOR;
-        uint64 GENESIS_TIME;
-        address ETHPOSDepositAddress;
-        uint256 AVS_DIRECTORY_INIT_PAUSED_STATUS;
+        // StrategyManager
+        uint256 STRATEGY_MANAGER_INIT_PAUSED_STATUS;
+        address STRATEGY_MANAGER_WHITELISTER;
+        // Slasher
+        uint256 SLASHER_INIT_PAUSED_STATUS;
+        // DelegationManager
         uint256 DELEGATION_MANAGER_INIT_PAUSED_STATUS;
         uint256 DELEGATION_MANAGER_MIN_WITHDRAWAL_DELAY_BLOCKS;
-        address STRATEGY_MANAGER_WHITELISTER;
-        uint256 STRATEGY_MANAGER_INIT_PAUSED_STATUS;
-        uint256 SLASHER_INIT_PAUSED_STATUS;
+        // AVSDirectory
+        uint256 AVS_DIRECTORY_INIT_PAUSED_STATUS;
+        // EigenPodManager
         uint256 EIGENPOD_MANAGER_INIT_PAUSED_STATUS;
+        uint64 EIGENPOD_MANAGER_DENEB_FORK_TIMESTAMP;
+        // EigenPod
+        uint64 EIGENPOD_GENESIS_TIME;
+        uint64 EIGENPOD_MAX_RESTAKED_BALANCE_GWEI_PER_VALIDATOR;
+        uint64 EIGENPOD_MAX_PODS;
+        address ETHPOSDepositAddress;
         uint256 DELAYED_WITHDRAWAL_ROUTER_INIT_PAUSED_STATUS;
-        // one week in blocks -- 50400
-        uint32 DELAYED_WITHDRAWAL_ROUTER_INIT_WITHDRAWAL_DELAY_BLOCKS;
         // Strategy Deployment
         uint256 STRATEGY_MAX_PER_DEPOSIT;
         uint256 STRATEGY_MAX_TOTAL_DEPOSITS;
+        // one week in blocks -- 50400
+        uint32 DELAYED_WITHDRAWAL_ROUTER_INIT_WITHDRAWAL_DELAY_BLOCKS;
+        uint64 GENESIS_TIME;
     }
 
     function run() external {
@@ -72,16 +80,32 @@ contract Deployer is Script {
         address executorMultisig = msg.sender;
         address operationsMultisig = msg.sender;
         address pauserMultisig = msg.sender;
+        IBeaconChainOracle beaconOracle = IBeaconChainOracle(0x4C116BB629bff7A8373c2378bBd919f8349B8f25);
 
         // EigenLayer Contracts
         EigenLayerContracts memory eigenLayerContracts;
         Param memory param;
-        param.EIGENPOD_MAX_RESTAKED_BALANCE_GWEI_PER_VALIDATOR = 32;
-        param.GENESIS_TIME = 1695902400;
-        param.ETHPOSDepositAddress = 0x4242424242424242424242424242424242424242;
-        param.AVS_DIRECTORY_INIT_PAUSED_STATUS = 0;
+        // StrategyManager
+        param.STRATEGY_MANAGER_INIT_PAUSED_STATUS = 0;
+        param.STRATEGY_MANAGER_WHITELISTER = 0x0000000000000000000000000000000000000000;
+        // Slasher
+        param.SLASHER_INIT_PAUSED_STATUS = 0;
+        // DelegationManager
         param.DELEGATION_MANAGER_INIT_PAUSED_STATUS = 0;
         param.DELEGATION_MANAGER_MIN_WITHDRAWAL_DELAY_BLOCKS = 50400;
+        // AVSDirectory
+        param.AVS_DIRECTORY_INIT_PAUSED_STATUS = 0;
+        // EigenPodManager
+        param.EIGENPOD_MANAGER_INIT_PAUSED_STATUS = 0;
+        param.EIGENPOD_MANAGER_DENEB_FORK_TIMESTAMP = 1707305664;
+        // EigenPod
+        param.EIGENPOD_GENESIS_TIME = 1695902400;
+        param.EIGENPOD_MAX_RESTAKED_BALANCE_GWEI_PER_VALIDATOR = 32;
+        param.EIGENPOD_MAX_PODS = 100;
+        param.ETHPOSDepositAddress = 0x4242424242424242424242424242424242424242;
+    
+
+        param.DELAYED_WITHDRAWAL_ROUTER_INIT_PAUSED_STATUS = 0;
         vm.startBroadcast();
 
         // Deploy ProxyAdmin, later set admins for all proxies to be executorMultisig
@@ -223,7 +247,8 @@ contract Deployer is Script {
             address(eigenLayerContracts.eigenPodManagerImplementation),
             abi.encodeWithSelector(
                 EigenPodManager.initialize.selector,
-                eigenLayerContracts.beaconOracle,
+                param.EIGENPOD_MAX_PODS,
+                beaconOracle,
                 msg.sender, // initialOwner is msg.sender for now to set forktimestamp later
                 eigenLayerContracts.eigenLayerPauserReg,
                 param.EIGENPOD_MANAGER_INIT_PAUSED_STATUS

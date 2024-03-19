@@ -13,7 +13,7 @@ import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet
 import {MachServiceManagerStorage} from "./MachServiceManagerStorage.sol";
 
 contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BLSSignatureChecker, Pausable {
-    using EnumerableSet for EnumerableSet.UintSet;
+    using EnumerableSet for EnumerableSet.Bytes32Set;
     using EnumerableSet for EnumerableSet.AddressSet;
 
     uint8 internal constant PAUSED_CONFIRM_ALERT = 0;
@@ -81,9 +81,9 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
         emit AllowlistDisabled();
     }
 
-    function removeAlert(uint256 blockNumber) external onlyOwner {
-        _l2Blocks.remove(blockNumber);
-        emit AlertRemoved(blockNumber, _msgSender());
+    function removeAlert(bytes32 messageHash) external onlyOwner {
+        _messageHashes.remove(messageHash);
+        emit AlertRemoved(messageHash, _msgSender());
     }
 
     //////////////////////////////////////////////////////////////////////////////
@@ -157,9 +157,9 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
         }
 
         // store alert
-        _l2Blocks.add(alertHeader.l2BlockNumber);
+        _messageHashes.add(alertHeader.messageHash);
 
-        emit AlertConfirmed(hashedHeader, alertHeader.l2BlockNumber);
+        emit AlertConfirmed(hashedHeader, alertHeader.messageHash);
     }
 
     //////////////////////////////////////////////////////////////////////////////
@@ -167,14 +167,14 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
     //////////////////////////////////////////////////////////////////////////////
 
     function totalAlerts() public view returns (uint256) {
-        return _l2Blocks.length();
+        return _messageHashes.length();
     }
 
-    function contains(uint256 blockNumber) public view returns (bool) {
-        return _l2Blocks.contains(blockNumber);
+    function contains(bytes32 messageHash) public view returns (bool) {
+        return _messageHashes.contains(messageHash);
     }
 
-    function queryBlockNumber(uint256 start, uint256 querySize) public view returns (uint256[] memory) {
+    function queryMessageHashes(uint256 start, uint256 querySize) public view returns (bytes32[] memory) {
         uint256 length = totalAlerts();
 
         if (start >= length) {
@@ -187,10 +187,9 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
             end = length;
         }
 
-        uint256[] memory output = new uint256[](end - start);
-
+        bytes32[] memory output = new bytes32[](end - start);
         for (uint256 i = start; i < end; ++i) {
-            output[i - start] = _l2Blocks.at(i);
+            output[i - start] = _messageHashes.at(i);
         }
 
         return output;
@@ -221,9 +220,6 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
         pure
         returns (ReducedAlertHeader memory)
     {
-        return ReducedAlertHeader({
-            l2BlockNumber: alertHeader.l2BlockNumber,
-            referenceBlockNumber: alertHeader.referenceBlockNumber
-        });
+        return ReducedAlertHeader({messageHash: alertHeader.messageHash});
     }
 }

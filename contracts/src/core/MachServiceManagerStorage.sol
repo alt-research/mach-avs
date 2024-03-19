@@ -8,7 +8,7 @@ abstract contract MachServiceManagerStorage is IMachServiceManager {
     // CONSTANTS
     uint256 public constant THRESHOLD_DENOMINATOR = 100;
 
-    EnumerableSet.UintSet internal _l2Blocks;
+    EnumerableSet.Bytes32Set internal _messageHashes;
 
     /// @notice Ethereum addresses of currently register operators
     EnumerableSet.AddressSet internal _operators;

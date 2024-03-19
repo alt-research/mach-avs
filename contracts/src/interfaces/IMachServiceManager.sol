@@ -6,7 +6,7 @@ import {IMachOptimism} from "../interfaces/IMachOptimism.sol";
 
 interface IMachServiceManager is IServiceManager {
     struct AlertHeader {
-        uint256 l2BlockNumber;
+        bytes32 messageHash;
         bytes quorumNumbers; // each byte is a different quorum number
         bytes quorumThresholdPercentages; // every bytes is an amount less than 100 specifying the percentage of stake
             // the must have signed in the corresponding quorum in `quorumNumbers`
@@ -14,8 +14,7 @@ interface IMachServiceManager is IServiceManager {
     }
 
     struct ReducedAlertHeader {
-        uint256 l2BlockNumber;
-        uint32 referenceBlockNumber;
+        bytes32 messageHash;
     }
 
     /**
@@ -62,11 +61,11 @@ interface IMachServiceManager is IServiceManager {
     /**
      * @notice Emitted when a Alert is confirmed.
      * @param alertHeaderHash The hash of the alert header
-     * @param blockNumber The l2 block number
+     * @param messageHash The message hash
      */
-    event AlertConfirmed(bytes32 indexed alertHeaderHash, uint256 blockNumber);
+    event AlertConfirmed(bytes32 indexed alertHeaderHash, bytes32 messageHash);
 
-    event AlertRemoved(uint256 blockNumber, address sender);
+    event AlertRemoved(bytes32 messageHash, address sender);
 
     error InvalidStartIndex();
 }

@@ -3,10 +3,11 @@ pragma solidity ^0.8.9;
 
 import {Pausable} from "eigenlayer-core/contracts/permissions/Pausable.sol";
 import {IAVSDirectory} from "eigenlayer-core/contracts/interfaces/IAVSDirectory.sol";
-import {IRegistryCoordinator} from "eigenlayer-middleware/interfaces/IRegistryCoordinator.sol";
-import {IStakeRegistry} from "eigenlayer-middleware/interfaces/IStakeRegistry.sol";
-import {BLSSignatureChecker} from "eigenlayer-middleware/BLSSignatureChecker.sol";
+import {ISignatureUtils} from "eigenlayer-contracts/src/contracts/interfaces/ISignatureUtils.sol";
 import {IPauserRegistry} from "eigenlayer-core/contracts/interfaces/IPauserRegistry.sol";
+import {IStakeRegistry} from "eigenlayer-middleware/interfaces/IStakeRegistry.sol";
+import {IRegistryCoordinator} from "eigenlayer-middleware/interfaces/IRegistryCoordinator.sol";
+import {BLSSignatureChecker} from "eigenlayer-middleware/BLSSignatureChecker.sol";
 import {ServiceManagerBase} from "eigenlayer-middleware/ServiceManagerBase.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {MachServiceManagerStorage} from "./MachServiceManagerStorage.sol";
@@ -38,15 +39,40 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
         _setAlertConfirmer(_batchConfirmer);
     }
 
+    //////////////////////////////////////////////////////////////////////////////
+    //                              Admin functions                             //
+    //////////////////////////////////////////////////////////////////////////////
+
     function removeAlert(uint256 blockNumber) external onlyOwner {
         _l2Blocks.remove(blockNumber);
         emit AlertRemoved(blockNumber, _msgSender());
     }
 
+    //////////////////////////////////////////////////////////////////////////////
+    //                          Operator Registration                           //
+    //////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * @notice Register an operator with the AVS. Forwards call to EigenLayer' AVSDirectory.
+     * @param pubkey            64 byte uncompressed secp256k1 public key (no 0x04 prefix)
+     *                          Pubkey must match operator's address (msg.sender)
+     * @param operatorSignature The signature, salt, and expiry of the operator's signature.
+     */
+    function registerOperator(
+        bytes calldata pubkey,
+        ISignatureUtils.SignatureWithSaltAndExpiry memory operatorSignature
+    ) external whenNotPaused {
+        address operator = msg.sender;
+        require(!allowlistEnabled || _allowlist[operator], "MachServiceManager.registerOperator: not allowed");
+        // todo check strategy and stake
+        _addOperator(operator);
+        _avsDirectory.registerOperatorToAVS(operator, operatorSignature);
+    }
+
     function confirmAlert(
         AlertHeader calldata alertHeader,
         NonSignerStakesAndSignature memory nonSignerStakesAndSignature
-    ) external onlyWhenNotPaused(PAUSED_CONFIRM_ALERT) onlyAlertConfirmer {
+    ) external whenNotPaused onlyAlertConfirmer {
         // make sure the information needed to derive the non-signers and batch is in calldata to avoid emitting events
         require(
             tx.origin == msg.sender, "MachServiceManager.confirmAlert: header and nonsigner data must be in calldata"
@@ -115,6 +141,23 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
         return output;
     }
 
+    //////////////////////////////////////////////////////////////////////////////
+    //                              Internal functions                          //
+    //////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * @notice Add an operator to internal AVS state
+     * @dev Does not check if operator already exists
+     */
+    function _addOperator(address operator) private {
+        _operators.push(operator);
+    }
+
+    /// @notice hash the alert header
+    function hashAlertHeader(AlertHeader memory alertHeader) internal pure returns (bytes32) {
+        return keccak256(abi.encode(convertAlertHeaderToReducedAlertHeader(alertHeader)));
+    }
+
     /// @notice changes the alert confirmer
     function _setAlertConfirmer(address _alertConfirmer) internal {
         address previousBatchConfirmer = alertConfirmer;
@@ -135,10 +178,5 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
             l2BlockNumber: alertHeader.l2BlockNumber,
             referenceBlockNumber: alertHeader.referenceBlockNumber
         });
-    }
-
-    /// @notice hash the alert header
-    function hashAlertHeader(AlertHeader memory alertHeader) internal pure returns (bytes32) {
-        return keccak256(abi.encode(convertAlertHeaderToReducedAlertHeader(alertHeader)));
     }
 }

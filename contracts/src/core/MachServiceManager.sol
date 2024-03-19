@@ -14,6 +14,7 @@ import {MachServiceManagerStorage} from "./MachServiceManagerStorage.sol";
 
 contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BLSSignatureChecker, Pausable {
     using EnumerableSet for EnumerableSet.UintSet;
+    using EnumerableSet for EnumerableSet.AddressSet;
 
     uint8 internal constant PAUSED_CONFIRM_ALERT = 0;
 
@@ -42,11 +43,6 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
     //////////////////////////////////////////////////////////////////////////////
     //                              Admin functions                             //
     //////////////////////////////////////////////////////////////////////////////
-
-    function removeAlert(uint256 blockNumber) external onlyOwner {
-        _l2Blocks.remove(blockNumber);
-        emit AlertRemoved(blockNumber, _msgSender());
-    }
 
     /**
      * @notice Add an operator to the allowlist.
@@ -85,25 +81,39 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
         emit AllowlistDisabled();
     }
 
+    function removeAlert(uint256 blockNumber) external onlyOwner {
+        _l2Blocks.remove(blockNumber);
+        emit AlertRemoved(blockNumber, _msgSender());
+    }
+
     //////////////////////////////////////////////////////////////////////////////
     //                          Operator Registration                           //
     //////////////////////////////////////////////////////////////////////////////
 
     /**
      * @notice Register an operator with the AVS. Forwards call to EigenLayer' AVSDirectory.
-     * @param pubkey            64 byte uncompressed secp256k1 public key (no 0x04 prefix)
-     *                          Pubkey must match operator's address (msg.sender)
      * @param operatorSignature The signature, salt, and expiry of the operator's signature.
      */
-    function registerOperator(
-        bytes calldata pubkey,
-        ISignatureUtils.SignatureWithSaltAndExpiry memory operatorSignature
-    ) external whenNotPaused {
+    function registerOperator(ISignatureUtils.SignatureWithSaltAndExpiry memory operatorSignature)
+        external
+        whenNotPaused
+    {
         address operator = msg.sender;
         require(!allowlistEnabled || _allowlist[operator], "MachServiceManager.registerOperator: not allowed");
         // todo check strategy and stake
-        _addOperator(operator);
+        _operators.add(operator);
         _avsDirectory.registerOperatorToAVS(operator, operatorSignature);
+        emit OperatorAdded(operator);
+    }
+
+    /**
+     * @notice Deregister an operator from the AVS. Forwards a call to EigenLayer's AVSDirectory.
+     */
+    function deregisterOperator() external whenNotPaused {
+        address operator = msg.sender;
+        _operators.remove(operator);
+        _avsDirectory.deregisterOperatorFromAVS(operator);
+        emit OperatorRemoved(operator);
     }
 
     function confirmAlert(
@@ -181,14 +191,6 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
     //////////////////////////////////////////////////////////////////////////////
     //                              Internal functions                          //
     //////////////////////////////////////////////////////////////////////////////
-
-    /**
-     * @notice Add an operator to internal AVS state
-     * @dev Does not check if operator already exists
-     */
-    function _addOperator(address operator) private {
-        _operators.push(operator);
-    }
 
     /// @notice hash the alert header
     function hashAlertHeader(AlertHeader memory alertHeader) internal pure returns (bytes32) {

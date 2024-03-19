@@ -19,6 +19,18 @@ interface IMachServiceManager is IServiceManager {
     }
 
     /**
+     * @notice Emitted when an operator is added to the MachServiceManagerAVS.
+     * @param operator The address of the operator
+     */
+    event OperatorAdded(address indexed operator);
+
+    /**
+     * @notice Emitted when an operator is removed from the MachServiceManagerAVS.
+     * @param operator The address of the operator
+     */
+    event OperatorRemoved(address indexed operator);
+
+    /**
      * @notice Emitted when the alert confirmer is changed.
      * @param previousAddress The address of the previous alert confirmer
      * @param newAddress The address of the new alert confirmer

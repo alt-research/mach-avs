@@ -11,7 +11,7 @@ abstract contract MachServiceManagerStorage is IMachServiceManager {
     EnumerableSet.UintSet internal _l2Blocks;
 
     /// @notice Ethereum addresses of currently register operators
-    address[] internal _operators;
+    EnumerableSet.AddressSet internal _operators;
 
     /// @notice address that is permissioned to confirm alerts
     address public alertConfirmer;

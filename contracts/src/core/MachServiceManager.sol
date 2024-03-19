@@ -50,7 +50,7 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
      */
     function addToAllowlist(address operator) external onlyOwner {
         require(operator != address(0), "MachServiceManager.addToAllowlist: zero address");
-        require(!_allowlist[operator], "addToAllowlist.addToAllowlist: already in allowlist");
+        require(!_allowlist[operator], "MachServiceManager.addToAllowlist: already in allowlist");
         _allowlist[operator] = true;
         emit OperatorAllowed(operator);
     }

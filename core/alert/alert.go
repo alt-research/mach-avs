@@ -3,12 +3,21 @@ package alert
 import (
 	"math/big"
 
+	"github.com/ethereum/go-ethereum/common/math"
 	"golang.org/x/crypto/sha3"
 )
 
 // The Alert submit to avs
 type Alert interface {
 	MessageHash() [32]byte
+	// Return a uint32 as task index in aggregator, it use a value for aggregator to index.
+	TaskIndex() uint32
+}
+
+// The Alert Information
+type AlertInfo struct {
+	AlertHash [32]byte
+	TaskIndex uint32
 }
 
 // AlertBlockMismatch is submit alert for verifier found a op block output mismatch.
@@ -39,6 +48,17 @@ func (a AlertBlockMismatch) MessageHash() [32]byte {
 	return res
 }
 
+func (a AlertBlockMismatch) TaskIndex() uint32 {
+	max := big.NewInt(math.MaxInt32)
+
+	if a.L2BlockNumber.Cmp(max) != -1 {
+		return uint32(a.L2BlockNumber.Uint64())
+	} else {
+		// TODO: support task index not use this func
+		return uint32(a.L2BlockNumber.Mod(a.L2BlockNumber, max).Uint64())
+	}
+}
+
 var _ Alert = (*AlertBlockMismatch)(nil)
 
 //	AlertBlockOutputOracleMismatch is Submit alert for verifier found a op block output root mismatch.
@@ -64,6 +84,17 @@ func (a AlertBlockOutputOracleMismatch) MessageHash() [32]byte {
 	copy(res[:], hasher.Sum(nil)[:32])
 
 	return res
+}
+
+func (a AlertBlockOutputOracleMismatch) TaskIndex() uint32 {
+	max := big.NewInt(math.MaxInt32)
+
+	if a.InvalidOutputIndex.Cmp(max) != -1 {
+		return uint32(a.InvalidOutputIndex.Uint64())
+	} else {
+		// TODO: support task index not use this func
+		return uint32(a.InvalidOutputIndex.Mod(a.InvalidOutputIndex, max).Uint64())
+	}
 }
 
 var _ Alert = (*AlertBlockOutputOracleMismatch)(nil)

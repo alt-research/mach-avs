@@ -41,7 +41,7 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
     }
 
     //////////////////////////////////////////////////////////////////////////////
-    //                              Admin functions                             //
+    //                              Admin Functions                             //
     //////////////////////////////////////////////////////////////////////////////
 
     /**
@@ -116,6 +116,10 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
         emit OperatorRemoved(operator);
     }
 
+    //////////////////////////////////////////////////////////////////////////////
+    //                              Alert Functions                             //
+    //////////////////////////////////////////////////////////////////////////////
+
     function confirmAlert(
         AlertHeader calldata alertHeader,
         NonSignerStakesAndSignature memory nonSignerStakesAndSignature
@@ -158,6 +162,10 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
         emit AlertConfirmed(hashedHeader, alertHeader.l2BlockNumber);
     }
 
+    //////////////////////////////////////////////////////////////////////////////
+    //                               View Functions                             //
+    //////////////////////////////////////////////////////////////////////////////
+
     function totalAlerts() public view returns (uint256) {
         return _l2Blocks.length();
     }
@@ -189,7 +197,7 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
     }
 
     //////////////////////////////////////////////////////////////////////////////
-    //                              Internal functions                          //
+    //                              Internal Functions                          //
     //////////////////////////////////////////////////////////////////////////////
 
     /// @notice hash the alert header

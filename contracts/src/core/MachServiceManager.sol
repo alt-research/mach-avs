@@ -48,6 +48,43 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
         emit AlertRemoved(blockNumber, _msgSender());
     }
 
+    /**
+     * @notice Add an operator to the allowlist.
+     * @param operator The operator to add
+     */
+    function addToAllowlist(address operator) external onlyOwner {
+        require(operator != address(0), "MachServiceManager.addToAllowlist: zero address");
+        require(!_allowlist[operator], "addToAllowlist.addToAllowlist: already in allowlist");
+        _allowlist[operator] = true;
+        emit OperatorAllowed(operator);
+    }
+
+    /**
+     * @notice Remove an operator from the allowlist.
+     * @param operator The operator to remove
+     */
+    function removeFromAllowlist(address operator) external onlyOwner {
+        require(_allowlist[operator], "MachServiceManager.removeFromAllowlist: not in allowlist");
+        _allowlist[operator] = false;
+        emit OperatorDisallowed(operator);
+    }
+
+    /**
+     * @notice Enable the allowlist.
+     */
+    function enableAllowlist() external onlyOwner {
+        allowlistEnabled = true;
+        emit AllowlistEnabled();
+    }
+
+    /**
+     * @notice Disable the allowlist.
+     */
+    function disableAllowlist() external onlyOwner {
+        allowlistEnabled = false;
+        emit AllowlistDisabled();
+    }
+
     //////////////////////////////////////////////////////////////////////////////
     //                          Operator Registration                           //
     //////////////////////////////////////////////////////////////////////////////

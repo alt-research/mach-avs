@@ -26,6 +26,28 @@ interface IMachServiceManager is IServiceManager {
     event AlertConfirmerChanged(address previousAddress, address newAddress);
 
     /**
+     * @notice Emitted when an operator is added to the allowlist.
+     * @param operator The operator
+     */
+    event OperatorAllowed(address operator);
+
+    /**
+     * @notice Emitted when an operator is removed from the allowlist.
+     * @param operator The operator
+     */
+    event OperatorDisallowed(address operator);
+
+    /**
+     * @notice Emitted when the allowlist is enabled.
+     */
+    event AllowlistEnabled();
+
+    /**
+     * @notice Emitted when the allowlist is disabled.
+     */
+    event AllowlistDisabled();
+
+    /**
      * @notice Emitted when a Alert is confirmed.
      * @param alertHeaderHash The hash of the alert header
      * @param blockNumber The l2 block number

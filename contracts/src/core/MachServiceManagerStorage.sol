@@ -20,7 +20,7 @@ abstract contract MachServiceManagerStorage is IMachServiceManager {
     mapping(address => bool) internal _allowlist;
 
     /// @notice Whether or not the allowlist is enabled
-    bool public allowlistEnabled;
+    bool public allowlistEnabled = true;
 
     /// @notice when applied to a function, ensures that the function is only callable by the `alertConfirmer`.
     modifier onlyAlertConfirmer() {

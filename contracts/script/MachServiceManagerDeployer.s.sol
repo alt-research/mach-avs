@@ -6,6 +6,7 @@ import "forge-std/Script.sol";
 import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 import "eigenlayer-core/contracts/strategies/StrategyBaseTVLLimits.sol";
+import {PauserRegistry} from "eigenlayer-core/contracts/permissions/PauserRegistry.sol";
 import {IRegistryCoordinator} from "eigenlayer-middleware/interfaces/IRegistryCoordinator.sol";
 import {IStakeRegistry, IDelegationManager} from "eigenlayer-middleware/interfaces/IStakeRegistry.sol";
 import {IIndexRegistry} from "eigenlayer-middleware/interfaces/IIndexRegistry.sol";
@@ -53,8 +54,24 @@ contract MachServiceManagerDeployer is Script {
         ProxyAdmin machAVSProxyAdmin = new ProxyAdmin();
         EmptyContract emptyContract = new EmptyContract();
 
-        MachServiceContract memory machServiceContract;
         AddressConfig memory addressConfig;
+        addressConfig.machAVSCommunityMultisig = msg.sender;
+        addressConfig.machAVSPauser = msg.sender;
+        addressConfig.churner = msg.sender;
+        addressConfig.ejector = msg.sender;
+        addressConfig.confirmer = msg.sender;
+
+        PauserRegistry pauserRegistry;
+
+        // deploy pauser registry
+        {
+            address[] memory pausers = new address[](2);
+            pausers[0] = addressConfig.machAVSPauser;
+            pausers[1] = addressConfig.machAVSCommunityMultisig;
+            pauserRegistry = new PauserRegistry(pausers, addressConfig.machAVSCommunityMultisig);
+        }
+
+        MachServiceContract memory machServiceContract;
 
         /**
          * First, deploy upgradeable proxy contracts that **will point** to the implementations. Since the implementation contracts are

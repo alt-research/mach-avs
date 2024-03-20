@@ -266,5 +266,41 @@ contract EigenLayerDeployer is Script {
             )
         );
         vm.stopBroadcast();
+        string memory output = "eigenlayer contracts deployment output";
+        vm.serializeAddress(output, "eigenLayerProxyAdmin", address(eigenLayerContracts.eigenLayerProxyAdmin));
+        vm.serializeAddress(output, "eigenLayerPauserRegistry", address(eigenLayerContracts.eigenLayerPauserReg));
+        vm.serializeAddress(output, "slasher", address(eigenLayerContracts.slasher));
+        vm.serializeAddress(output, "slasherImplementation", address(eigenLayerContracts.slasherImplementation));
+        vm.serializeAddress(output, "avsDirectory", address(eigenLayerContracts.avsDirectory));
+        vm.serializeAddress(
+            output, "avsDirectoryImplementation", address(eigenLayerContracts.avsDirectoryImplementation)
+        );
+        vm.serializeAddress(output, "delegationManager", address(eigenLayerContracts.delegationManager));
+        vm.serializeAddress(
+            output, "delegationManagerImplementation", address(eigenLayerContracts.delegationManagerImplementation)
+        );
+        vm.serializeAddress(output, "strategyManager", address(eigenLayerContracts.strategyManager));
+        vm.serializeAddress(
+            output, "strategyManagerImplementation", address(eigenLayerContracts.strategyManagerImplementation)
+        );
+        vm.serializeAddress(output, "eigenPodManager", address(eigenLayerContracts.eigenPodManager));
+        vm.serializeAddress(
+            output, "eigenPodManagerImplementation", address(eigenLayerContracts.eigenPodManagerImplementation)
+        );
+        vm.serializeAddress(output, "delayedWithdrawalRouter", address(eigenLayerContracts.delayedWithdrawalRouter));
+        vm.serializeAddress(
+            output,
+            "delayedWithdrawalRouterImplementation",
+            address(eigenLayerContracts.delayedWithdrawalRouterImplementation)
+        );
+        vm.serializeAddress(output, "eigenPodBeacon", address(eigenLayerContracts.eigenPodBeacon));
+        vm.serializeAddress(output, "eigenPodImplementation", address(eigenLayerContracts.eigenPodImplementation));
+        vm.serializeAddress(
+            output, "baseStrategyImplementation", address(eigenLayerContracts.baseStrategyImplementation)
+        );
+
+        vm.createDir("./script/output", true);
+        string memory finalJson = vm.serializeString(output, "object", output);
+        vm.writeJson(finalJson, "./script/output/eigenlayer_deploy_output.json");
     }
 }

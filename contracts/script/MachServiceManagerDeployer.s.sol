@@ -81,12 +81,6 @@ contract MachServiceManagerDeployer is Script {
          * First, deploy upgradeable proxy contracts that **will point** to the implementations. Since the implementation contracts are
          * not yet deployed, we give these proxies an empty contract as the initial implementation, to act as if they have no code.
          */
-        machServiceContract.machServiceManager = MachServiceManager(
-            address(new TransparentUpgradeableProxy(address(emptyContract), address(machAVSProxyAdmin), ""))
-        );
-        machServiceContract.registryCoordinator = RegistryCoordinator(
-            address(new TransparentUpgradeableProxy(address(emptyContract), address(machAVSProxyAdmin), ""))
-        );
         machServiceContract.indexRegistry = IIndexRegistry(
             address(new TransparentUpgradeableProxy(address(emptyContract), address(machAVSProxyAdmin), ""))
         );
@@ -96,7 +90,14 @@ contract MachServiceManagerDeployer is Script {
         machServiceContract.apkRegistry = BLSApkRegistry(
             address(new TransparentUpgradeableProxy(address(emptyContract), address(machAVSProxyAdmin), ""))
         );
+        machServiceContract.registryCoordinator = RegistryCoordinator(
+            address(new TransparentUpgradeableProxy(address(emptyContract), address(machAVSProxyAdmin), ""))
+        );
+        machServiceContract.machServiceManager = MachServiceManager(
+            address(new TransparentUpgradeableProxy(address(emptyContract), address(machAVSProxyAdmin), ""))
+        );
 
+        // Second, deploy the *implementation* contracts, using the *proxy contracts* as inputs
         machServiceContract.indexRegistryImplementation = new IndexRegistry(machServiceContract.registryCoordinator);
         machAVSProxyAdmin.upgrade(
             TransparentUpgradeableProxy(payable(address(machServiceContract.indexRegistry))),
@@ -178,5 +179,17 @@ contract MachServiceManagerDeployer is Script {
             )
         );
         vm.stopBroadcast();
+
+        string memory output = "machAVS deployment output";
+        vm.serializeAddress(output, "machServiceManager", address(machServiceContract.machServiceManager));
+        vm.serializeAddress(output, "registryCoordinator", address(machServiceContract.registryCoordinator));
+        vm.serializeAddress(output, "indexRegistry", address(machServiceContract.indexRegistry));
+        vm.serializeAddress(output, "stakeRegistry", address(machServiceContract.stakeRegistry));
+        vm.serializeAddress(output, "apkRegistry", address(machServiceContract.apkRegistry));
+        vm.serializeAddress(output, "pauserRegistry", address(pauserRegistry));
+        vm.serializeAddress(output, "machAVSProxyAdmin", address(machAVSProxyAdmin));
+        string memory finalJson = vm.serializeString(output, "object", output);
+        vm.createDir("./script/output", true);
+        vm.writeJson(finalJson, "./script/output/machavs_deploy_output.json");
     }
 }

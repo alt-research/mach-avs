@@ -103,7 +103,6 @@ contract EigenLayerDeployer is Script {
         param.EIGENPOD_MAX_RESTAKED_BALANCE_GWEI_PER_VALIDATOR = 32;
         param.EIGENPOD_MAX_PODS = 100;
         param.ETHPOSDepositAddress = 0x4242424242424242424242424242424242424242;
-    
 
         param.DELAYED_WITHDRAWAL_ROUTER_INIT_PAUSED_STATUS = 0;
         vm.startBroadcast();

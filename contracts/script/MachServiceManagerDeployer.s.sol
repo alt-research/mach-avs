@@ -41,7 +41,6 @@ contract MachServiceManagerDeployer is Script {
         address confirmer;
         // from eigenlayer contracts
         address delegation;
-        address eigenDAPauserReg;
     }
 
     function run() external {
@@ -147,7 +146,7 @@ contract MachServiceManagerDeployer is Script {
                     addressConfig.machAVSCommunityMultisig,
                     addressConfig.churner,
                     addressConfig.ejector,
-                    IPauserRegistry(addressConfig.eigenDAPauserReg),
+                    IPauserRegistry(pauserRegistry),
                     0, // initial paused status is nothing paused
                     operatorSetParams,
                     minimumStakeForQuourm,

@@ -6,6 +6,7 @@ import "forge-std/Script.sol";
 import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 import "eigenlayer-core/contracts/strategies/StrategyBaseTVLLimits.sol";
+import {IAVSDirectory} from "eigenlayer-core/contracts/interfaces/IAVSDirectory.sol";
 import {PauserRegistry} from "eigenlayer-core/contracts/permissions/PauserRegistry.sol";
 import {IRegistryCoordinator} from "eigenlayer-middleware/interfaces/IRegistryCoordinator.sol";
 import {IStakeRegistry, IDelegationManager} from "eigenlayer-middleware/interfaces/IStakeRegistry.sol";
@@ -22,6 +23,7 @@ import {IMachServiceManager} from "../src/interfaces/IMachServiceManager.sol";
 contract MachServiceManagerDeployer is Script {
     struct MachServiceContract {
         MachServiceManager machServiceManager;
+        MachServiceManager machServiceManagerImplementation;
         RegistryCoordinator registryCoordinator;
         IRegistryCoordinator registryCoordinatorImplementation;
         IIndexRegistry indexRegistry;
@@ -40,6 +42,7 @@ contract MachServiceManagerDeployer is Script {
         address ejector;
         address confirmer;
         // from eigenlayer contracts
+        address avsDirectory;
         address delegation;
     }
 
@@ -154,6 +157,23 @@ contract MachServiceManagerDeployer is Script {
                 )
             );
         }
+        machServiceContract.machServiceManagerImplementation = new MachServiceManager(
+            IAVSDirectory(addressConfig.avsDirectory),
+            machServiceContract.registryCoordinator,
+            machServiceContract.stakeRegistry
+        );
+        // Third, upgrade the proxy contracts to use the correct implementation contracts and initialize them.
+        machAVSProxyAdmin.upgradeAndCall(
+            TransparentUpgradeableProxy(payable(address(machServiceContract.machServiceManager))),
+            address(machServiceContract.machServiceManagerImplementation),
+            abi.encodeWithSelector(
+                MachServiceManager.initialize.selector,
+                IPauserRegistry(pauserRegistry),
+                0,
+                addressConfig.machAVSCommunityMultisig,
+                addressConfig.machAVSCommunityMultisig
+            )
+        );
         vm.stopBroadcast();
     }
 }

@@ -35,7 +35,6 @@ type Config struct {
 	OperatorStateRetrieverAddr common.Address
 	RegistryCoordinatorAddr    common.Address
 	AggregatorServerIpPortAddr string
-	RegisterOperatorOnStartup  bool
 	// json:"-" skips this field when marshaling (only used for logging to stdout), since SignerFn doesnt implement marshalJson
 	SignerFn          signerv2.SignerFn `json:"-"`
 	TxMgr             txmgr.TxManager
@@ -48,7 +47,6 @@ type ConfigRaw struct {
 	EthRpcUrl                  string              `yaml:"eth_rpc_url"`
 	EthWsUrl                   string              `yaml:"eth_ws_url"`
 	AggregatorServerIpPortAddr string              `yaml:"aggregator_server_ip_port_address"`
-	RegisterOperatorOnStartup  bool                `yaml:"register_operator_on_startup"`
 }
 
 // These are read from DeploymentFileFlag
@@ -133,7 +131,6 @@ func NewConfig(ctx *cli.Context) (*Config, error) {
 		OperatorStateRetrieverAddr: common.HexToAddress(deploymentRaw.Addresses.OperatorStateRetrieverAddr),
 		RegistryCoordinatorAddr:    common.HexToAddress(deploymentRaw.Addresses.RegistryCoordinatorAddr),
 		AggregatorServerIpPortAddr: configRaw.AggregatorServerIpPortAddr,
-		RegisterOperatorOnStartup:  configRaw.RegisterOperatorOnStartup,
 		SignerFn:                   signerV2,
 		TxMgr:                      txMgr,
 		AggregatorAddress:          aggregatorAddr,

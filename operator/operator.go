@@ -224,7 +224,7 @@ func (o *Operator) Start(ctx context.Context) error {
 		metricsErrChan = make(chan error, 1)
 	}
 
-	if err = o.rpcServer.startServer(ctx); err != nil {
+	if err = o.rpcServer.StartServer(ctx); err != nil {
 		o.logger.Error("Error start Rpc server", "err", err)
 		return err
 	}

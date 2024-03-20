@@ -1,11 +1,44 @@
 package alert
 
 import (
+	"encoding/hex"
+	"encoding/json"
+	"fmt"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common/math"
 	"golang.org/x/crypto/sha3"
 )
+
+type HexEncodedBytes32 [32]byte
+
+func (b HexEncodedBytes32) MarshalJSON() ([]byte, error) {
+	hexString := hex.EncodeToString(b[:])
+
+	return json.Marshal(hexString)
+}
+
+func (b *HexEncodedBytes32) UnmarshalJSON(data []byte) (err error) {
+	var hexString string
+
+	if err = json.Unmarshal(data, &hexString); err != nil {
+		return
+	}
+
+	var hexBytes []byte
+
+	if hexBytes, err = hex.DecodeString(hexString); err != nil {
+		return err
+	}
+
+	if len(hexBytes) != 32 {
+		return fmt.Errorf("the bytes length not eq to 32")
+	}
+
+	copy(b[:], hexBytes[:32])
+
+	return
+}
 
 // The Alert submit to avs
 type Alert interface {
@@ -28,11 +61,11 @@ type AlertInfo struct {
 //	root to layer1, this block may not the checkpoint.
 type AlertBlockMismatch struct {
 	// The invalid output root verifier got from op-devnet.
-	InvalidOutputRoot [32]byte
+	InvalidOutputRoot HexEncodedBytes32 `json:"invalid_output_root"`
 	// The output root calc by verifier.
-	ExpectOutputRoot [32]byte
+	ExpectOutputRoot HexEncodedBytes32 `json:"expect_output_root"`
 	// The layer2 block 's number.
-	L2BlockNumber *big.Int
+	L2BlockNumber *big.Int `json:"l2_block_number"`
 }
 
 // Return the message hash for signature in avs
@@ -69,9 +102,9 @@ var _ Alert = (*AlertBlockMismatch)(nil)
 // so we just sumit the index for this output root.
 type AlertBlockOutputOracleMismatch struct {
 	// The output root calc by verifier.
-	ExpectOutputRoot [32]byte
+	ExpectOutputRoot HexEncodedBytes32 `json:"expect_output_root"`
 	// The invalid output root index.
-	InvalidOutputIndex *big.Int
+	InvalidOutputIndex *big.Int `json:"invalid_output_index"`
 }
 
 // Return the message hash for signature in avs

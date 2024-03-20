@@ -47,10 +47,11 @@ contract MachServiceManagerDeployer is Script {
     }
 
     function run() external {
-        uint8 numStrategies;
-        uint256 maxOperatorCount;
+        uint8 numStrategies = 1;
+        uint256 maxOperatorCount = 10;
         // strategies deployed
-        StrategyBaseTVLLimits[] memory deployedStrategyArray;
+        StrategyBaseTVLLimits[] memory deployedStrategyArray = new StrategyBaseTVLLimits[](1);
+        deployedStrategyArray[0] = StrategyBaseTVLLimits(vm.envAddress("STRATEGY"));
         vm.startBroadcast();
         // deploy proxy admin for ability to upgrade proxy contracts
         ProxyAdmin machAVSProxyAdmin = new ProxyAdmin();

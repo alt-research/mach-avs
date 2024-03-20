@@ -4,6 +4,7 @@ pragma solidity ^0.8.9;
 import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
+import "@openzeppelin/contracts/token/ERC20/presets/ERC20PresetFixedSupply.sol";
 import "eigenlayer-core/contracts/permissions/PauserRegistry.sol";
 import "eigenlayer-core/test/mocks/EmptyContract.sol";
 import "eigenlayer-core/contracts/core/Slasher.sol";
@@ -21,6 +22,14 @@ import "forge-std/Script.sol";
 struct StrategyUnderlyingTokenConfig {
     address tokenAddress;
     string tokenName;
+    string tokenSymbol;
+}
+
+// struct used to encode token info in config file
+struct StrategyConfig {
+    uint256 maxDeposits;
+    uint256 maxPerDeposit;
+    address tokenAddress;
     string tokenSymbol;
 }
 
@@ -265,6 +274,37 @@ contract EigenLayerDeployer is Script {
                 param.DELAYED_WITHDRAWAL_ROUTER_INIT_WITHDRAWAL_DELAY_BLOCKS
             )
         );
+        // deploy a token and create a strategy config for each token
+        uint256 i = 1;
+        address tokenAddress = address(
+            new ERC20PresetFixedSupply(
+                string(abi.encodePacked("Token", i)), string(abi.encodePacked("TOK", i)), 1000 ether, msg.sender
+            )
+        );
+        StrategyConfig memory strategyConfig = StrategyConfig({
+            maxDeposits: type(uint256).max,
+            maxPerDeposit: type(uint256).max,
+            tokenAddress: tokenAddress,
+            tokenSymbol: string(abi.encodePacked("TOK", i))
+        });
+        eigenLayerContracts.baseStrategyImplementation = new StrategyBaseTVLLimits(eigenLayerContracts.strategyManager);
+
+        StrategyBaseTVLLimits strategyBaseTVLLimits = StrategyBaseTVLLimits(
+            address(
+                new TransparentUpgradeableProxy(
+                    address(eigenLayerContracts.baseStrategyImplementation),
+                    address(eigenLayerContracts.eigenLayerProxyAdmin),
+                    abi.encodeWithSelector(
+                        StrategyBaseTVLLimits.initialize.selector,
+                        strategyConfig.maxPerDeposit,
+                        strategyConfig.maxDeposits,
+                        IERC20(strategyConfig.tokenAddress),
+                        eigenLayerContracts.eigenLayerPauserReg
+                    )
+                )
+            )
+        );
+
         vm.stopBroadcast();
         string memory output = "eigenlayer contracts deployment output";
         vm.serializeAddress(output, "eigenLayerProxyAdmin", address(eigenLayerContracts.eigenLayerProxyAdmin));
@@ -298,6 +338,8 @@ contract EigenLayerDeployer is Script {
         vm.serializeAddress(
             output, "baseStrategyImplementation", address(eigenLayerContracts.baseStrategyImplementation)
         );
+        vm.serializeAddress(output, "underlayingToken", tokenAddress);
+        vm.serializeAddress(output, "strategyBaseTVLLimits", address(strategyBaseTVLLimits));
 
         vm.createDir("./script/output", true);
         string memory finalJson = vm.serializeString(output, "object", output);

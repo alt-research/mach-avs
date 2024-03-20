@@ -16,7 +16,9 @@ import (
 	"github.com/alt-research/avs/types"
 
 	"github.com/Layr-Labs/eigensdk-go/chainio/clients"
+	sdkelcontracts "github.com/Layr-Labs/eigensdk-go/chainio/clients/elcontracts"
 	"github.com/Layr-Labs/eigensdk-go/chainio/clients/eth"
+	"github.com/Layr-Labs/eigensdk-go/chainio/txmgr"
 	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
 	"github.com/Layr-Labs/eigensdk-go/logging"
 	sdklogging "github.com/Layr-Labs/eigensdk-go/logging"
@@ -32,16 +34,20 @@ const AVS_NAME = "mach"
 const SEM_VER = "0.0.1"
 
 type Operator struct {
-	config       types.NodeConfig
-	logger       logging.Logger
-	metricsReg   *prometheus.Registry
-	metrics      metrics.Metrics
-	nodeApi      *nodeapi.NodeApi
-	avsReader    chainio.AvsReaderer
-	blsKeypair   *bls.KeyPair
-	operatorId   bls.OperatorId
-	operatorAddr common.Address
-	rpcServer    RpcServer
+	config           types.NodeConfig
+	logger           logging.Logger
+	ethClient        eth.EthClient
+	metricsReg       *prometheus.Registry
+	metrics          metrics.Metrics
+	nodeApi          *nodeapi.NodeApi
+	avsWriter        *chainio.AvsWriter
+	avsReader        chainio.AvsReaderer
+	eigenlayerReader sdkelcontracts.ELReader
+	eigenlayerWriter sdkelcontracts.ELWriter
+	blsKeypair       *bls.KeyPair
+	operatorId       bls.OperatorId
+	operatorAddr     common.Address
+	rpcServer        RpcServer
 	// receive new tasks in this chan (typically from mach service)
 	newTaskCreatedChan chan alert.Alert
 	// ip address of aggregator
@@ -131,6 +137,16 @@ func NewOperatorFromConfig(c types.NodeConfig) (*Operator, error) {
 	if err != nil {
 		panic(err)
 	}
+	txMgr := txmgr.NewSimpleTxManager(ethRpcClient, logger, signerV2, common.HexToAddress(c.OperatorAddress))
+
+	avsWriter, err := chainio.BuildAvsWriter(
+		txMgr, common.HexToAddress(c.AVSRegistryCoordinatorAddress),
+		common.HexToAddress(c.OperatorStateRetrieverAddress), ethRpcClient, logger,
+	)
+	if err != nil {
+		logger.Error("Cannot create AvsWriter", "err", err)
+		return nil, err
+	}
 
 	avsReader, err := chainio.BuildAvsReader(
 		common.HexToAddress(c.AVSRegistryCoordinatorAddress),
@@ -170,7 +186,11 @@ func NewOperatorFromConfig(c types.NodeConfig) (*Operator, error) {
 		metricsReg:                 reg,
 		metrics:                    avsAndEigenMetrics,
 		nodeApi:                    nodeApi,
+		ethClient:                  ethRpcClient,
+		avsWriter:                  avsWriter,
 		avsReader:                  avsReader,
+		eigenlayerReader:           sdkClients.ElChainReader,
+		eigenlayerWriter:           sdkClients.ElChainWriter,
 		rpcServer:                  rpcServer,
 		blsKeypair:                 blsKeyPair,
 		operatorAddr:               common.HexToAddress(c.OperatorAddress),
@@ -201,6 +221,7 @@ func NewOperatorFromConfig(c types.NodeConfig) (*Operator, error) {
 }
 
 func (o *Operator) Start(ctx context.Context) error {
+	o.logger.Info("Start operator", "address", o.operatorAddr)
 	operatorIsRegistered, err := o.avsReader.IsOperatorRegistered(&bind.CallOpts{}, o.operatorAddr)
 	if err != nil {
 		o.logger.Error("Error checking if operator is registered", "err", err)

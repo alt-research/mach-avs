@@ -25,7 +25,7 @@ func main() {
 	app.Action = operatorMain
 	err := app.Run(os.Args)
 	if err != nil {
-		log.Fatalln("Application failed. Message:", err)
+		log.Panicln("Application failed. Message:", err)
 	}
 }
 

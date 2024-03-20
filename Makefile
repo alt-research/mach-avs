@@ -25,13 +25,16 @@ bindings: ## generates contract bindings
 
 __CLI__: ## 
 
-build: build-operator build-aggregator
+build: build-operator build-aggregator build-cli
 
 build-operator:
 	go build -o ./bin/mach-operator-signer ./operator/cmd 
 
 build-aggregator:
 	go build -o ./bin/mach-aggregator ./aggregator/cmd 
+
+build-cli:
+	go build -o ./bin/mach-operator-cli ./cli 
 
 _____HELPER_____: ## 
 mocks: ## generates mocks for tests

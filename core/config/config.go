@@ -2,7 +2,6 @@ package config
 
 import (
 	"context"
-	"crypto/ecdsa"
 	"errors"
 	"os"
 
@@ -22,7 +21,6 @@ import (
 // Config contains all of the configuration information for a mach aggregators and challengers.
 // Operators use a separate config. (see config-files/operator.anvil.yaml)
 type Config struct {
-	EcdsaPrivateKey           *ecdsa.PrivateKey
 	BlsPrivateKey             *bls.PrivateKey
 	Logger                    sdklogging.Logger
 	EigenMetricsIpPortAddress string
@@ -51,9 +49,6 @@ type ConfigRaw struct {
 
 // These are read from DeploymentFileFlag
 type MachAvsDeploymentRaw struct {
-	Addresses MachAvsContractsRaw `json:"addresses"`
-}
-type MachAvsContractsRaw struct {
 	RegistryCoordinatorAddr    string `json:"registryCoordinator"`
 	OperatorStateRetrieverAddr string `json:"operatorStateRetriever"`
 }
@@ -122,14 +117,13 @@ func NewConfig(ctx *cli.Context) (*Config, error) {
 	txMgr := txmgr.NewSimpleTxManager(ethRpcClient, logger, signerV2, aggregatorAddr)
 
 	config := &Config{
-		EcdsaPrivateKey:            ecdsaPrivateKey,
 		Logger:                     logger,
 		EthWsRpcUrl:                configRaw.EthWsUrl,
 		EthHttpRpcUrl:              configRaw.EthRpcUrl,
 		EthHttpClient:              ethRpcClient,
 		EthWsClient:                ethWsClient,
-		OperatorStateRetrieverAddr: common.HexToAddress(deploymentRaw.Addresses.OperatorStateRetrieverAddr),
-		RegistryCoordinatorAddr:    common.HexToAddress(deploymentRaw.Addresses.RegistryCoordinatorAddr),
+		OperatorStateRetrieverAddr: common.HexToAddress(deploymentRaw.OperatorStateRetrieverAddr),
+		RegistryCoordinatorAddr:    common.HexToAddress(deploymentRaw.RegistryCoordinatorAddr),
 		AggregatorServerIpPortAddr: configRaw.AggregatorServerIpPortAddr,
 		SignerFn:                   signerV2,
 		TxMgr:                      txMgr,

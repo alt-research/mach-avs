@@ -16,10 +16,11 @@ import {RegistryCoordinator} from "eigenlayer-middleware/RegistryCoordinator.sol
 import {IndexRegistry} from "eigenlayer-middleware/IndexRegistry.sol";
 import {StakeRegistry, IStrategy} from "eigenlayer-middleware/StakeRegistry.sol";
 import {BLSApkRegistry} from "eigenlayer-middleware/BLSApkRegistry.sol";
+import {OperatorStateRetriever} from "eigenlayer-middleware/OperatorStateRetriever.sol";
 import {MachServiceManager} from "../src/core/MachServiceManager.sol";
 import {IMachServiceManager} from "../src/interfaces/IMachServiceManager.sol";
 
-// AVS_DIRECTORY=0x01aE1c3ed76baA93268Fb5E1b51F1962FA72a8D9 DELEGATION_MANAGER=0x9a506502f6cB3d4A86E14bb9fe9Af0DF4bc51F7f forge script script/MachServiceManagerDeployer.s.sol --rpc-url $RPC_URL  --private-key $PRIVATE_KEY --broadcast -vvvv
+// AVS_DIRECTORY=0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9 DELEGATION_MANAGER=0x5FC8d32690cc91D4c39d9d3abcBD16989F875707 forge script script/MachServiceManagerDeployer.s.sol --rpc-url $RPC_URL  --private-key $PRIVATE_KEY --broadcast -vvvv
 contract MachServiceManagerDeployer is Script {
     struct MachServiceContract {
         MachServiceManager machServiceManager;
@@ -32,6 +33,7 @@ contract MachServiceManagerDeployer is Script {
         IStakeRegistry stakeRegistryImplementation;
         BLSApkRegistry apkRegistry;
         BLSApkRegistry apkRegistryImplementation;
+        OperatorStateRetriever operatorStateRetriever;
     }
 
     struct AddressConfig {
@@ -123,6 +125,7 @@ contract MachServiceManagerDeployer is Script {
             machServiceContract.apkRegistry,
             machServiceContract.indexRegistry
         );
+        machServiceContract.operatorStateRetriever = new OperatorStateRetriever();
 
         {
             IRegistryCoordinator.OperatorSetParam[] memory operatorSetParams =
@@ -188,6 +191,7 @@ contract MachServiceManagerDeployer is Script {
         vm.serializeAddress(output, "apkRegistry", address(machServiceContract.apkRegistry));
         vm.serializeAddress(output, "pauserRegistry", address(pauserRegistry));
         vm.serializeAddress(output, "machAVSProxyAdmin", address(machAVSProxyAdmin));
+        vm.serializeAddress(output, "operatorStateRetriever", address(machServiceContract.operatorStateRetriever));
         string memory finalJson = vm.serializeString(output, "object", output);
         vm.createDir("./script/output", true);
         vm.writeJson(finalJson, "./script/output/machavs_deploy_output.json");

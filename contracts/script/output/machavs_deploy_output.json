@@ -1,10 +1,10 @@
 {
-  "apkRegistry": "0xFAd539fEfFB6C89d5a8df1E654Bea59997966279",
-  "indexRegistry": "0x338E9741259049E8e7611d1EDdb88076d22Ad6D3",
-  "machAVSProxyAdmin": "0xe339Cca54587657a90a41F6799AE55bb0366F8ab",
-  "machServiceManager": "0xf4fADf2aA4Aba80C5edB8d118191D6bEDd195f0a",
+  "apkRegistry": "0xB92697E3bC8E8D4202ec8760De64d81D4F2984B6",
+  "indexRegistry": "0x64EFde4162F15C1d09F1Ed90BBD31411bEfbd774",
+  "machAVSProxyAdmin": "0xF59B627ECC4338A040480CABe70cd273461B58B3",
+  "machServiceManager": "0x0dCE8726e4d18e7334D9C2E0F3e9D9fec785910E",
   "object": "machAVS deployment output",
-  "pauserRegistry": "0x8d215b7372EEfb114A49e0FC071EC9380BE4637f",
-  "registryCoordinator": "0xE348E4dBb848B439cBD8fCEe86E10aa6E98dbE20",
-  "stakeRegistry": "0x45759771AABe6AC1Bd87E4ea2dE8411FbbBC47e6"
+  "pauserRegistry": "0xC43418b67BEe38eDa59Fe01D0B4Ca1Ade8d70398",
+  "registryCoordinator": "0x00987ef78fAD15AFFF67A2e78D27f722d7E0e619",
+  "stakeRegistry": "0x8D3a3584541Db857483155b42C6CA9ADFC6bc595"
 }

@@ -14,9 +14,11 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
 	eigenSdkTypes "github.com/Layr-Labs/eigensdk-go/types"
+	sdktypes "github.com/Layr-Labs/eigensdk-go/types"
 
 	regcoord "github.com/Layr-Labs/eigensdk-go/contracts/bindings/RegistryCoordinator"
 )
@@ -28,7 +30,16 @@ func (o *Operator) RegisterOperatorWithEigenlayer() error {
 	}
 	_, err := o.eigenlayerWriter.RegisterAsOperator(context.Background(), op)
 	if err != nil {
-		o.logger.Errorf("Error registering operator with eigenlayer")
+		o.logger.Error("Error registering operator with eigenlayer", err)
+		return err
+	}
+	return nil
+}
+
+func (o *Operator) DepositIntoStrategy(strategyAddr common.Address, amount *big.Int) error {
+	_, err := o.eigenlayerWriter.DepositERC20IntoStrategy(context.Background(), strategyAddr, amount)
+	if err != nil {
+		o.logger.Errorf("Error depositing into strategy", "err", err)
 		return err
 	}
 	return nil
@@ -54,10 +65,23 @@ func (o *Operator) RegisterOperatorWithAvs(
 	}
 	sigValidForSeconds := int64(1_000_000)
 	operatorToAvsRegistrationSigExpiry := big.NewInt(int64(curBlock.Time()) + sigValidForSeconds)
+
+	o.logger.Info(
+		"RegisterOperatorInQuorumWithAVSRegistryCoordinator",
+		"quorumNumbers", quorumNumbers[0],
+		"socket", socket,
+		"operatorToAvsRegistrationSigExpiry", operatorToAvsRegistrationSigExpiry,
+	)
+
+	quorumNumbersToSDK := make([]sdktypes.QuorumNum, len(quorumNumbers))
+	for i, _ := range quorumNumbers {
+		quorumNumbersToSDK[i] = sdktypes.QuorumNum(uint8(quorumNumbers[i]))
+	}
+
 	_, err = o.avsWriter.RegisterOperatorInQuorumWithAVSRegistryCoordinator(
 		context.Background(),
 		operatorEcdsaKeyPair, operatorToAvsRegistrationSigSalt, operatorToAvsRegistrationSigExpiry,
-		o.blsKeypair, quorumNumbers, socket,
+		o.blsKeypair, quorumNumbersToSDK, socket,
 	)
 	if err != nil {
 		o.logger.Error("Unable to register operator with avs registry coordinator", err)

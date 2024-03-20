@@ -18,8 +18,10 @@ import (
 	"github.com/Layr-Labs/eigensdk-go/chainio/clients"
 	sdkelcontracts "github.com/Layr-Labs/eigensdk-go/chainio/clients/elcontracts"
 	"github.com/Layr-Labs/eigensdk-go/chainio/clients/eth"
+	"github.com/Layr-Labs/eigensdk-go/chainio/clients/wallet"
 	"github.com/Layr-Labs/eigensdk-go/chainio/txmgr"
 	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
+	sdkEcdsa "github.com/Layr-Labs/eigensdk-go/crypto/ecdsa"
 	"github.com/Layr-Labs/eigensdk-go/logging"
 	sdklogging "github.com/Layr-Labs/eigensdk-go/logging"
 	sdkmetrics "github.com/Layr-Labs/eigensdk-go/metrics"
@@ -36,7 +38,7 @@ const SEM_VER = "0.0.1"
 type Operator struct {
 	config           types.NodeConfig
 	logger           logging.Logger
-	ethClient        eth.EthClient
+	ethClient        eth.Client
 	metricsReg       *prometheus.Registry
 	metrics          metrics.Metrics
 	nodeApi          *nodeapi.NodeApi
@@ -79,7 +81,7 @@ func NewOperatorFromConfig(c types.NodeConfig) (*Operator, error) {
 	// Setup Node Api
 	nodeApi := nodeapi.NewNodeApi(AVS_NAME, SEM_VER, c.NodeApiIpPortAddress, logger)
 
-	var ethRpcClient eth.EthClient
+	var ethRpcClient eth.Client
 	if c.EnableMetrics {
 		rpcCallsCollector := rpccalls.NewCollector(AVS_NAME, reg)
 		ethRpcClient, err = eth.NewInstrumentedClient(c.EthRpcUrl, rpcCallsCollector)
@@ -118,13 +120,21 @@ func NewOperatorFromConfig(c types.NodeConfig) (*Operator, error) {
 		logger.Warnf("OPERATOR_ECDSA_KEY_PASSWORD env var not set. using empty string")
 	}
 
-	signerV2, _, err := signerv2.SignerFromConfig(signerv2.Config{
+	signerConfig := signerv2.Config{
 		KeystorePath: c.EcdsaPrivateKeyStorePath,
 		Password:     ecdsaKeyPassword,
-	}, chainId)
+	}
+
+	signerV2, _, err := signerv2.SignerFromConfig(signerConfig, chainId)
 	if err != nil {
 		panic(err)
 	}
+
+	privateKey, err := sdkEcdsa.ReadKey(signerConfig.KeystorePath, signerConfig.Password)
+	if err != nil {
+		return nil, err
+	}
+
 	chainioConfig := clients.BuildAllConfig{
 		EthHttpUrl:                 c.EthRpcUrl,
 		EthWsUrl:                   c.EthWsUrl,
@@ -133,11 +143,18 @@ func NewOperatorFromConfig(c types.NodeConfig) (*Operator, error) {
 		AvsName:                    AVS_NAME,
 		PromMetricsIpPortAddress:   c.EigenMetricsIpPortAddress,
 	}
-	sdkClients, err := clients.BuildAll(chainioConfig, common.HexToAddress(c.OperatorAddress), signerV2, logger)
+	sdkClients, err := clients.BuildAll(chainioConfig, privateKey, logger)
 	if err != nil {
 		panic(err)
 	}
-	txMgr := txmgr.NewSimpleTxManager(ethRpcClient, logger, signerV2, common.HexToAddress(c.OperatorAddress))
+
+	addr := common.HexToAddress(c.OperatorAddress)
+
+	txSender, err := wallet.NewPrivateKeyWallet(ethRpcClient, signerV2, addr, logger)
+	if err != nil {
+		return nil, err
+	}
+	txMgr := txmgr.NewSimpleTxManager(txSender, ethRpcClient, logger, signerV2, addr)
 
 	avsWriter, err := chainio.BuildAvsWriter(
 		txMgr, common.HexToAddress(c.AVSRegistryCoordinatorAddress),

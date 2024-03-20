@@ -21,6 +21,24 @@ func main() {
 			Action:  actions.RegisterOperatorWithEigenlayer,
 		},
 		{
+			Name:    "deposit-into-strategy",
+			Aliases: []string{"d"},
+			Usage:   "deposit tokens into a strategy",
+			Action:  actions.DepositIntoStrategy,
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:     "strategy-addr",
+					Usage:    "Address of Strategy contract to deposit into",
+					Required: true,
+				},
+				cli.StringFlag{
+					Name:     "amount",
+					Usage:    "amount of tokens to deposit into strategy",
+					Required: true,
+				},
+			},
+		},
+		{
 			Name:    "register-operator-with-avs",
 			Aliases: []string{"r"},
 			Usage:   "registers bls keys with pubkey-compendium, opts into slashing by avs service-manager, and registers operators with avs registry",

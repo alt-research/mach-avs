@@ -100,7 +100,7 @@ func NewAggregator(c *config.Config) (*Aggregator, error) {
 		AvsName:                    avsName,
 		PromMetricsIpPortAddress:   ":9090",
 	}
-	clients, err := clients.BuildAll(chainioConfig, c.AggregatorAddress, c.SignerFn, c.Logger)
+	clients, err := clients.BuildAll(chainioConfig, c.PrivateKey, c.Logger)
 	if err != nil {
 		c.Logger.Errorf("Cannot create sdk clients", "err", err)
 		return nil, err
@@ -191,13 +191,18 @@ func (agg *Aggregator) sendNewTask(alert alert.Alert) error {
 	agg.tasks[taskIndex] = newTask
 	agg.tasksMu.Unlock()
 
-	quorumThresholdPercentages := make([]uint32, len(newTask.QuorumNumbers))
+	QuorumNumbers := make([]sdktypes.QuorumNum, len(newTask.QuorumNumbers))
 	for i, _ := range newTask.QuorumNumbers {
-		quorumThresholdPercentages[i] = uint32(newTask.QuorumThresholdPercentages[i])
+		QuorumNumbers[i] = sdktypes.QuorumNum(uint8(newTask.QuorumNumbers[i]))
+	}
+
+	quorumThresholdPercentages := make([]sdktypes.QuorumThresholdPercentage, len(newTask.QuorumNumbers))
+	for i, _ := range newTask.QuorumNumbers {
+		quorumThresholdPercentages[i] = sdktypes.QuorumThresholdPercentage(uint8(newTask.QuorumThresholdPercentages[i]))
 	}
 	// TODO(samlaf): we use seconds for now, but we should ideally pass a blocknumber to the blsAggregationService
 	// and it should monitor the chain and only expire the task aggregation once the chain has reached that block number.
 	taskTimeToExpiry := taskChallengeWindowBlock * blockTimeSeconds
-	agg.blsAggregationService.InitializeNewTask(taskIndex, newTask.ReferenceBlockNumber, newTask.QuorumNumbers, quorumThresholdPercentages, taskTimeToExpiry)
+	agg.blsAggregationService.InitializeNewTask(taskIndex, newTask.ReferenceBlockNumber, QuorumNumbers, quorumThresholdPercentages, taskTimeToExpiry)
 	return nil
 }

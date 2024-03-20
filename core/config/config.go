@@ -2,6 +2,7 @@ package config
 
 import (
 	"context"
+	"crypto/ecdsa"
 	"errors"
 	"os"
 
@@ -10,10 +11,12 @@ import (
 	"github.com/urfave/cli"
 
 	"github.com/Layr-Labs/eigensdk-go/chainio/clients/eth"
+	"github.com/Layr-Labs/eigensdk-go/chainio/clients/wallet"
 	"github.com/Layr-Labs/eigensdk-go/chainio/txmgr"
 	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
 	sdklogging "github.com/Layr-Labs/eigensdk-go/logging"
 	"github.com/Layr-Labs/eigensdk-go/signerv2"
+	"github.com/Layr-Labs/eigensdk-go/types"
 
 	sdkutils "github.com/Layr-Labs/eigensdk-go/utils"
 )
@@ -28,13 +31,14 @@ type Config struct {
 	// only take an ethclient or an rpcUrl (and build the ethclient at each constructor site)
 	EthHttpRpcUrl              string
 	EthWsRpcUrl                string
-	EthHttpClient              eth.EthClient
-	EthWsClient                eth.EthClient
+	EthHttpClient              eth.Client
+	EthWsClient                eth.Client
 	OperatorStateRetrieverAddr common.Address
 	RegistryCoordinatorAddr    common.Address
 	AggregatorServerIpPortAddr string
 	// json:"-" skips this field when marshaling (only used for logging to stdout), since SignerFn doesnt implement marshalJson
 	SignerFn          signerv2.SignerFn `json:"-"`
+	PrivateKey        *ecdsa.PrivateKey `json:"-"`
 	TxMgr             txmgr.TxManager
 	AggregatorAddress common.Address
 }
@@ -114,7 +118,12 @@ func NewConfig(ctx *cli.Context) (*Config, error) {
 	if err != nil {
 		panic(err)
 	}
-	txMgr := txmgr.NewSimpleTxManager(ethRpcClient, logger, signerV2, aggregatorAddr)
+
+	txSender, err := wallet.NewPrivateKeyWallet(ethRpcClient, signerV2, aggregatorAddr, logger)
+	if err != nil {
+		return nil, types.WrapError(errors.New("Failed to create transaction sender"), err)
+	}
+	txMgr := txmgr.NewSimpleTxManager(txSender, ethRpcClient, logger, signerV2, aggregatorAddr)
 
 	config := &Config{
 		Logger:                     logger,
@@ -126,6 +135,7 @@ func NewConfig(ctx *cli.Context) (*Config, error) {
 		RegistryCoordinatorAddr:    common.HexToAddress(deploymentRaw.RegistryCoordinatorAddr),
 		AggregatorServerIpPortAddr: configRaw.AggregatorServerIpPortAddr,
 		SignerFn:                   signerV2,
+		PrivateKey:                 ecdsaPrivateKey,
 		TxMgr:                      txMgr,
 		AggregatorAddress:          aggregatorAddr,
 	}

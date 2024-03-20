@@ -19,7 +19,7 @@ import {BLSApkRegistry} from "eigenlayer-middleware/BLSApkRegistry.sol";
 import {MachServiceManager} from "../src/core/MachServiceManager.sol";
 import {IMachServiceManager} from "../src/interfaces/IMachServiceManager.sol";
 
-// forge script script/MachServiceManagerDeployer.s.sol --rpc-url $RPC_URL  --private-key $PRIVATE_KEY --broadcast -vvvv
+// AVS_DIRECTORY=0x01aE1c3ed76baA93268Fb5E1b51F1962FA72a8D9 DELEGATION_MANAGER=0x9a506502f6cB3d4A86E14bb9fe9Af0DF4bc51F7f forge script script/MachServiceManagerDeployer.s.sol --rpc-url $RPC_URL  --private-key $PRIVATE_KEY --broadcast -vvvv
 contract MachServiceManagerDeployer is Script {
     struct MachServiceContract {
         MachServiceManager machServiceManager;
@@ -43,7 +43,7 @@ contract MachServiceManagerDeployer is Script {
         address confirmer;
         // from eigenlayer contracts
         address avsDirectory;
-        address delegation;
+        address delegationManager;
     }
 
     function run() external {
@@ -62,6 +62,8 @@ contract MachServiceManagerDeployer is Script {
         addressConfig.churner = msg.sender;
         addressConfig.ejector = msg.sender;
         addressConfig.confirmer = msg.sender;
+        addressConfig.avsDirectory = vm.envAddress("AVS_DIRECTORY");
+        addressConfig.delegationManager = vm.envAddress("DELEGATION_MANAGER");
 
         PauserRegistry pauserRegistry;
 
@@ -101,8 +103,9 @@ contract MachServiceManagerDeployer is Script {
             address(machServiceContract.indexRegistryImplementation)
         );
 
-        machServiceContract.stakeRegistryImplementation =
-            new StakeRegistry(machServiceContract.registryCoordinator, IDelegationManager(addressConfig.delegation));
+        machServiceContract.stakeRegistryImplementation = new StakeRegistry(
+            machServiceContract.registryCoordinator, IDelegationManager(addressConfig.delegationManager)
+        );
         machAVSProxyAdmin.upgrade(
             TransparentUpgradeableProxy(payable(address(machServiceContract.stakeRegistry))),
             address(machServiceContract.stakeRegistryImplementation)

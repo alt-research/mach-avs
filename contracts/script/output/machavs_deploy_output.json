@@ -1,0 +1,10 @@
+{
+  "apkRegistry": "0xFAd539fEfFB6C89d5a8df1E654Bea59997966279",
+  "indexRegistry": "0x338E9741259049E8e7611d1EDdb88076d22Ad6D3",
+  "machAVSProxyAdmin": "0xe339Cca54587657a90a41F6799AE55bb0366F8ab",
+  "machServiceManager": "0xf4fADf2aA4Aba80C5edB8d118191D6bEDd195f0a",
+  "object": "machAVS deployment output",
+  "pauserRegistry": "0x8d215b7372EEfb114A49e0FC071EC9380BE4637f",
+  "registryCoordinator": "0xE348E4dBb848B439cBD8fCEe86E10aa6E98dbE20",
+  "stakeRegistry": "0x45759771AABe6AC1Bd87E4ea2dE8411FbbBC47e6"
+}

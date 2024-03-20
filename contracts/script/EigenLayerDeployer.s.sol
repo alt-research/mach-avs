@@ -24,7 +24,7 @@ struct StrategyUnderlyingTokenConfig {
     string tokenSymbol;
 }
 
-// forge script script/Deployer.s.sol --rpc-url $RPC_URL  --private-key $PRIVATE_KEY --broadcast -vvvv
+// forge script script/EigenLayerDeployer.s.sol --rpc-url $RPC_URL  --private-key $PRIVATE_KEY --broadcast -vvvv
 contract EigenLayerDeployer is Script {
     struct EigenLayerContracts {
         ProxyAdmin eigenLayerProxyAdmin;
@@ -103,7 +103,6 @@ contract EigenLayerDeployer is Script {
         param.EIGENPOD_MAX_RESTAKED_BALANCE_GWEI_PER_VALIDATOR = 32;
         param.EIGENPOD_MAX_PODS = 100;
         param.ETHPOSDepositAddress = 0x4242424242424242424242424242424242424242;
-    
 
         param.DELAYED_WITHDRAWAL_ROUTER_INIT_PAUSED_STATUS = 0;
         vm.startBroadcast();

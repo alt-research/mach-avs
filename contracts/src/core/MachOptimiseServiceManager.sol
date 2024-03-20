@@ -11,8 +11,8 @@ import {BLSSignatureChecker} from "eigenlayer-middleware/BLSSignatureChecker.sol
 import {ServiceManagerBase} from "eigenlayer-middleware/ServiceManagerBase.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {MachServiceManagerStorage} from "./MachServiceManagerStorage.sol";
-import {IMachOptimismL2OutputOracle} from "../../interfaces/IMachOptimismL2OutputOracle.sol";
-import {IRiscZeroVerifier} from "../../interfaces/IRiscZeroVerifier.sol";
+import {IMachOptimismL2OutputOracle} from "../interfaces/IMachOptimismL2OutputOracle.sol";
+import {IRiscZeroVerifier} from "../interfaces/IRiscZeroVerifier.sol";
 
 contract MachOptimiseServiceManager is MachServiceManagerStorage, ServiceManagerBase, BLSSignatureChecker, Pausable {
     using EnumerableSet for EnumerableSet.Bytes32Set;

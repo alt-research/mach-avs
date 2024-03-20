@@ -24,7 +24,7 @@ struct StrategyUnderlyingTokenConfig {
     string tokenSymbol;
 }
 
-// forge script script/Deployer.s.sol --rpc-url $RPC_URL  --private-key $PRIVATE_KEY --broadcast -vvvv
+// forge script script/EigenLayerDeployer.s.sol --rpc-url $RPC_URL  --private-key $PRIVATE_KEY --broadcast -vvvv
 contract EigenLayerDeployer is Script {
     struct EigenLayerContracts {
         ProxyAdmin eigenLayerProxyAdmin;

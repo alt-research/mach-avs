@@ -6,6 +6,7 @@ import "forge-std/Script.sol";
 import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 import "eigenlayer-core/contracts/strategies/StrategyBaseTVLLimits.sol";
+import {IAVSDirectory} from "eigenlayer-core/contracts/interfaces/IAVSDirectory.sol";
 import {PauserRegistry} from "eigenlayer-core/contracts/permissions/PauserRegistry.sol";
 import {IRegistryCoordinator} from "eigenlayer-middleware/interfaces/IRegistryCoordinator.sol";
 import {IStakeRegistry, IDelegationManager} from "eigenlayer-middleware/interfaces/IStakeRegistry.sol";
@@ -18,10 +19,11 @@ import {BLSApkRegistry} from "eigenlayer-middleware/BLSApkRegistry.sol";
 import {MachServiceManager} from "../src/core/MachServiceManager.sol";
 import {IMachServiceManager} from "../src/interfaces/IMachServiceManager.sol";
 
-// forge script script/MachServiceManagerDeployer.s.sol --rpc-url $RPC_URL  --private-key $PRIVATE_KEY --broadcast -vvvv
+// AVS_DIRECTORY=0x01aE1c3ed76baA93268Fb5E1b51F1962FA72a8D9 DELEGATION_MANAGER=0x9a506502f6cB3d4A86E14bb9fe9Af0DF4bc51F7f forge script script/MachServiceManagerDeployer.s.sol --rpc-url $RPC_URL  --private-key $PRIVATE_KEY --broadcast -vvvv
 contract MachServiceManagerDeployer is Script {
     struct MachServiceContract {
         MachServiceManager machServiceManager;
+        MachServiceManager machServiceManagerImplementation;
         RegistryCoordinator registryCoordinator;
         IRegistryCoordinator registryCoordinatorImplementation;
         IIndexRegistry indexRegistry;
@@ -40,7 +42,8 @@ contract MachServiceManagerDeployer is Script {
         address ejector;
         address confirmer;
         // from eigenlayer contracts
-        address delegation;
+        address avsDirectory;
+        address delegationManager;
     }
 
     function run() external {
@@ -59,6 +62,8 @@ contract MachServiceManagerDeployer is Script {
         addressConfig.churner = msg.sender;
         addressConfig.ejector = msg.sender;
         addressConfig.confirmer = msg.sender;
+        addressConfig.avsDirectory = vm.envAddress("AVS_DIRECTORY");
+        addressConfig.delegationManager = vm.envAddress("DELEGATION_MANAGER");
 
         PauserRegistry pauserRegistry;
 
@@ -98,8 +103,9 @@ contract MachServiceManagerDeployer is Script {
             address(machServiceContract.indexRegistryImplementation)
         );
 
-        machServiceContract.stakeRegistryImplementation =
-            new StakeRegistry(machServiceContract.registryCoordinator, IDelegationManager(addressConfig.delegation));
+        machServiceContract.stakeRegistryImplementation = new StakeRegistry(
+            machServiceContract.registryCoordinator, IDelegationManager(addressConfig.delegationManager)
+        );
         machAVSProxyAdmin.upgrade(
             TransparentUpgradeableProxy(payable(address(machServiceContract.stakeRegistry))),
             address(machServiceContract.stakeRegistryImplementation)
@@ -154,6 +160,23 @@ contract MachServiceManagerDeployer is Script {
                 )
             );
         }
+        machServiceContract.machServiceManagerImplementation = new MachServiceManager(
+            IAVSDirectory(addressConfig.avsDirectory),
+            machServiceContract.registryCoordinator,
+            machServiceContract.stakeRegistry
+        );
+        // Third, upgrade the proxy contracts to use the correct implementation contracts and initialize them.
+        machAVSProxyAdmin.upgradeAndCall(
+            TransparentUpgradeableProxy(payable(address(machServiceContract.machServiceManager))),
+            address(machServiceContract.machServiceManagerImplementation),
+            abi.encodeWithSelector(
+                MachServiceManager.initialize.selector,
+                IPauserRegistry(pauserRegistry),
+                0,
+                addressConfig.machAVSCommunityMultisig,
+                addressConfig.machAVSCommunityMultisig
+            )
+        );
         vm.stopBroadcast();
     }
 }

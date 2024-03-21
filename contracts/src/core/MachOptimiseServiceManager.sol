@@ -231,6 +231,9 @@ contract MachOptimiseServiceManager is MachServiceManagerStorage, ServiceManager
         pure
         returns (ReducedAlertHeader memory)
     {
-        return ReducedAlertHeader({messageHash: alertHeader.messageHash});
+        return ReducedAlertHeader({
+            messageHash: alertHeader.messageHash,
+            referenceBlockNumber: alertHeader.referenceBlockNumber
+        });
     }
 }

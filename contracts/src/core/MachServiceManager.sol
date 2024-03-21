@@ -134,7 +134,7 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
             alertHeader.referenceBlockNumber <= block.number,
             "MachServiceManager.confirmAlert: specified referenceBlockNumber is in future"
         );
-        bytes32 hashedHeader = alertHeader.messageHash;
+        bytes32 hashedHeader = hashAlertHeader(alertHeader);
 
         // check the signature
         (QuorumStakeTotals memory quorumStakeTotals, bytes32 signatoryRecordHash) = checkSignatures(
@@ -221,6 +221,9 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
         pure
         returns (ReducedAlertHeader memory)
     {
-        return ReducedAlertHeader({messageHash: alertHeader.messageHash});
+        return ReducedAlertHeader({
+            messageHash: alertHeader.messageHash,
+            referenceBlockNumber: alertHeader.referenceBlockNumber
+        });
     }
 }

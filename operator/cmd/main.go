@@ -10,7 +10,6 @@ import (
 
 	"github.com/alt-research/avs/core/config"
 	"github.com/alt-research/avs/operator"
-	"github.com/alt-research/avs/types"
 
 	sdkutils "github.com/Layr-Labs/eigensdk-go/utils"
 )
@@ -33,7 +32,7 @@ func operatorMain(ctx *cli.Context) error {
 
 	log.Println("Initializing Operator")
 	configPath := ctx.GlobalString(config.ConfigFileFlag.Name)
-	nodeConfig := types.NodeConfig{}
+	nodeConfig := config.NodeConfig{}
 	err := sdkutils.ReadYamlConfig(configPath, &nodeConfig)
 	if err != nil {
 		return err

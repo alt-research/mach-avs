@@ -9,13 +9,12 @@ import (
 	sdkutils "github.com/Layr-Labs/eigensdk-go/utils"
 	"github.com/alt-research/avs/core/config"
 	"github.com/alt-research/avs/operator"
-	"github.com/alt-research/avs/types"
 )
 
 func RegisterOperatorWithEigenlayer(ctx *cli.Context) error {
 
 	configPath := ctx.GlobalString(config.ConfigFileFlag.Name)
-	nodeConfig := types.NodeConfig{}
+	nodeConfig := config.NodeConfig{}
 	err := sdkutils.ReadYamlConfig(configPath, &nodeConfig)
 	if err != nil {
 		return err

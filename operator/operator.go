@@ -12,8 +12,8 @@ import (
 	"github.com/alt-research/avs/aggregator"
 	"github.com/alt-research/avs/core/alert"
 	"github.com/alt-research/avs/core/chainio"
+	"github.com/alt-research/avs/core/config"
 	"github.com/alt-research/avs/metrics"
-	"github.com/alt-research/avs/types"
 
 	"github.com/Layr-Labs/eigensdk-go/chainio/clients"
 	sdkelcontracts "github.com/Layr-Labs/eigensdk-go/chainio/clients/elcontracts"
@@ -36,7 +36,7 @@ const AVS_NAME = "mach"
 const SEM_VER = "0.0.1"
 
 type Operator struct {
-	config           types.NodeConfig
+	config           config.NodeConfig
 	logger           logging.Logger
 	ethClient        eth.Client
 	metricsReg       *prometheus.Registry
@@ -63,7 +63,7 @@ type Operator struct {
 // TODO(samlaf): config is a mess right now, since the chainio client constructors
 //
 //	take the config in core (which is shared with aggregator and challenger)
-func NewOperatorFromConfig(c types.NodeConfig) (*Operator, error) {
+func NewOperatorFromConfig(c config.NodeConfig) (*Operator, error) {
 	var logLevel logging.LogLevel
 	if c.Production {
 		logLevel = sdklogging.Production

@@ -97,6 +97,7 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
     function registerOperator(ISignatureUtils.SignatureWithSaltAndExpiry memory operatorSignature)
         external
         whenNotPaused
+        onlyRegistryCoordinator
     {
         address operator = msg.sender;
         require(!allowlistEnabled || _allowlist[operator], "MachServiceManager.registerOperator: not allowed");
@@ -109,7 +110,7 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
     /**
      * @notice Deregister an operator from the AVS. Forwards a call to EigenLayer's AVSDirectory.
      */
-    function deregisterOperator() external whenNotPaused {
+    function deregisterOperator() external whenNotPaused onlyRegistryCoordinator {
         address operator = msg.sender;
         _operators.remove(operator);
         _avsDirectory.deregisterOperatorFromAVS(operator);

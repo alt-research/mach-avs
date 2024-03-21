@@ -31,15 +31,18 @@ func (s *RpcServer) StartServer(ctx context.Context) error {
 
 	s.server.Handler = s.setupHandlers()
 
-	err := s.server.ListenAndServe()
-	if err != nil && !errors.Is(err, http.ErrServerClosed) {
-		return fmt.Errorf("failed to start HTTP RPC server: %v", err)
-	}
+	go func() {
+		err := s.server.ListenAndServe()
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+			s.logger.Errorf("failed to start HTTP RPC server: %v", err)
+		}
+	}()
 
 	return nil
 }
 
 func (s *RpcServer) Stop() error {
+	s.logger.Info("stop rpc server")
 	if s.server == nil {
 		s.logger.Warnf("stopping http server that was not initialized")
 		return nil
@@ -77,6 +80,7 @@ func (s *RpcServer) httpRPCHandler(w http.ResponseWriter, r *http.Request) {
 		{
 			var alert alert.AlertBlockMismatch
 			if err = json.Unmarshal(*rpcRequest.Params, &alert); err != nil {
+				s.logger.Error("the unmarshal", "err", err)
 				s.writeErrorJSON(w, rpcRequest.ID, http.StatusBadRequest, fmt.Errorf("failed to unmarshal alert bundle params: %v", err))
 				return
 			}
@@ -114,6 +118,8 @@ func (s *RpcServer) httpRPCHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *RpcServer) writeErrorJSON(w http.ResponseWriter, id jsonrpc2.ID, statusCode int, err error) {
+	s.logger.Info("writeErrorJSON", "id", id, "err", err)
+
 	jsonrpcErr := jsonrpc2.Error{}
 	jsonrpcErr.SetError(err)
 

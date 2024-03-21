@@ -22,7 +22,7 @@ func (b *HexEncodedBytes32) UnmarshalJSON(data []byte) (err error) {
 	var hexString string
 
 	if err = json.Unmarshal(data, &hexString); err != nil {
-		return
+		return err
 	}
 
 	var hexBytes []byte
@@ -36,6 +36,29 @@ func (b *HexEncodedBytes32) UnmarshalJSON(data []byte) (err error) {
 	}
 
 	copy(b[:], hexBytes[:32])
+
+	return
+}
+
+type BigIntJSON struct {
+	v *big.Int
+}
+
+func (b BigIntJSON) MarshalJSON() ([]byte, error) {
+	v := b.v.Uint64()
+
+	return json.Marshal(v)
+}
+
+func (b *BigIntJSON) UnmarshalJSON(data []byte) (err error) {
+	var v uint64
+
+	if err = json.Unmarshal(data, &v); err != nil {
+		return err
+	}
+
+	b.v = big.NewInt(0)
+	b.v.SetUint64(v)
 
 	return
 }
@@ -65,7 +88,7 @@ type AlertBlockMismatch struct {
 	// The output root calc by verifier.
 	ExpectOutputRoot HexEncodedBytes32 `json:"expect_output_root"`
 	// The layer2 block 's number.
-	L2BlockNumber *big.Int `json:"l2_block_number"`
+	L2BlockNumber BigIntJSON `json:"l2_block_number"`
 }
 
 // Return the message hash for signature in avs
@@ -75,7 +98,7 @@ func (a AlertBlockMismatch) MessageHash() [32]byte {
 	hasher := sha3.NewLegacyKeccak256()
 	hasher.Write(a.InvalidOutputRoot[:])
 	hasher.Write(a.ExpectOutputRoot[:])
-	hasher.Write(a.L2BlockNumber.Bytes())
+	hasher.Write(a.L2BlockNumber.v.Bytes())
 	copy(res[:], hasher.Sum(nil)[:32])
 
 	return res
@@ -84,11 +107,11 @@ func (a AlertBlockMismatch) MessageHash() [32]byte {
 func (a AlertBlockMismatch) TaskIndex() uint32 {
 	max := big.NewInt(math.MaxInt32)
 
-	if a.L2BlockNumber.Cmp(max) != -1 {
-		return uint32(a.L2BlockNumber.Uint64())
+	if a.L2BlockNumber.v.Cmp(max) != -1 {
+		return uint32(a.L2BlockNumber.v.Uint64())
 	} else {
 		// TODO: support task index not use this func
-		return uint32(a.L2BlockNumber.Mod(a.L2BlockNumber, max).Uint64())
+		return uint32(a.L2BlockNumber.v.Mod(a.L2BlockNumber.v, max).Uint64())
 	}
 }
 
@@ -104,7 +127,7 @@ type AlertBlockOutputOracleMismatch struct {
 	// The output root calc by verifier.
 	ExpectOutputRoot HexEncodedBytes32 `json:"expect_output_root"`
 	// The invalid output root index.
-	InvalidOutputIndex *big.Int `json:"invalid_output_index"`
+	InvalidOutputIndex BigIntJSON `json:"invalid_output_index"`
 }
 
 // Return the message hash for signature in avs
@@ -113,7 +136,7 @@ func (a AlertBlockOutputOracleMismatch) MessageHash() [32]byte {
 
 	hasher := sha3.NewLegacyKeccak256()
 	hasher.Write(a.ExpectOutputRoot[:])
-	hasher.Write(a.InvalidOutputIndex.Bytes())
+	hasher.Write(a.InvalidOutputIndex.v.Bytes())
 	copy(res[:], hasher.Sum(nil)[:32])
 
 	return res
@@ -122,11 +145,11 @@ func (a AlertBlockOutputOracleMismatch) MessageHash() [32]byte {
 func (a AlertBlockOutputOracleMismatch) TaskIndex() uint32 {
 	max := big.NewInt(math.MaxInt32)
 
-	if a.InvalidOutputIndex.Cmp(max) != -1 {
-		return uint32(a.InvalidOutputIndex.Uint64())
+	if a.InvalidOutputIndex.v.Cmp(max) != -1 {
+		return uint32(a.InvalidOutputIndex.v.Uint64())
 	} else {
 		// TODO: support task index not use this func
-		return uint32(a.InvalidOutputIndex.Mod(a.InvalidOutputIndex, max).Uint64())
+		return uint32(a.InvalidOutputIndex.v.Mod(a.InvalidOutputIndex.v, max).Uint64())
 	}
 }
 

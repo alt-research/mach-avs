@@ -9,6 +9,7 @@ import (
 
 	"github.com/Layr-Labs/eigensdk-go/chainio/clients"
 	sdkclients "github.com/Layr-Labs/eigensdk-go/chainio/clients"
+	"github.com/Layr-Labs/eigensdk-go/chainio/clients/eth"
 	"github.com/Layr-Labs/eigensdk-go/services/avsregistry"
 	blsagg "github.com/Layr-Labs/eigensdk-go/services/bls_aggregation"
 	oppubkeysserv "github.com/Layr-Labs/eigensdk-go/services/operatorpubkeys"
@@ -69,6 +70,8 @@ type Aggregator struct {
 	logger           logging.Logger
 	serverIpPortAddr string
 	avsWriter        chainio.AvsWriterer
+	avsReader        chainio.AvsReaderer
+	ethClient        eth.Client
 	// aggregation related fields
 	blsAggregationService blsagg.BlsAggregationService
 	tasks                 map[types.TaskIndex]csservicemanager.IMachServiceManagerAlertHeader
@@ -114,6 +117,8 @@ func NewAggregator(c *config.Config) (*Aggregator, error) {
 		logger:                c.Logger,
 		serverIpPortAddr:      c.AggregatorServerIpPortAddr,
 		avsWriter:             avsWriter,
+		avsReader:             avsReader,
+		ethClient:             clients.EthHttpClient,
 		blsAggregationService: blsAggregationService,
 		tasks:                 make(map[types.TaskIndex]csservicemanager.IMachServiceManagerAlertHeader),
 		taskResponses:         make(map[types.TaskIndex]map[sdktypes.TaskResponseDigest]alert.AlertInfo),
@@ -179,13 +184,31 @@ func (agg *Aggregator) sendAggregatedResponseToContract(blsAggServiceResp blsagg
 
 // sendNewTask sends a new task to the task manager contract, and updates the Task dict struct
 // with the information of operators opted into quorum 0 at the block of task creation.
-func (agg *Aggregator) sendNewTask(alert alert.Alert) error {
+func (agg *Aggregator) sendNewTask(alert *alert.AlertInfo) error {
 	agg.logger.Info("Aggregator sending new task", "numberToSquare", alert)
 
-	messageHash := alert.MessageHash()
-	taskIndex := alert.TaskIndex()
+	messageHash := alert.AlertHash
+	taskIndex := alert.TaskIndex
 
-	newTask := csservicemanager.IMachServiceManagerAlertHeader{MessageHash: messageHash}
+	// TODO: use cfg
+	quorumNumbersValue := []byte{0}
+	quorumThresholdPercentagesValue := []byte{100}
+
+	var err error
+
+	var referenceBlockNumber uint64
+	if referenceBlockNumber, err = agg.ethClient.BlockNumber(context.Background()); err != nil {
+		return err
+	}
+
+	agg.logger.Info("get from layer1", "referenceBlockNumber", referenceBlockNumber)
+
+	newTask := csservicemanager.IMachServiceManagerAlertHeader{
+		MessageHash:                messageHash,
+		QuorumNumbers:              quorumNumbersValue,
+		QuorumThresholdPercentages: quorumThresholdPercentagesValue,
+		ReferenceBlockNumber:       uint32(referenceBlockNumber),
+	}
 
 	agg.tasksMu.Lock()
 	agg.tasks[taskIndex] = newTask

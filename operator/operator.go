@@ -190,7 +190,7 @@ func NewOperatorFromConfig(c types.NodeConfig) (*Operator, error) {
 		return nil, err
 	}
 
-	newTaskCreatedChan := make(chan alert.Alert)
+	newTaskCreatedChan := make(chan alert.Alert, 32)
 	rpcServer := RpcServer{
 		logger:             logger,
 		serverIpPortAddr:   c.OperatorServerIpPortAddr,
@@ -262,10 +262,12 @@ func (o *Operator) Start(ctx context.Context) error {
 		metricsErrChan = make(chan error, 1)
 	}
 
+	o.logger.Info("start rpc server for got alert")
 	if err = o.rpcServer.StartServer(ctx); err != nil {
 		o.logger.Error("Error start Rpc server", "err", err)
 		return err
 	}
+	defer o.rpcServer.Stop()
 
 	for {
 		select {
@@ -276,6 +278,7 @@ func (o *Operator) Start(ctx context.Context) error {
 			// https://eigen.nethermind.io/docs/spec/api/
 			o.logger.Fatal("Error in metrics server", "err", err)
 		case newTaskCreatedLog := <-o.newTaskCreatedChan:
+			o.logger.Info("newTaskCreatedLog", "new", newTaskCreatedLog)
 			o.metrics.IncNumTasksReceived()
 			taskResponse := o.ProcessNewTaskCreatedLog(newTaskCreatedLog)
 			signedTaskResponse, err := o.SignTaskResponse(taskResponse)

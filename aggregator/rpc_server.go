@@ -42,6 +42,25 @@ type SignedTaskResponse struct {
 	OperatorId   bls.OperatorId
 }
 
+func (agg *Aggregator) TryInitTask(alertInfo *alert.AlertInfo) bool {
+	taskIndex := alertInfo.TaskIndex
+	taskResponseDigest := alertInfo.AlertHash
+
+	isInited := true
+
+	agg.taskResponsesMu.Lock()
+	if _, ok := agg.taskResponses[taskIndex]; !ok {
+		agg.taskResponses[taskIndex] = make(map[sdktypes.TaskResponseDigest]alert.AlertInfo)
+		isInited = false
+	}
+	if _, ok := agg.taskResponses[taskIndex][taskResponseDigest]; !ok {
+		agg.taskResponses[taskIndex][taskResponseDigest] = *alertInfo
+	}
+	agg.taskResponsesMu.Unlock()
+
+	return isInited
+}
+
 // rpc endpoint which is called by operator
 // reply doesn't need to be checked. If there are no errors, the task response is accepted
 // rpc framework forces a reply type to exist, so we put bool as a placeholder
@@ -50,18 +69,25 @@ func (agg *Aggregator) ProcessSignedTaskResponse(signedTaskResponse *SignedTaskR
 	taskIndex := signedTaskResponse.Alert.TaskIndex
 	taskResponseDigest := signedTaskResponse.Alert.AlertHash
 
-	agg.taskResponsesMu.Lock()
-	if _, ok := agg.taskResponses[taskIndex]; !ok {
-		agg.taskResponses[taskIndex] = make(map[sdktypes.TaskResponseDigest]alert.AlertInfo)
-	}
-	if _, ok := agg.taskResponses[taskIndex][taskResponseDigest]; !ok {
-		agg.taskResponses[taskIndex][taskResponseDigest] = signedTaskResponse.Alert
-	}
-	agg.taskResponsesMu.Unlock()
+	isInit := agg.TryInitTask(&signedTaskResponse.Alert)
+	if !isInit {
+		agg.logger.Info("Need InitializeNewTask", "taskIndex", taskIndex)
 
+		if err := agg.sendNewTask(&signedTaskResponse.Alert); err != nil {
+			agg.logger.Error("ProcessNewSignature error", "err", err)
+			return err
+		}
+	}
+
+	agg.logger.Infof("ProcessNewSignature: %#v", signedTaskResponse.Alert.TaskIndex)
 	err := agg.blsAggregationService.ProcessNewSignature(
 		context.Background(), taskIndex, taskResponseDigest,
 		&signedTaskResponse.BlsSignature, signedTaskResponse.OperatorId,
 	)
+
+	if err != nil {
+		agg.logger.Error("ProcessNewSignature error", "err", err)
+	}
+
 	return err
 }

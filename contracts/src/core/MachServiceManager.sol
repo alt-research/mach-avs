@@ -9,6 +9,7 @@ import {IStakeRegistry} from "eigenlayer-middleware/interfaces/IStakeRegistry.so
 import {IRegistryCoordinator} from "eigenlayer-middleware/interfaces/IRegistryCoordinator.sol";
 import {BLSSignatureChecker} from "eigenlayer-middleware/BLSSignatureChecker.sol";
 import {ServiceManagerBase} from "eigenlayer-middleware/ServiceManagerBase.sol";
+import {IServiceManager} from "eigenlayer-middleware/interfaces/IServiceManager.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {MachServiceManagerStorage} from "./MachServiceManagerStorage.sol";
 
@@ -94,12 +95,11 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
      * @notice Register an operator with the AVS. Forwards call to EigenLayer' AVSDirectory.
      * @param operatorSignature The signature, salt, and expiry of the operator's signature.
      */
-    function registerOperatorToAVS(ISignatureUtils.SignatureWithSaltAndExpiry memory operatorSignature)
-        external
-        whenNotPaused
-        onlyRegistryCoordinator
-    {
-        address operator = msg.sender;
+    function registerOperatorToAVS(
+        address operator,
+        ISignatureUtils.SignatureWithSaltAndExpiry memory operatorSignature
+    ) public override(ServiceManagerBase, IServiceManager) whenNotPaused onlyRegistryCoordinator {
+        require(msg.sender == operator, "MachServiceManager.registerOperator: invalid operator");
         require(!allowlistEnabled || _allowlist[operator], "MachServiceManager.registerOperator: not allowed");
         // todo check strategy and stake
         _operators.add(operator);
@@ -110,8 +110,13 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
     /**
      * @notice Deregister an operator from the AVS. Forwards a call to EigenLayer's AVSDirectory.
      */
-    function deregisterOperatorFromAVS() external whenNotPaused onlyRegistryCoordinator {
-        address operator = msg.sender;
+    function deregisterOperatorFromAVS(address operator)
+        public
+        override(ServiceManagerBase, IServiceManager)
+        whenNotPaused
+        onlyRegistryCoordinator
+    {
+        require(msg.sender == operator, "MachServiceManager.deregisterOperatorFromAVS: invalid operator");
         _operators.remove(operator);
         _avsDirectory.deregisterOperatorFromAVS(operator);
         emit OperatorRemoved(operator);

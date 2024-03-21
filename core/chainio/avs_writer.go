@@ -13,13 +13,14 @@ import (
 
 	csservicemanager "github.com/alt-research/avs/contracts/bindings/MachServiceManager"
 	"github.com/alt-research/avs/core/config"
+	"github.com/alt-research/avs/core/message"
 )
 
 type AvsWriterer interface {
 	avsregistry.AvsRegistryWriter
 
 	SendConfirmAlert(ctx context.Context,
-		alertHeader csservicemanager.IMachServiceManagerAlertHeader,
+		alertHeader *message.AlertTaskInfo,
 		nonSignerStakesAndSignature csservicemanager.IBLSSignatureCheckerNonSignerStakesAndSignature,
 	) (*types.Receipt, error)
 }
@@ -63,7 +64,7 @@ func NewAvsWriter(avsRegistryWriter avsregistry.AvsRegistryWriter, avsServiceBin
 }
 
 func (w *AvsWriter) SendConfirmAlert(ctx context.Context,
-	alertHeader csservicemanager.IMachServiceManagerAlertHeader,
+	alertHeader *message.AlertTaskInfo,
 	nonSignerStakesAndSignature csservicemanager.IBLSSignatureCheckerNonSignerStakesAndSignature,
 ) (*types.Receipt, error) {
 	txOpts, err := w.TxMgr.GetNoSendTxOpts()
@@ -71,7 +72,7 @@ func (w *AvsWriter) SendConfirmAlert(ctx context.Context,
 		w.logger.Errorf("Error getting tx opts")
 		return nil, err
 	}
-	tx, err := w.AvsContractBindings.ServiceManager.ConfirmAlert(txOpts, alertHeader, nonSignerStakesAndSignature)
+	tx, err := w.AvsContractBindings.ServiceManager.ConfirmAlert(txOpts, alertHeader.ToIMachServiceManagerAlertHeader(), nonSignerStakesAndSignature)
 	if err != nil {
 		w.logger.Error("Error submitting SubmitTaskResponse tx while calling respondToTask", "err", err)
 		return nil, err

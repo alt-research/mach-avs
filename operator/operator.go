@@ -13,6 +13,7 @@ import (
 	"github.com/alt-research/avs/core/alert"
 	"github.com/alt-research/avs/core/chainio"
 	"github.com/alt-research/avs/core/config"
+	"github.com/alt-research/avs/core/message"
 	"github.com/alt-research/avs/metrics"
 
 	"github.com/Layr-Labs/eigensdk-go/chainio/clients"
@@ -280,9 +281,15 @@ func (o *Operator) Start(ctx context.Context) error {
 		case newTaskCreatedLog := <-o.newTaskCreatedChan:
 			o.logger.Info("newTaskCreatedLog", "new", newTaskCreatedLog)
 			o.metrics.IncNumTasksReceived()
-			taskResponse := o.ProcessNewTaskCreatedLog(newTaskCreatedLog)
+			taskResponse, err := o.ProcessNewTaskCreatedLog(newTaskCreatedLog)
+			if err != nil {
+				o.logger.Error("newTaskCreatedLog failed by new", "err", err)
+				continue
+			}
+
 			signedTaskResponse, err := o.SignTaskResponse(taskResponse)
 			if err != nil {
+				o.logger.Error("newTaskCreatedLog failed by sign task", "err", err)
 				continue
 			}
 			go o.aggregatorRpcClient.SendSignedTaskResponseToAggregator(signedTaskResponse)
@@ -292,25 +299,22 @@ func (o *Operator) Start(ctx context.Context) error {
 
 // Takes a NewTaskCreatedLog struct as input and returns a TaskResponseHeader struct.
 // The TaskResponseHeader struct is the struct that is signed and sent to the contract as a task response.
-func (o *Operator) ProcessNewTaskCreatedLog(newAlert alert.Alert) *alert.AlertInfo {
+func (o *Operator) ProcessNewTaskCreatedLog(newAlert alert.Alert) (*message.AlertTaskInfo, error) {
 	alertHash := newAlert.MessageHash()
-	alertTaskIndex := newAlert.TaskIndex()
 
 	o.logger.Debug("Received new task", "task", newAlert)
 	o.logger.Info("Received new task",
-		"numberToBeSquared", alertHash,
-		"taskIndex", alertTaskIndex,
+		"alert", alertHash,
 	)
 
-	taskResponse := &alert.AlertInfo{
-		AlertHash: alertHash,
-		TaskIndex: alertTaskIndex,
-	}
-	return taskResponse
+	return o.aggregatorRpcClient.CreateAlertTaskToAggregator(alertHash)
 }
 
-func (o *Operator) SignTaskResponse(taskResponse *alert.AlertInfo) (*aggregator.SignedTaskResponse, error) {
-	hash := taskResponse.AlertHash
+func (o *Operator) SignTaskResponse(taskResponse *message.AlertTaskInfo) (*aggregator.SignedTaskResponse, error) {
+	hash, err := taskResponse.SignHash()
+	if err != nil {
+		return nil, err
+	}
 
 	blsSignature := o.blsKeypair.SignMessage(hash)
 	signedTaskResponse := &aggregator.SignedTaskResponse{

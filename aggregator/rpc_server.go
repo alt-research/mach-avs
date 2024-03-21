@@ -3,13 +3,14 @@ package aggregator
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/rpc"
 
-	"github.com/alt-research/avs/core/alert"
+	"github.com/alt-research/avs/aggregator/types"
+	"github.com/alt-research/avs/core/message"
 
 	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
-	sdktypes "github.com/Layr-Labs/eigensdk-go/types"
 )
 
 var (
@@ -37,28 +38,66 @@ func (agg *Aggregator) startServer(ctx context.Context) error {
 }
 
 type SignedTaskResponse struct {
-	Alert        alert.AlertInfo
+	Alert        message.AlertTaskInfo
 	BlsSignature bls.Signature
 	OperatorId   bls.OperatorId
 }
 
-func (agg *Aggregator) TryInitTask(alertInfo *alert.AlertInfo) bool {
-	taskIndex := alertInfo.TaskIndex
-	taskResponseDigest := alertInfo.AlertHash
+func (agg *Aggregator) GetTaskByAlertHash(alertHash [32]byte) *message.AlertTaskInfo {
+	agg.tasksMu.RLock()
+	defer agg.tasksMu.RUnlock()
 
-	isInited := true
-
-	agg.taskResponsesMu.Lock()
-	if _, ok := agg.taskResponses[taskIndex]; !ok {
-		agg.taskResponses[taskIndex] = make(map[sdktypes.TaskResponseDigest]alert.AlertInfo)
-		isInited = false
+	for _, task := range agg.tasks {
+		if task.AlertHash == alertHash {
+			return task
+		}
 	}
-	if _, ok := agg.taskResponses[taskIndex][taskResponseDigest]; !ok {
-		agg.taskResponses[taskIndex][taskResponseDigest] = *alertInfo
-	}
-	agg.taskResponsesMu.Unlock()
 
-	return isInited
+	return nil
+}
+
+func (agg *Aggregator) GetTaskByIndex(taskIndex types.TaskIndex) *message.AlertTaskInfo {
+	agg.tasksMu.RLock()
+	defer agg.tasksMu.RUnlock()
+
+	res, _ := agg.tasks[taskIndex]
+
+	return res
+}
+
+func (agg *Aggregator) newIndex() types.TaskIndex {
+	agg.tasksMu.Lock()
+	defer agg.tasksMu.Unlock()
+
+	res := agg.nextTaskIndex
+	agg.nextTaskIndex += 1
+
+	return res
+}
+
+// rpc endpoint which is called by operator
+// will try to init the task, if currently had a same task for the alert,
+// it will return the existing task.
+func (agg *Aggregator) CreateTask(req *message.CreateTaskRequest, reply *message.CreateTaskResponse) error {
+	agg.logger.Infof("Received signed task response: %#v", req)
+
+	task := agg.GetTaskByAlertHash(req.AlertHash)
+	if task == nil {
+		agg.logger.Info("create new task", "alert", req.AlertHash)
+		taskIndex := agg.newIndex()
+
+		var err error
+		task, err = agg.sendNewTask(req.AlertHash, taskIndex)
+
+		if err != nil {
+			agg.logger.Error("send new task failed", "err", err)
+			return err
+		}
+	}
+
+	reply.Info = *task
+
+	return nil
 }
 
 // rpc endpoint which is called by operator
@@ -69,14 +108,9 @@ func (agg *Aggregator) ProcessSignedTaskResponse(signedTaskResponse *SignedTaskR
 	taskIndex := signedTaskResponse.Alert.TaskIndex
 	taskResponseDigest := signedTaskResponse.Alert.AlertHash
 
-	isInit := agg.TryInitTask(&signedTaskResponse.Alert)
-	if !isInit {
-		agg.logger.Info("Need InitializeNewTask", "taskIndex", taskIndex)
-
-		if err := agg.sendNewTask(&signedTaskResponse.Alert); err != nil {
-			agg.logger.Error("ProcessNewSignature error", "err", err)
-			return err
-		}
+	if task := agg.GetTaskByIndex(taskIndex); task == nil {
+		agg.logger.Error("ProcessNewSignature error by no task exist", "taskIndex", taskIndex)
+		return fmt.Errorf("task not found")
 	}
 
 	agg.logger.Infof("ProcessNewSignature: %#v", signedTaskResponse.Alert.TaskIndex)

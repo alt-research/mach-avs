@@ -15,8 +15,8 @@ import {MachServiceManagerStorage} from "./MachServiceManagerStorage.sol";
 import {
     InvalidConfirmer,
     ZeroAddress,
-    AllowlistAdded,
-    AllowlistNotAdded,
+    AlreadyInAllowlist,
+    NotInAllowlist,
     InvalidReferenceBlockNum,
     InsufficientThreshold,
     InvalidStartIndex,

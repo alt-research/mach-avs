@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.9;
 
+import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {Pausable} from "eigenlayer-core/contracts/permissions/Pausable.sol";
 import {IAVSDirectory} from "eigenlayer-core/contracts/interfaces/IAVSDirectory.sol";
 import {ISignatureUtils} from "eigenlayer-contracts/src/contracts/interfaces/ISignatureUtils.sol";
@@ -9,10 +10,10 @@ import {IStakeRegistry} from "eigenlayer-middleware/interfaces/IStakeRegistry.so
 import {IRegistryCoordinator} from "eigenlayer-middleware/interfaces/IRegistryCoordinator.sol";
 import {BLSSignatureChecker} from "eigenlayer-middleware/BLSSignatureChecker.sol";
 import {ServiceManagerBase} from "eigenlayer-middleware/ServiceManagerBase.sol";
-import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {MachServiceManagerStorage} from "./MachServiceManagerStorage.sol";
 import {IMachOptimismL2OutputOracle} from "../interfaces/IMachOptimismL2OutputOracle.sol";
 import {IRiscZeroVerifier} from "../interfaces/IRiscZeroVerifier.sol";
+import {InvalidStartIndex} from "../error/Errors.sol";
 
 contract MachOptimismServiceManager is MachServiceManagerStorage, ServiceManagerBase, BLSSignatureChecker, Pausable {
     using EnumerableSet for EnumerableSet.Bytes32Set;
@@ -195,7 +196,7 @@ contract MachOptimismServiceManager is MachServiceManagerStorage, ServiceManager
         uint256 length = totalAlerts();
 
         if (start >= length) {
-            revert ErrInvalidStartIndex();
+            revert InvalidStartIndex();
         }
 
         uint256 end = start + querySize;

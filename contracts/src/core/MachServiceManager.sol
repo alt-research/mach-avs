@@ -1,17 +1,30 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.9;
 
+import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {Pausable} from "eigenlayer-core/contracts/permissions/Pausable.sol";
 import {IAVSDirectory} from "eigenlayer-core/contracts/interfaces/IAVSDirectory.sol";
-import {ISignatureUtils} from "eigenlayer-contracts/src/contracts/interfaces/ISignatureUtils.sol";
+import {ISignatureUtils} from "eigenlayer-core/contracts/interfaces/ISignatureUtils.sol";
 import {IPauserRegistry} from "eigenlayer-core/contracts/interfaces/IPauserRegistry.sol";
 import {IStakeRegistry} from "eigenlayer-middleware/interfaces/IStakeRegistry.sol";
 import {IRegistryCoordinator} from "eigenlayer-middleware/interfaces/IRegistryCoordinator.sol";
 import {BLSSignatureChecker} from "eigenlayer-middleware/BLSSignatureChecker.sol";
 import {ServiceManagerBase} from "eigenlayer-middleware/ServiceManagerBase.sol";
 import {IServiceManager} from "eigenlayer-middleware/interfaces/IServiceManager.sol";
-import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {MachServiceManagerStorage} from "./MachServiceManagerStorage.sol";
+import {
+    InvalidConfirmer,
+    ZeroAddress,
+    AllowlistAdded,
+    AllowlistNotAdded,
+    InvalidReferenceBlockNum,
+    InsufficientThreshold,
+    InvalidStartIndex,
+    InvalidOperator,
+    InvalidSender,
+    NotAllowed,
+    InvalidOperator
+} from "../error/Errors.sol";
 
 contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BLSSignatureChecker, Pausable {
     using EnumerableSet for EnumerableSet.Bytes32Set;
@@ -22,7 +35,7 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
     /// @notice when applied to a function, ensures that the function is only callable by the `alertConfirmer`.
     modifier onlyAlertConfirmer() {
         if (_msgSender() != alertConfirmer) {
-            revert ErrInvalidConfirmer();
+            revert InvalidConfirmer();
         }
         _;
     }
@@ -59,10 +72,10 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
      */
     function addToAllowlist(address operator) external onlyOwner {
         if (operator == address(0)) {
-            revert ErrZeroAddress();
+            revert ZeroAddress();
         }
         if (_allowlist[operator]) {
-            revert ErrAllowlistAdded();
+            revert AllowlistAdded();
         }
         _allowlist[operator] = true;
         emit OperatorAllowed(operator);
@@ -74,7 +87,7 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
      */
     function removeFromAllowlist(address operator) external onlyOwner {
         if (!_allowlist[operator]) {
-            revert ErrAllowlistNotAdded();
+            revert AllowlistNotAdded();
         }
         _allowlist[operator] = false;
         emit OperatorDisallowed(operator);
@@ -114,10 +127,10 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
         ISignatureUtils.SignatureWithSaltAndExpiry memory operatorSignature
     ) public override(ServiceManagerBase, IServiceManager) whenNotPaused onlyRegistryCoordinator {
         if (_msgSender() != operator) {
-            revert ErrInvalidOperator();
+            revert InvalidOperator();
         }
         if (allowlistEnabled && !_allowlist[operator]) {
-            revert ErrNotAllowed();
+            revert NotAllowed();
         }
         _operators.add(operator);
         _avsDirectory.registerOperatorToAVS(operator, operatorSignature);
@@ -134,7 +147,7 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
         onlyRegistryCoordinator
     {
         if (_msgSender() != operator) {
-            revert ErrInvalidOperator();
+            revert InvalidOperator();
         }
         _operators.remove(operator);
         _avsDirectory.deregisterOperatorFromAVS(operator);
@@ -150,13 +163,12 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
         NonSignerStakesAndSignature memory nonSignerStakesAndSignature
     ) external whenNotPaused onlyAlertConfirmer {
         // make sure the information needed to derive the non-signers and batch is in calldata to avoid emitting events
-
-        require(
-            tx.origin == _msgSender(), "MachServiceManager.confirmAlert: header and nonsigner data must be in calldata"
-        );
+        if (tx.origin != _msgSender()) {
+            revert InvalidSender();
+        }
         // make sure the stakes against which the Batch is being confirmed are not stale
         if (alertHeader.referenceBlockNumber > block.number) {
-            revert ErrInvalidReferenceBlockNum();
+            revert InvalidReferenceBlockNum();
         }
         bytes32 hashedHeader = hashAlertHeader(alertHeader);
 
@@ -178,7 +190,7 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
                 quorumStakeTotals.signedStakeForQuorum[i] * THRESHOLD_DENOMINATOR
                     < quorumStakeTotals.totalStakeForQuorum[i] * uint8(alertHeader.quorumThresholdPercentages[i])
             ) {
-                revert ErrThresholdNotSufficient();
+                revert InsufficientThreshold();
             }
         }
 
@@ -204,7 +216,7 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
         uint256 length = totalAlerts();
 
         if (start >= length) {
-            revert ErrInvalidStartIndex();
+            revert InvalidStartIndex();
         }
 
         uint256 end = start + querySize;

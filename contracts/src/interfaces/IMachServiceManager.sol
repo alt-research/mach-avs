@@ -67,22 +67,4 @@ interface IMachServiceManager is IServiceManager {
     event AlertConfirmed(bytes32 indexed alertHeaderHash, bytes32 messageHash);
 
     event AlertRemoved(bytes32 messageHash, address sender);
-
-    error ErrInvalidStartIndex();
-
-    error ErrInvalidConfirmer();
-
-    error ErrInvalidOperator();
-
-    error ErrZeroAddress();
-
-    error ErrAllowlistAdded();
-
-    error ErrAllowlistNotAdded();
-
-    error ErrNotAllowed();
-
-    error ErrInvalidReferenceBlockNum();
-
-    error ErrThresholdNotSufficient();
 }

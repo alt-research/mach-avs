@@ -123,9 +123,9 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
         emit AlertRemoved(messageHash, _msgSender());
     }
 
-    function updateQuorumThresholdPercentages(uint8 thresholdPercentages) external onlyOwner {
-        quorumThresholdPercentages = thresholdPercentages;
-        emit QuorumThresholdPercentagesChanged(thresholdPercentages);
+    function updateQuorumThresholdPercentage(uint8 thresholdPercentage) external onlyOwner {
+        quorumThresholdPercentage = thresholdPercentage;
+        emit QuorumThresholdPercentageChanged(thresholdPercentage);
     }
 
     //////////////////////////////////////////////////////////////////////////////
@@ -209,7 +209,7 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
             // signedStakeForQuorum[i] / totalStakeForQuorum[i] * THRESHOLD_DENOMINATOR >= quorumThresholdPercentages[i]
             // => signedStakeForQuorum[i] * THRESHOLD_DENOMINATOR >= totalStakeForQuorum[i] * quorumThresholdPercentages[i]
             uint8 currentQuorumThresholdPercentages = uint8(alertHeader.quorumThresholdPercentages[i]);
-            if (currentQuorumThresholdPercentages < quorumThresholdPercentages) {
+            if (currentQuorumThresholdPercentages < quorumThresholdPercentage) {
                 revert InsufficientThresholdPercentages();
             }
             if (

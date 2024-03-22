@@ -92,7 +92,7 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
      */
     function removeFromAllowlist(address operator) external onlyOwner {
         if (!_allowlist[operator]) {
-            revert AllowlistNotAdded();
+            revert NotInAllowlist();
         }
         _allowlist[operator] = false;
         emit OperatorDisallowed(operator);

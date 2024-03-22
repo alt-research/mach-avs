@@ -68,7 +68,7 @@ interface IMachServiceManager is IServiceManager {
 
     event AlertRemoved(bytes32 messageHash, address sender);
 
-    error InvalidStartIndex();
+    error ErrInvalidStartIndex();
 
     error ErrInvalidConfirmer();
 

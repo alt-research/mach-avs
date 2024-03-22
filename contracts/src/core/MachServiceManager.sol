@@ -204,7 +204,7 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
         uint256 length = totalAlerts();
 
         if (start >= length) {
-            revert InvalidStartIndex();
+            revert ErrInvalidStartIndex();
         }
 
         uint256 end = start + querySize;

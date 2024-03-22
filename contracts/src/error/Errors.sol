@@ -8,6 +8,7 @@ error InvalidSender();
 error InvalidOperator();
 error InvalidReferenceBlockNum();
 error InsufficientThreshold();
+error InsufficientThresholdPercentages();
 error AlreadyInAllowlist();
 error NotInAllowlist();
 error NotAllowed();

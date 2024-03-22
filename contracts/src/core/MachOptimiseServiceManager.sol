@@ -27,6 +27,12 @@ contract MachOptimiseServiceManager is MachServiceManagerStorage, ServiceManager
     // The imageId for risc0 guest code.
     bytes32 public imageId;
 
+    /// @notice when applied to a function, ensures that the function is only callable by the `alertConfirmer`.
+    modifier onlyAlertConfirmer() {
+        require(_msgSender() == alertConfirmer, "onlyAlertConfirmer: not from alert confirmer");
+        _;
+    }
+
     constructor(
         IAVSDirectory __avsDirectory,
         IRegistryCoordinator __registryCoordinator,

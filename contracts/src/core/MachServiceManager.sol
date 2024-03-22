@@ -19,6 +19,12 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
 
     uint8 internal constant PAUSED_CONFIRM_ALERT = 0;
 
+    /// @notice when applied to a function, ensures that the function is only callable by the `alertConfirmer`.
+    modifier onlyAlertConfirmer() {
+        require(_msgSender() == alertConfirmer, "onlyAlertConfirmer: not from alert confirmer");
+        _;
+    }
+
     constructor(
         IAVSDirectory __avsDirectory,
         IRegistryCoordinator __registryCoordinator,
@@ -99,7 +105,7 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
         address operator,
         ISignatureUtils.SignatureWithSaltAndExpiry memory operatorSignature
     ) public override(ServiceManagerBase, IServiceManager) whenNotPaused onlyRegistryCoordinator {
-        require(msg.sender == operator, "MachServiceManager.registerOperator: invalid operator");
+        require(_msgSender() == operator, "MachServiceManager.registerOperator: invalid operator");
         require(!allowlistEnabled || _allowlist[operator], "MachServiceManager.registerOperator: not allowed");
         // todo check strategy and stake
         _operators.add(operator);
@@ -116,7 +122,7 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
         whenNotPaused
         onlyRegistryCoordinator
     {
-        require(msg.sender == operator, "MachServiceManager.deregisterOperatorFromAVS: invalid operator");
+        require(_msgSender() == operator, "MachServiceManager.deregisterOperatorFromAVS: invalid operator");
         _operators.remove(operator);
         _avsDirectory.deregisterOperatorFromAVS(operator);
         emit OperatorRemoved(operator);
@@ -132,7 +138,7 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
     ) external whenNotPaused onlyAlertConfirmer {
         // make sure the information needed to derive the non-signers and batch is in calldata to avoid emitting events
         require(
-            tx.origin == msg.sender, "MachServiceManager.confirmAlert: header and nonsigner data must be in calldata"
+            tx.origin == _msgSender(), "MachServiceManager.confirmAlert: header and nonsigner data must be in calldata"
         );
         // make sure the stakes against which the Batch is being confirmed are not stale
         require(

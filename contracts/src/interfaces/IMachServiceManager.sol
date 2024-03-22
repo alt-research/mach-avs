@@ -38,6 +38,12 @@ interface IMachServiceManager is IServiceManager {
     event AlertConfirmerChanged(address previousAddress, address newAddress);
 
     /**
+     * @notice Emitted when the quorum threshold percentage is changed.
+     * @param thresholdPercentages The new quorum threshold percentage
+     */
+    event QuorumThresholdPercentageChanged(uint8 thresholdPercentages);
+
+    /**
      * @notice Emitted when an operator is added to the allowlist.
      * @param operator The operator
      */

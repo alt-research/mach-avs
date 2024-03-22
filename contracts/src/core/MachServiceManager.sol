@@ -21,6 +21,7 @@ import {
     InsufficientThreshold,
     InvalidStartIndex,
     InvalidOperator,
+    InsufficientThresholdPercentages,
     InvalidSender,
     NotAllowed,
     InvalidOperator
@@ -122,6 +123,11 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
         emit AlertRemoved(messageHash, _msgSender());
     }
 
+    function updateQuorumThresholdPercentage(uint8 thresholdPercentage) external onlyOwner {
+        quorumThresholdPercentage = thresholdPercentage;
+        emit QuorumThresholdPercentageChanged(thresholdPercentage);
+    }
+
     //////////////////////////////////////////////////////////////////////////////
     //                          Operator Registration                           //
     //////////////////////////////////////////////////////////////////////////////
@@ -202,9 +208,13 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
             // signed stake > total stake
             // signedStakeForQuorum[i] / totalStakeForQuorum[i] * THRESHOLD_DENOMINATOR >= quorumThresholdPercentages[i]
             // => signedStakeForQuorum[i] * THRESHOLD_DENOMINATOR >= totalStakeForQuorum[i] * quorumThresholdPercentages[i]
+            uint8 currentQuorumThresholdPercentages = uint8(alertHeader.quorumThresholdPercentages[i]);
+            if (currentQuorumThresholdPercentages < quorumThresholdPercentage) {
+                revert InsufficientThresholdPercentages();
+            }
             if (
                 quorumStakeTotals.signedStakeForQuorum[i] * THRESHOLD_DENOMINATOR
-                    < quorumStakeTotals.totalStakeForQuorum[i] * uint8(alertHeader.quorumThresholdPercentages[i])
+                    < quorumStakeTotals.totalStakeForQuorum[i] * currentQuorumThresholdPercentages
             ) {
                 revert InsufficientThreshold();
             }

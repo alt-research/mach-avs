@@ -21,7 +21,9 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
 
     /// @notice when applied to a function, ensures that the function is only callable by the `alertConfirmer`.
     modifier onlyAlertConfirmer() {
-        require(_msgSender() == alertConfirmer, "onlyAlertConfirmer: not from alert confirmer");
+        if (_msgSender() != alertConfirmer) {
+            revert ErrInvalidConfirmer();
+        }
         _;
     }
 
@@ -56,8 +58,12 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
      * @param operator The operator to add
      */
     function addToAllowlist(address operator) external onlyOwner {
-        require(operator != address(0), "MachServiceManager.addToAllowlist: zero address");
-        require(!_allowlist[operator], "MachServiceManager.addToAllowlist: already in allowlist");
+        if (operator == address(0)) {
+            revert ErrZeroAddress();
+        }
+        if (_allowlist[operator]) {
+            revert ErrAllowlistAdded();
+        }
         _allowlist[operator] = true;
         emit OperatorAllowed(operator);
     }
@@ -67,7 +73,9 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
      * @param operator The operator to remove
      */
     function removeFromAllowlist(address operator) external onlyOwner {
-        require(_allowlist[operator], "MachServiceManager.removeFromAllowlist: not in allowlist");
+        if (!_allowlist[operator]) {
+            revert ErrAllowlistNotAdded();
+        }
         _allowlist[operator] = false;
         emit OperatorDisallowed(operator);
     }
@@ -105,9 +113,12 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
         address operator,
         ISignatureUtils.SignatureWithSaltAndExpiry memory operatorSignature
     ) public override(ServiceManagerBase, IServiceManager) whenNotPaused onlyRegistryCoordinator {
-        require(_msgSender() == operator, "MachServiceManager.registerOperator: invalid operator");
-        require(!allowlistEnabled || _allowlist[operator], "MachServiceManager.registerOperator: not allowed");
-        // todo check strategy and stake
+        if (_msgSender() != operator) {
+            revert ErrInvalidOperator();
+        }
+        if (allowlistEnabled && !_allowlist[operator]) {
+            revert ErrNotAllowed();
+        }
         _operators.add(operator);
         _avsDirectory.registerOperatorToAVS(operator, operatorSignature);
         emit OperatorAdded(operator);
@@ -122,7 +133,9 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
         whenNotPaused
         onlyRegistryCoordinator
     {
-        require(_msgSender() == operator, "MachServiceManager.deregisterOperatorFromAVS: invalid operator");
+        if (_msgSender() != operator) {
+            revert ErrInvalidOperator();
+        }
         _operators.remove(operator);
         _avsDirectory.deregisterOperatorFromAVS(operator);
         emit OperatorRemoved(operator);
@@ -137,14 +150,14 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
         NonSignerStakesAndSignature memory nonSignerStakesAndSignature
     ) external whenNotPaused onlyAlertConfirmer {
         // make sure the information needed to derive the non-signers and batch is in calldata to avoid emitting events
+
         require(
             tx.origin == _msgSender(), "MachServiceManager.confirmAlert: header and nonsigner data must be in calldata"
         );
         // make sure the stakes against which the Batch is being confirmed are not stale
-        require(
-            alertHeader.referenceBlockNumber <= block.number,
-            "MachServiceManager.confirmAlert: specified referenceBlockNumber is in future"
-        );
+        if (alertHeader.referenceBlockNumber > block.number) {
+            revert ErrInvalidReferenceBlockNum();
+        }
         bytes32 hashedHeader = hashAlertHeader(alertHeader);
 
         // check the signature
@@ -161,11 +174,12 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
             // signed stake > total stake
             // signedStakeForQuorum[i] / totalStakeForQuorum[i] * THRESHOLD_DENOMINATOR >= quorumThresholdPercentages[i]
             // => signedStakeForQuorum[i] * THRESHOLD_DENOMINATOR >= totalStakeForQuorum[i] * quorumThresholdPercentages[i]
-            require(
+            if (
                 quorumStakeTotals.signedStakeForQuorum[i] * THRESHOLD_DENOMINATOR
-                    >= quorumStakeTotals.totalStakeForQuorum[i] * uint8(alertHeader.quorumThresholdPercentages[i]),
-                "MachServiceManager.confirmAlert: signatories do not own at least threshold percentage of a quorum"
-            );
+                    < quorumStakeTotals.totalStakeForQuorum[i] * uint8(alertHeader.quorumThresholdPercentages[i])
+            ) {
+                revert ErrThresholdNotSufficient();
+            }
         }
 
         // store alert

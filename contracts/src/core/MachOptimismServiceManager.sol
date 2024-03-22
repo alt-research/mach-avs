@@ -14,7 +14,7 @@ import {MachServiceManagerStorage} from "./MachServiceManagerStorage.sol";
 import {IMachOptimismL2OutputOracle} from "../interfaces/IMachOptimismL2OutputOracle.sol";
 import {IRiscZeroVerifier} from "../interfaces/IRiscZeroVerifier.sol";
 
-contract MachOptimiseServiceManager is MachServiceManagerStorage, ServiceManagerBase, BLSSignatureChecker, Pausable {
+contract MachOptimismServiceManager is MachServiceManagerStorage, ServiceManagerBase, BLSSignatureChecker, Pausable {
     using EnumerableSet for EnumerableSet.Bytes32Set;
     using EnumerableSet for EnumerableSet.AddressSet;
 
@@ -26,6 +26,12 @@ contract MachOptimiseServiceManager is MachServiceManagerStorage, ServiceManager
 
     // The imageId for risc0 guest code.
     bytes32 public imageId;
+
+    /// @notice when applied to a function, ensures that the function is only callable by the `alertConfirmer`.
+    modifier onlyAlertConfirmer() {
+        require(_msgSender() == alertConfirmer, "onlyAlertConfirmer: not from alert confirmer");
+        _;
+    }
 
     constructor(
         IAVSDirectory __avsDirectory,
@@ -113,7 +119,7 @@ contract MachOptimiseServiceManager is MachServiceManagerStorage, ServiceManager
         external
         whenNotPaused
     {
-        address operator = msg.sender;
+        address operator = _msgSender();
         require(!allowlistEnabled || _allowlist[operator], "MachServiceManager.registerOperator: not allowed");
         // todo check strategy and stake
         _operators.add(operator);
@@ -125,7 +131,7 @@ contract MachOptimiseServiceManager is MachServiceManagerStorage, ServiceManager
      * @notice Deregister an operator from the AVS. Forwards a call to EigenLayer's AVSDirectory.
      */
     function deregisterOperator() external whenNotPaused {
-        address operator = msg.sender;
+        address operator = _msgSender();
         _operators.remove(operator);
         _avsDirectory.deregisterOperatorFromAVS(operator);
         emit OperatorRemoved(operator);
@@ -231,6 +237,9 @@ contract MachOptimiseServiceManager is MachServiceManagerStorage, ServiceManager
         pure
         returns (ReducedAlertHeader memory)
     {
-        return ReducedAlertHeader({messageHash: alertHeader.messageHash});
+        return ReducedAlertHeader({
+            messageHash: alertHeader.messageHash,
+            referenceBlockNumber: alertHeader.referenceBlockNumber
+        });
     }
 }

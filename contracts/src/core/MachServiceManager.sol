@@ -9,6 +9,7 @@ import {IStakeRegistry} from "eigenlayer-middleware/interfaces/IStakeRegistry.so
 import {IRegistryCoordinator} from "eigenlayer-middleware/interfaces/IRegistryCoordinator.sol";
 import {BLSSignatureChecker} from "eigenlayer-middleware/BLSSignatureChecker.sol";
 import {ServiceManagerBase} from "eigenlayer-middleware/ServiceManagerBase.sol";
+import {IServiceManager} from "eigenlayer-middleware/interfaces/IServiceManager.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {MachServiceManagerStorage} from "./MachServiceManagerStorage.sol";
 
@@ -17,6 +18,12 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
     using EnumerableSet for EnumerableSet.AddressSet;
 
     uint8 internal constant PAUSED_CONFIRM_ALERT = 0;
+
+    /// @notice when applied to a function, ensures that the function is only callable by the `alertConfirmer`.
+    modifier onlyAlertConfirmer() {
+        require(_msgSender() == alertConfirmer, "onlyAlertConfirmer: not from alert confirmer");
+        _;
+    }
 
     constructor(
         IAVSDirectory __avsDirectory,
@@ -94,12 +101,11 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
      * @notice Register an operator with the AVS. Forwards call to EigenLayer' AVSDirectory.
      * @param operatorSignature The signature, salt, and expiry of the operator's signature.
      */
-    function registerOperatorToAVS(ISignatureUtils.SignatureWithSaltAndExpiry memory operatorSignature)
-        external
-        whenNotPaused
-        onlyRegistryCoordinator
-    {
-        address operator = msg.sender;
+    function registerOperatorToAVS(
+        address operator,
+        ISignatureUtils.SignatureWithSaltAndExpiry memory operatorSignature
+    ) public override(ServiceManagerBase, IServiceManager) whenNotPaused onlyRegistryCoordinator {
+        require(_msgSender() == operator, "MachServiceManager.registerOperator: invalid operator");
         require(!allowlistEnabled || _allowlist[operator], "MachServiceManager.registerOperator: not allowed");
         // todo check strategy and stake
         _operators.add(operator);
@@ -110,8 +116,13 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
     /**
      * @notice Deregister an operator from the AVS. Forwards a call to EigenLayer's AVSDirectory.
      */
-    function deregisterOperatorFromAVS() external whenNotPaused onlyRegistryCoordinator {
-        address operator = msg.sender;
+    function deregisterOperatorFromAVS(address operator)
+        public
+        override(ServiceManagerBase, IServiceManager)
+        whenNotPaused
+        onlyRegistryCoordinator
+    {
+        require(_msgSender() == operator, "MachServiceManager.deregisterOperatorFromAVS: invalid operator");
         _operators.remove(operator);
         _avsDirectory.deregisterOperatorFromAVS(operator);
         emit OperatorRemoved(operator);
@@ -127,14 +138,14 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
     ) external whenNotPaused onlyAlertConfirmer {
         // make sure the information needed to derive the non-signers and batch is in calldata to avoid emitting events
         require(
-            tx.origin == msg.sender, "MachServiceManager.confirmAlert: header and nonsigner data must be in calldata"
+            tx.origin == _msgSender(), "MachServiceManager.confirmAlert: header and nonsigner data must be in calldata"
         );
         // make sure the stakes against which the Batch is being confirmed are not stale
         require(
             alertHeader.referenceBlockNumber <= block.number,
             "MachServiceManager.confirmAlert: specified referenceBlockNumber is in future"
         );
-        bytes32 hashedHeader = alertHeader.messageHash;
+        bytes32 hashedHeader = hashAlertHeader(alertHeader);
 
         // check the signature
         (QuorumStakeTotals memory quorumStakeTotals, bytes32 signatoryRecordHash) = checkSignatures(
@@ -221,6 +232,9 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
         pure
         returns (ReducedAlertHeader memory)
     {
-        return ReducedAlertHeader({messageHash: alertHeader.messageHash});
+        return ReducedAlertHeader({
+            messageHash: alertHeader.messageHash,
+            referenceBlockNumber: alertHeader.referenceBlockNumber
+        });
     }
 }

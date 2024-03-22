@@ -15,6 +15,7 @@ interface IMachServiceManager is IServiceManager {
 
     struct ReducedAlertHeader {
         bytes32 messageHash;
+        uint32 referenceBlockNumber;
     }
 
     /**

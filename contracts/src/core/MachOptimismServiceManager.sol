@@ -119,7 +119,7 @@ contract MachOptimismServiceManager is MachServiceManagerStorage, ServiceManager
         external
         whenNotPaused
     {
-        address operator = msg.sender;
+        address operator = _msgSender();
         require(!allowlistEnabled || _allowlist[operator], "MachServiceManager.registerOperator: not allowed");
         // todo check strategy and stake
         _operators.add(operator);
@@ -131,7 +131,7 @@ contract MachOptimismServiceManager is MachServiceManagerStorage, ServiceManager
      * @notice Deregister an operator from the AVS. Forwards a call to EigenLayer's AVSDirectory.
      */
     function deregisterOperator() external whenNotPaused {
-        address operator = msg.sender;
+        address operator = _msgSender();
         _operators.remove(operator);
         _avsDirectory.deregisterOperatorFromAVS(operator);
         emit OperatorRemoved(operator);

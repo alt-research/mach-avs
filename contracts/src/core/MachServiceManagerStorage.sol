@@ -22,9 +22,6 @@ abstract contract MachServiceManagerStorage is IMachServiceManager {
     /// @notice Whether or not the allowlist is enabled
     bool public allowlistEnabled = true;
 
-    /// @notice when applied to a function, ensures that the function is only callable by the `alertConfirmer`.
-    modifier onlyAlertConfirmer() {
-        require(msg.sender == alertConfirmer, "onlyAlertConfirmer: not from alert confirmer");
-        _;
-    }
+    /// @notice Minimul quorum threshold percentage
+    uint8 public quorumThresholdPercentage = 66;
 }

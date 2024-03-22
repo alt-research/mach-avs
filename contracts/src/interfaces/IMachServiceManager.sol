@@ -15,6 +15,7 @@ interface IMachServiceManager is IServiceManager {
 
     struct ReducedAlertHeader {
         bytes32 messageHash;
+        uint32 referenceBlockNumber;
     }
 
     /**
@@ -35,6 +36,12 @@ interface IMachServiceManager is IServiceManager {
      * @param newAddress The address of the new alert confirmer
      */
     event AlertConfirmerChanged(address previousAddress, address newAddress);
+
+    /**
+     * @notice Emitted when the quorum threshold percentage is changed.
+     * @param thresholdPercentages The new quorum threshold percentage
+     */
+    event QuorumThresholdPercentageChanged(uint8 thresholdPercentages);
 
     /**
      * @notice Emitted when an operator is added to the allowlist.
@@ -66,6 +73,4 @@ interface IMachServiceManager is IServiceManager {
     event AlertConfirmed(bytes32 indexed alertHeaderHash, bytes32 messageHash);
 
     event AlertRemoved(bytes32 messageHash, address sender);
-
-    error InvalidStartIndex();
 }

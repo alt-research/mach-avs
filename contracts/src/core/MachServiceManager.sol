@@ -61,11 +61,11 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
         IPauserRegistry _pauserRegistry,
         uint256 _initialPausedStatus,
         address _initialOwner,
-        address _batchConfirmer
+        address _alertConfirm
     ) public initializer {
         _initializePauser(_pauserRegistry, _initialPausedStatus);
         _transferOwnership(_initialOwner);
-        _setAlertConfirmer(_batchConfirmer);
+        _setAlertConfirmer(_alertConfirm);
     }
 
     //////////////////////////////////////////////////////////////////////////////

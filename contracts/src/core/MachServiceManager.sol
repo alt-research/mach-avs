@@ -80,7 +80,7 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
             revert ZeroAddress();
         }
         if (_allowlist[operator]) {
-            revert AllowlistAdded();
+            revert AlreadyInAllowlist();
         }
         _allowlist[operator] = true;
         emit OperatorAllowed(operator);

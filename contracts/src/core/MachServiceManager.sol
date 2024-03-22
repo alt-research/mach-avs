@@ -61,11 +61,11 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
         IPauserRegistry _pauserRegistry,
         uint256 _initialPausedStatus,
         address _initialOwner,
-        address _batchConfirmer
+        address _alertConfirmer
     ) public initializer {
         _initializePauser(_pauserRegistry, _initialPausedStatus);
         _transferOwnership(_initialOwner);
-        _setAlertConfirmer(_batchConfirmer);
+        _setAlertConfirmer(_alertConfirmer);
     }
 
     //////////////////////////////////////////////////////////////////////////////
@@ -291,5 +291,28 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
             messageHash: alertHeader.messageHash,
             referenceBlockNumber: alertHeader.referenceBlockNumber
         });
+    }
+
+    /**
+     * return the sender of this call.
+     * if the call came through our trusted forwarder, return the original sender.
+     * otherwise, return `msg.sender`.
+     * should be used in the contract anywhere instead of msg.sender
+     */
+    function _msgSender() internal view override returns (address ret) {
+        if (msg.data.length >= 20 && isTrustedForwarder(msg.sender)) {
+            // At this point we know that the sender is a trusted forwarder,
+            // so we trust that the last bytes of msg.data are the verified sender address.
+            // extract sender address from the end of msg.data
+            assembly {
+                ret := shr(96, calldataload(sub(calldatasize(), 20)))
+            }
+        } else {
+            ret = msg.sender;
+        }
+    }
+
+    function isTrustedForwarder(address _forwarder) internal view returns (bool) {
+        return address(registryCoordinator) == _forwarder;
     }
 }

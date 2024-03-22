@@ -139,7 +139,7 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
             revert InvalidOperator();
         }
         if (allowlistEnabled && !_allowlist[operator]) {
-            revert NotAllowed();
+            revert NotInAllowlist();
         }
         _operators.add(operator);
         _avsDirectory.registerOperatorToAVS(operator, operatorSignature);

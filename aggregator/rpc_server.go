@@ -106,7 +106,10 @@ func (agg *Aggregator) CreateTask(req *message.CreateTaskRequest, reply *message
 func (agg *Aggregator) ProcessSignedTaskResponse(signedTaskResponse *SignedTaskResponse, reply *bool) error {
 	agg.logger.Infof("Received signed task response: %#v", signedTaskResponse)
 	taskIndex := signedTaskResponse.Alert.TaskIndex
-	taskResponseDigest := signedTaskResponse.Alert.AlertHash
+	taskResponseDigest, err := signedTaskResponse.Alert.SignHash()
+	if err != nil {
+		return err
+	}
 
 	if task := agg.GetTaskByIndex(taskIndex); task == nil {
 		agg.logger.Error("ProcessNewSignature error by no task exist", "taskIndex", taskIndex)
@@ -114,7 +117,7 @@ func (agg *Aggregator) ProcessSignedTaskResponse(signedTaskResponse *SignedTaskR
 	}
 
 	agg.logger.Infof("ProcessNewSignature: %#v", signedTaskResponse.Alert.TaskIndex)
-	err := agg.blsAggregationService.ProcessNewSignature(
+	err = agg.blsAggregationService.ProcessNewSignature(
 		context.Background(), taskIndex, taskResponseDigest,
 		&signedTaskResponse.BlsSignature, signedTaskResponse.OperatorId,
 	)

@@ -2,6 +2,7 @@ package chainio
 
 import (
 	"context"
+	"math/big"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	gethcommon "github.com/ethereum/go-ethereum/common"
@@ -9,6 +10,7 @@ import (
 	sdkavsregistry "github.com/Layr-Labs/eigensdk-go/chainio/clients/avsregistry"
 	"github.com/Layr-Labs/eigensdk-go/chainio/clients/eth"
 	logging "github.com/Layr-Labs/eigensdk-go/logging"
+	sdktypes "github.com/Layr-Labs/eigensdk-go/types"
 
 	csservicemanager "github.com/alt-research/avs/contracts/bindings/MachServiceManager"
 	"github.com/alt-research/avs/core/config"
@@ -20,6 +22,12 @@ type AvsReaderer interface {
 	CheckSignatures(
 		ctx context.Context, msgHash [32]byte, quorumNumbers []byte, referenceBlockNumber uint32, nonSignerStakesAndSignature csservicemanager.IBLSSignatureCheckerNonSignerStakesAndSignature,
 	) (csservicemanager.IBLSSignatureCheckerQuorumStakeTotals, error)
+
+	// GetQuorumsByBlockNumber
+	GetQuorumsByBlockNumber(ctx context.Context, blockNumber uint32) ([]sdktypes.QuorumNum, error)
+
+	// GetQuorumThresholdPercentages
+	GetQuorumThresholdPercentages(ctx context.Context, blockNumber uint32, quorums []sdktypes.QuorumNum) ([]sdktypes.QuorumThresholdPercentage, error)
 }
 
 type AvsReader struct {
@@ -62,4 +70,40 @@ func (r *AvsReader) CheckSignatures(
 		return csservicemanager.IBLSSignatureCheckerQuorumStakeTotals{}, err
 	}
 	return stakeTotalsPerQuorum, nil
+}
+
+func (r *AvsReader) GetQuorumsByBlockNumber(ctx context.Context, blockNumber uint32) ([]sdktypes.QuorumNum, error) {
+	quorumCount, err := r.AvsRegistryReader.GetQuorumCount(&bind.CallOpts{
+		Context:     ctx,
+		BlockNumber: big.NewInt(int64(blockNumber)),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	res := make([]sdktypes.QuorumNum, 0, quorumCount)
+	for i := uint8(0); i < quorumCount; i++ {
+		res = append(res, sdktypes.QuorumNum(i))
+	}
+
+	return res, nil
+}
+
+func (r *AvsReader) GetQuorumThresholdPercentages(ctx context.Context, blockNumber uint32, quorums []sdktypes.QuorumNum) ([]sdktypes.QuorumThresholdPercentage, error) {
+	quorumThresholdPercentage, err := r.AvsServiceBindings.ServiceManager.QuorumThresholdPercentage(&bind.CallOpts{
+		Context:     ctx,
+		BlockNumber: big.NewInt(int64(blockNumber)),
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	res := make([]sdktypes.QuorumThresholdPercentage, 0, len(quorums))
+	for i := 0; i < len(quorums); i++ {
+		res = append(res, sdktypes.QuorumThresholdPercentage(uint8(quorumThresholdPercentage)))
+	}
+
+	return res, nil
+
 }

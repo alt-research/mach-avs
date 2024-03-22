@@ -199,6 +199,20 @@ func (agg *Aggregator) sendNewTask(alertHash [32]byte, taskIndex types.TaskIndex
 
 	agg.logger.Info("get from layer1", "referenceBlockNumber", referenceBlockNumber)
 
+	quorumNumbers, err := agg.avsReader.GetQuorumsByBlockNumber(context.Background(), uint32(referenceBlockNumber))
+	if err != nil {
+		agg.logger.Error("GetQuorumCountByBlockNumber failed", "err", err)
+		return nil, err
+	}
+
+	quorumThresholdPercentages, err := agg.avsReader.GetQuorumThresholdPercentages(context.Background(), uint32(referenceBlockNumber), quorumNumbers)
+	if err != nil {
+		agg.logger.Error("GetQuorumThresholdPercentages failed", "err", err)
+		return nil, err
+	}
+
+	agg.logger.Infof("quorum %v %v", quorumNumbers, quorumThresholdPercentages)
+
 	newAlertTask := &message.AlertTaskInfo{
 		AlertHash:                  alertHash,
 		QuorumNumbers:              quorumNumbersValue,

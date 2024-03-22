@@ -26,11 +26,16 @@ import {
     InvalidOperator
 } from "../error/Errors.sol";
 
+/**
+ * @title Primary entrypoint for procuring services from Altlayer Mach Service.
+ * @author Altlayer, Inc.
+ * @notice This contract is used for:
+ * - whitelisting operators
+ * - confirming the alert store by the aggregator with inferred aggregated signatures of the quorum
+ */
 contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BLSSignatureChecker, Pausable {
     using EnumerableSet for EnumerableSet.Bytes32Set;
     using EnumerableSet for EnumerableSet.AddressSet;
-
-    uint8 internal constant PAUSED_CONFIRM_ALERT = 0;
 
     /// @notice when applied to a function, ensures that the function is only callable by the `alertConfirmer`.
     modifier onlyAlertConfirmer() {
@@ -109,6 +114,9 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
         emit AllowlistDisabled();
     }
 
+    /**
+     * @notice Remove an Alert.
+     */
     function removeAlert(bytes32 messageHash) external onlyOwner {
         _messageHashes.remove(messageHash);
         emit AlertRemoved(messageHash, _msgSender());
@@ -120,6 +128,7 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
 
     /**
      * @notice Register an operator with the AVS. Forwards call to EigenLayer' AVSDirectory.
+     * @param operator The address of the operator to register.
      * @param operatorSignature The signature, salt, and expiry of the operator's signature.
      */
     function registerOperatorToAVS(
@@ -139,6 +148,7 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
 
     /**
      * @notice Deregister an operator from the AVS. Forwards a call to EigenLayer's AVSDirectory.
+     * @param operator The address of the operator to register.
      */
     function deregisterOperatorFromAVS(address operator)
         public
@@ -158,6 +168,12 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
     //                              Alert Functions                             //
     //////////////////////////////////////////////////////////////////////////////
 
+    /**
+     * @notice This function is used for
+     * - submitting alert,
+     * - check that the aggregate signature is valid,
+     * - and check whether quorum has been achieved or not.
+     */
     function confirmAlert(
         AlertHeader calldata alertHeader,
         NonSignerStakesAndSignature memory nonSignerStakesAndSignature
@@ -204,14 +220,17 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
     //                               View Functions                             //
     //////////////////////////////////////////////////////////////////////////////
 
+    /// @notice Returns the length of total alerts
     function totalAlerts() public view returns (uint256) {
         return _messageHashes.length();
     }
 
+    /// @notice Checks if messageHash exists
     function contains(bytes32 messageHash) public view returns (bool) {
         return _messageHashes.contains(messageHash);
     }
 
+    /// @notice Returns an array of messageHash
     function queryMessageHashes(uint256 start, uint256 querySize) public view returns (bytes32[] memory) {
         uint256 length = totalAlerts();
 

@@ -20,11 +20,9 @@ import {
     InvalidReferenceBlockNum,
     InsufficientThreshold,
     InvalidStartIndex,
-    InvalidOperator,
     InsufficientThresholdPercentages,
     InvalidSender,
-    NotAllowed,
-    InvalidOperator
+    NotAllowed
 } from "../error/Errors.sol";
 
 /**
@@ -66,6 +64,7 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
         _initializePauser(_pauserRegistry, _initialPausedStatus);
         _transferOwnership(_initialOwner);
         _setAlertConfirmer(_alertConfirmer);
+        quorumThresholdPercentage = 66;
     }
 
     //////////////////////////////////////////////////////////////////////////////
@@ -141,9 +140,6 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
         address operator,
         ISignatureUtils.SignatureWithSaltAndExpiry memory operatorSignature
     ) public override(ServiceManagerBase, IServiceManager) whenNotPaused onlyRegistryCoordinator {
-        if (_msgSender() != operator) {
-            revert InvalidOperator();
-        }
         if (allowlistEnabled && !_allowlist[operator]) {
             revert NotInAllowlist();
         }
@@ -162,9 +158,6 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
         whenNotPaused
         onlyRegistryCoordinator
     {
-        if (_msgSender() != operator) {
-            revert InvalidOperator();
-        }
         _operators.remove(operator);
         _avsDirectory.deregisterOperatorFromAVS(operator);
         emit OperatorRemoved(operator);
@@ -185,7 +178,7 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
         NonSignerStakesAndSignature memory nonSignerStakesAndSignature
     ) external whenNotPaused onlyAlertConfirmer {
         // make sure the information needed to derive the non-signers and batch is in calldata to avoid emitting events
-        if (tx.origin != _msgSender()) {
+        if (tx.origin != msg.sender) {
             revert InvalidSender();
         }
         // make sure the stakes against which the Batch is being confirmed are not stale
@@ -291,28 +284,5 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
             messageHash: alertHeader.messageHash,
             referenceBlockNumber: alertHeader.referenceBlockNumber
         });
-    }
-
-    /**
-     * return the sender of this call.
-     * if the call came through our trusted forwarder, return the original sender.
-     * otherwise, return `msg.sender`.
-     * should be used in the contract anywhere instead of msg.sender
-     */
-    function _msgSender() internal view override returns (address ret) {
-        if (msg.data.length >= 20 && isTrustedForwarder(msg.sender)) {
-            // At this point we know that the sender is a trusted forwarder,
-            // so we trust that the last bytes of msg.data are the verified sender address.
-            // extract sender address from the end of msg.data
-            assembly {
-                ret := shr(96, calldataload(sub(calldatasize(), 20)))
-            }
-        } else {
-            ret = msg.sender;
-        }
-    }
-
-    function isTrustedForwarder(address _forwarder) internal view returns (bool) {
-        return address(registryCoordinator) == _forwarder;
     }
 }

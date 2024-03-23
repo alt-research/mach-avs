@@ -5,7 +5,6 @@ error ZeroAddress();
 error InvalidStartIndex();
 error InvalidConfirmer();
 error InvalidSender();
-error InvalidOperator();
 error InvalidReferenceBlockNum();
 error InsufficientThreshold();
 error InsufficientThresholdPercentages();

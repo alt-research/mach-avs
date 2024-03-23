@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.9;
+pragma solidity ^0.8.12;
 
 import "eigenlayer-core/test/mocks/EmptyContract.sol";
 import "forge-std/Script.sol";

@@ -20,11 +20,9 @@ import {
     InvalidReferenceBlockNum,
     InsufficientThreshold,
     InvalidStartIndex,
-    InvalidOperator,
     InsufficientThresholdPercentages,
     InvalidSender,
-    NotAllowed,
-    InvalidOperator
+    NotAllowed
 } from "../error/Errors.sol";
 
 /**

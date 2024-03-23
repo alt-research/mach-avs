@@ -3,8 +3,13 @@ pragma solidity ^0.8.12;
 
 import "eigenlayer-core/test/mocks/EmptyContract.sol";
 import "forge-std/Script.sol";
+import "forge-std/console2.sol";
 import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
+import "eigenlayer-core/contracts/strategies/StrategyBaseTVLLimits.sol";
+import "eigenlayer-core/contracts/core/AVSDirectory.sol";
+import "eigenlayer-core/contracts/core/DelegationManager.sol";
+import "eigenlayer-core/contracts/core/StrategyManager.sol";
 import "eigenlayer-core/contracts/strategies/StrategyBaseTVLLimits.sol";
 import {IAVSDirectory} from "eigenlayer-core/contracts/interfaces/IAVSDirectory.sol";
 import {PauserRegistry} from "eigenlayer-core/contracts/permissions/PauserRegistry.sol";
@@ -20,7 +25,7 @@ import {OperatorStateRetriever} from "eigenlayer-middleware/OperatorStateRetriev
 import {MachServiceManager} from "../src/core/MachServiceManager.sol";
 import {IMachServiceManager} from "../src/interfaces/IMachServiceManager.sol";
 
-// AVS_DIRECTORY=0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9 DELEGATION_MANAGER=0x5FC8d32690cc91D4c39d9d3abcBD16989F875707 forge script script/MachServiceManagerDeployer.s.sol --rpc-url $RPC_URL  --private-key $PRIVATE_KEY --broadcast -vvvv
+// forge script script/MachServiceManagerDeployer.s.sol --rpc-url $RPC_URL  --private-key $PRIVATE_KEY --broadcast -vvvv
 contract MachServiceManagerDeployer is Script {
     struct MachServiceContract {
         MachServiceManager machServiceManager;
@@ -34,6 +39,13 @@ contract MachServiceManagerDeployer is Script {
         BLSApkRegistry apkRegistry;
         BLSApkRegistry apkRegistryImplementation;
         OperatorStateRetriever operatorStateRetriever;
+    }
+
+    struct EigenLayerContracts {
+        AVSDirectory avsDirectory;
+        DelegationManager delegationManager;
+        StrategyManager strategyManager;
+        StrategyBaseTVLLimits strategyBaseTVLLimits;
     }
 
     struct AddressConfig {
@@ -51,9 +63,32 @@ contract MachServiceManagerDeployer is Script {
     function run() external {
         uint8 numStrategies = 1;
         uint256 maxOperatorCount = 10;
+
+        EigenLayerContracts memory eigenLayerContracts;
+
+        {
+            string memory deployedEigenLayerAddresses = vm.readFile("./script/output/eigenlayer_deploy_output.json");
+
+            bytes memory deployedStrategyManagerData = vm.parseJson(deployedEigenLayerAddresses, ".strategyManager");
+            address deployedStrategyManager = abi.decode(deployedStrategyManagerData, (address));
+            bytes memory deployedStrategyBaseTVLLimitsData =
+                vm.parseJson(deployedEigenLayerAddresses, ".strategyBaseTVLLimits");
+            address deployedStrategyBaseTVLLimits = abi.decode(deployedStrategyBaseTVLLimitsData, (address));
+            bytes memory deployedAvsDirectoryData = vm.parseJson(deployedEigenLayerAddresses, ".avsDirectory");
+            address deployedAvsDirectory = abi.decode(deployedAvsDirectoryData, (address));
+            bytes memory deployedDelegationManagerData = vm.parseJson(deployedEigenLayerAddresses, ".delegationManager");
+            address deployedDelegationManager = abi.decode(deployedDelegationManagerData, (address));
+
+            eigenLayerContracts.avsDirectory = AVSDirectory(deployedAvsDirectory);
+            eigenLayerContracts.strategyManager = StrategyManager(deployedStrategyManager);
+            eigenLayerContracts.delegationManager = DelegationManager(deployedDelegationManager);
+            eigenLayerContracts.strategyBaseTVLLimits = StrategyBaseTVLLimits(deployedStrategyBaseTVLLimits);
+        }
+
         // strategies deployed
         StrategyBaseTVLLimits[] memory deployedStrategyArray = new StrategyBaseTVLLimits[](1);
-        deployedStrategyArray[0] = StrategyBaseTVLLimits(vm.envAddress("STRATEGY"));
+        deployedStrategyArray[0] = StrategyBaseTVLLimits(address(eigenLayerContracts.strategyBaseTVLLimits));
+
         vm.startBroadcast();
         // deploy proxy admin for ability to upgrade proxy contracts
         ProxyAdmin machAVSProxyAdmin = new ProxyAdmin();
@@ -65,8 +100,8 @@ contract MachServiceManagerDeployer is Script {
         addressConfig.churner = msg.sender;
         addressConfig.ejector = msg.sender;
         addressConfig.confirmer = msg.sender;
-        addressConfig.avsDirectory = vm.envAddress("AVS_DIRECTORY");
-        addressConfig.delegationManager = vm.envAddress("DELEGATION_MANAGER");
+        addressConfig.avsDirectory = address(eigenLayerContracts.avsDirectory);
+        addressConfig.delegationManager = address(eigenLayerContracts.delegationManager);
 
         PauserRegistry pauserRegistry;
 

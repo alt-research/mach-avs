@@ -149,7 +149,12 @@ func NewOperatorFromConfig(c config.NodeConfig) (*Operator, error) {
 		panic(err)
 	}
 
-	addr := common.HexToAddress(c.OperatorAddress)
+	operatorAddress, err := sdkEcdsa.GetAddressFromKeyStoreFile(signerConfig.KeystorePath)
+	if err != nil {
+		panic(err)
+	}
+
+	addr := operatorAddress
 
 	txSender, err := wallet.NewPrivateKeyWallet(ethRpcClient, signerV2, addr, logger)
 	if err != nil {
@@ -182,7 +187,7 @@ func NewOperatorFromConfig(c config.NodeConfig) (*Operator, error) {
 	}
 	economicMetricsCollector := economic.NewCollector(
 		sdkClients.ElChainReader, sdkClients.AvsRegistryChainReader,
-		AVS_NAME, logger, common.HexToAddress(c.OperatorAddress), quorumNames)
+		AVS_NAME, logger, operatorAddress, quorumNames)
 	reg.MustRegister(economicMetricsCollector)
 
 	aggregatorRpcClient, err := NewAggregatorRpcClient(c.AggregatorServerIpPortAddress, logger, avsAndEigenMetrics)
@@ -211,7 +216,7 @@ func NewOperatorFromConfig(c config.NodeConfig) (*Operator, error) {
 		eigenlayerWriter:           sdkClients.ElChainWriter,
 		rpcServer:                  rpcServer,
 		blsKeypair:                 blsKeyPair,
-		operatorAddr:               common.HexToAddress(c.OperatorAddress),
+		operatorAddr:               operatorAddress,
 		aggregatorServerIpPortAddr: c.AggregatorServerIpPortAddress,
 		aggregatorRpcClient:        aggregatorRpcClient,
 		newTaskCreatedChan:         newTaskCreatedChan,
@@ -229,7 +234,7 @@ func NewOperatorFromConfig(c config.NodeConfig) (*Operator, error) {
 	operator.operatorId = operatorId
 	logger.Info("Operator info",
 		"operatorId", operatorId,
-		"operatorAddr", c.OperatorAddress,
+		"operatorAddr", operatorAddress,
 		"operatorG1Pubkey", operator.blsKeypair.GetPubKeyG1(),
 		"operatorG2Pubkey", operator.blsKeypair.GetPubKeyG2(),
 	)

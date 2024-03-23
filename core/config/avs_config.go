@@ -1,4 +1,4 @@
-package types
+package config
 
 type NodeConfig struct {
 	// used to set the logger level (true = info, false = debug)

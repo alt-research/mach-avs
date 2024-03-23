@@ -9,7 +9,6 @@ import (
 	sdkutils "github.com/Layr-Labs/eigensdk-go/utils"
 	"github.com/alt-research/avs/core/config"
 	"github.com/alt-research/avs/operator"
-	"github.com/alt-research/avs/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/urfave/cli"
 )
@@ -17,7 +16,7 @@ import (
 func DepositIntoStrategy(ctx *cli.Context) error {
 
 	configPath := ctx.GlobalString(config.ConfigFileFlag.Name)
-	nodeConfig := types.NodeConfig{}
+	nodeConfig := config.NodeConfig{}
 	err := sdkutils.ReadYamlConfig(configPath, &nodeConfig)
 	if err != nil {
 		return err

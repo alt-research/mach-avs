@@ -12,9 +12,10 @@ import (
 )
 
 type AvsManagersBindings struct {
-	ServiceManager *csservicemanager.ContractMachServiceManager
-	ethClient      eth.Client
-	logger         logging.Logger
+	ServiceManager      *csservicemanager.ContractMachServiceManager
+	RegistryCoordinator *regcoord.ContractRegistryCoordinator
+	ethClient           eth.Client
+	logger              logging.Logger
 }
 
 func NewAvsManagersBindings(registryCoordinatorAddr, operatorStateRetrieverAddr gethcommon.Address, ethclient eth.Client, logger logging.Logger) (*AvsManagersBindings, error) {
@@ -33,8 +34,9 @@ func NewAvsManagersBindings(registryCoordinatorAddr, operatorStateRetrieverAddr 
 	}
 
 	return &AvsManagersBindings{
-		ServiceManager: contractServiceManager,
-		ethClient:      ethclient,
-		logger:         logger,
+		ServiceManager:      contractServiceManager,
+		RegistryCoordinator: contractRegistryCoordinator,
+		ethClient:           ethclient,
+		logger:              logger,
 	}, nil
 }

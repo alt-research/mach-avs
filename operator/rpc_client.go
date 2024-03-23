@@ -6,12 +6,14 @@ import (
 	"time"
 
 	"github.com/alt-research/avs/aggregator"
+	"github.com/alt-research/avs/core/message"
 	"github.com/alt-research/avs/metrics"
 
 	"github.com/Layr-Labs/eigensdk-go/logging"
 )
 
 type AggregatorRpcClienter interface {
+	CreateAlertTaskToAggregator(alertHash [32]byte) (*message.AlertTaskInfo, error)
 	SendSignedTaskResponseToAggregator(signedTaskResponse *aggregator.SignedTaskResponse)
 }
 type AggregatorRpcClient struct {
@@ -38,6 +40,41 @@ func (c *AggregatorRpcClient) dialAggregatorRpcClient() error {
 	}
 	c.rpcClient = client
 	return nil
+}
+
+// CreateAlertTaskToAggregator create a new alert task, if had existing, just return current alert task.
+func (c *AggregatorRpcClient) CreateAlertTaskToAggregator(alertHash [32]byte) (*message.AlertTaskInfo, error) {
+	if c.rpcClient == nil {
+		c.logger.Info("rpc client is nil. Dialing aggregator rpc client")
+		err := c.dialAggregatorRpcClient()
+		if err != nil {
+			c.logger.Error("Could not dial aggregator rpc client. Not sending signed task response header to aggregator. Is aggregator running?", "err", err)
+			return nil, err
+		}
+	}
+	// we don't check this bool. It's just needed because rpc.Call requires rpc methods to have a return value
+	var reply message.CreateTaskResponse
+	req := message.CreateTaskRequest{
+		AlertHash: alertHash,
+	}
+
+	c.logger.Info("Create task header to aggregator", "req", fmt.Sprintf("%#v", req))
+
+	for i := 0; i < 5; i++ {
+		err := c.rpcClient.Call("Aggregator.CreateTask", req, &reply)
+		if err != nil {
+			c.logger.Info("Received error from aggregator", "err", err)
+		} else {
+			c.logger.Info("create task response header accepted by aggregator.", "reply", reply)
+			c.metrics.IncNumTasksAcceptedByAggregator()
+			return &reply.Info, nil
+		}
+		c.logger.Infof("Retrying in 2 seconds")
+		time.Sleep(2 * time.Second)
+	}
+	c.logger.Errorf("Could not send signed task response to aggregator. Tried 5 times.")
+
+	return nil, fmt.Errorf("Could not send signed task response to aggregator")
 }
 
 // SendSignedTaskResponseToAggregator sends a signed task response to the aggregator.

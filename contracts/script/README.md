@@ -8,6 +8,9 @@ anvil
 
 ```bash
 export OPERATOR_ADDR=0x957D781ab2Bc6D27Fde0a0b427ebF46ee1395661
+export OWNER_ADDR=0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+export OWNER_PRIVATE=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+export RPC_URL=http://localhost:8545
 ```
 
 ### 1.1 Deploy Eigenlayer contracts
@@ -16,8 +19,8 @@ export OPERATOR_ADDR=0x957D781ab2Bc6D27Fde0a0b427ebF46ee1395661
 cd contracts
 
 forge script script/EigenLayerDeployer.s.sol --broadcast -vvvv \
-    --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 \
-    --rpc-url http://localhost:8545
+    --private-key $OWNER_PRIVATE \
+    --rpc-url $RPC_URL
 ```
 
 the contract address is in `eigenlayer_deploy_output.json`.
@@ -29,13 +32,13 @@ export UNDERLAYING_TOKEN=0x322813Fd9A801c5507c9de605d63CEA4f2CE6c44
 ### 1.1 Send token to operator
 
 ```bash
-cast send  -f 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 --value 50ether $OPERATOR_ADDR
+cast send  -f $OWNER_ADDR --private-key $OWNER_PRIVATE --rpc-url $RPC_URL --value 2ether $OPERATOR_ADDR
 
-cast send  -f 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 $UNDERLAYING_TOKEN 'transfer(address, uint256) (bool)' $OPERATOR_ADDR 100000000000
+cast send  -f $OWNER_ADDR --private-key $OWNER_PRIVATE $UNDERLAYING_TOKEN --rpc-url $RPC_URL 'transfer(address, uint256) (bool)' $OPERATOR_ADDR 100000000000 
 ```
 
 ```bash
-cast call $UNDERLAYING_TOKEN 'balanceOf(address) (uint256)' 0x957D781ab2Bc6D27Fde0a0b427ebF46ee1395661
+cast call $UNDERLAYING_TOKEN 'balanceOf(address) (uint256)' $OPERATOR_ADDR  --rpc-url $RPC_URL
 100000000000 [1e11]
 ```
 
@@ -44,8 +47,8 @@ cast call $UNDERLAYING_TOKEN 'balanceOf(address) (uint256)' 0x957D781ab2Bc6D27Fd
 ```bash
 STRATEGY=0x4A679253410272dd5232B3Ff7cF5dbB88f295319 AVS_DIRECTORY=0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9 DELEGATION_MANAGER=0x5FC8d32690cc91D4c39d9d3abcBD16989F875707 \
 forge script script/MachServiceManagerDeployer.s.sol \
---private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 \
---broadcast -vvvv --rpc-url http://localhost:8545
+--private-key $OWNER_PRIVATE \
+--broadcast -vvvv --rpc-url $RPC_URL
 ```
 
 ### 1.3 Reg to eigenlayer
@@ -81,22 +84,21 @@ Add `strategyWhitelister`, use `strategyManager`
 get:
 
 ```bash
-cast call $STRATEGYMANAGER_ADDR 'strategyWhitelister() (address)'
+cast call $STRATEGYMANAGER_ADDR 'strategyWhitelister() (address)' --rpc-url $RPC_URL
 0x0000000000000000000000000000000000000000
 ```
 
 set by owner:
 
 ```bash
-cast send  -f 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 $STRATEGYMANAGER_ADDR \
-'setStrategyWhitelister(address)' 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+cast send  -f $OWNER_ADDR --private-key $OWNER_PRIVATE $STRATEGYMANAGER_ADDR \
+'setStrategyWhitelister(address)' $OWNER_ADDR --rpc-url $RPC_URL
 ```
 
 get will be owner:
 
 ```bash
-cast call 0x0165878A594ca255338adfa4d48449f69242Eb8F 'strategyWhitelister() (address)'
-0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+cast call $STRATEGYMANAGER_ADDR 'strategyWhitelister() (address)' --rpc-url $RPC_URL
 ```
 
 set the `strategyBaseTVLLimits` to `strategyWhitelister`
@@ -104,7 +106,7 @@ set the `strategyBaseTVLLimits` to `strategyWhitelister`
 > Note the `strategyBaseTVLLimits` address is in json.
 
 ```bash
-cast send  -f 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 \
+cast send  -f $OWNER_ADDR --private-key $OWNER_PRIVATE --rpc-url $RPC_URL \
 $STRATEGYMANAGER_ADDR \
 'addStrategiesToDepositWhitelist(address[], bool[])' \
 '[0x4A679253410272dd5232B3Ff7cF5dbB88f295319]' '[false]' 
@@ -127,7 +129,7 @@ $STRATEGYMANAGER_ADDR \
 ### 1.7 Boot operator and aggregator
 
 ```bash
-./bin/mach-aggregator --config ./config-files/aggregator.yaml --ecdsa-private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 --avs-deployment ./contracts/script/output/machavs_deploy_output.json
+./bin/mach-aggregator --config ./config-files/aggregator.yaml --ecdsa-private-key $OWNER_PRIVATE --avs-deployment ./contracts/script/output/machavs_deploy_output.json
 ```
 
 ```bash

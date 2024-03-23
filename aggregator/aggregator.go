@@ -17,9 +17,9 @@ import (
 
 	"github.com/alt-research/avs/aggregator/types"
 	"github.com/alt-research/avs/core"
-	"github.com/alt-research/avs/core/alert"
 	"github.com/alt-research/avs/core/chainio"
 	"github.com/alt-research/avs/core/config"
+	"github.com/alt-research/avs/core/message"
 
 	csservicemanager "github.com/alt-research/avs/contracts/bindings/MachServiceManager"
 )
@@ -74,10 +74,10 @@ type Aggregator struct {
 	ethClient        eth.Client
 	// aggregation related fields
 	blsAggregationService blsagg.BlsAggregationService
-	tasks                 map[types.TaskIndex]csservicemanager.IMachServiceManagerAlertHeader
+	tasks                 map[types.TaskIndex]*message.AlertTaskInfo
 	tasksMu               sync.RWMutex
-	taskResponses         map[types.TaskIndex]map[sdktypes.TaskResponseDigest]alert.AlertInfo
-	taskResponsesMu       sync.RWMutex
+	nextTaskIndex         types.TaskIndex
+	nextTaskIndexMu       sync.RWMutex
 }
 
 // NewAggregator creates a new Aggregator with the provided config.
@@ -120,8 +120,7 @@ func NewAggregator(c *config.Config) (*Aggregator, error) {
 		avsReader:             avsReader,
 		ethClient:             clients.EthHttpClient,
 		blsAggregationService: blsAggregationService,
-		tasks:                 make(map[types.TaskIndex]csservicemanager.IMachServiceManagerAlertHeader),
-		taskResponses:         make(map[types.TaskIndex]map[sdktypes.TaskResponseDigest]alert.AlertInfo),
+		tasks:                 make(map[types.TaskIndex]*message.AlertTaskInfo),
 	}, nil
 }
 
@@ -184,48 +183,57 @@ func (agg *Aggregator) sendAggregatedResponseToContract(blsAggServiceResp blsagg
 
 // sendNewTask sends a new task to the task manager contract, and updates the Task dict struct
 // with the information of operators opted into quorum 0 at the block of task creation.
-func (agg *Aggregator) sendNewTask(alert *alert.AlertInfo) error {
-	agg.logger.Info("Aggregator sending new task", "numberToSquare", alert)
-
-	messageHash := alert.AlertHash
-	taskIndex := alert.TaskIndex
+func (agg *Aggregator) sendNewTask(alertHash [32]byte, taskIndex types.TaskIndex) (*message.AlertTaskInfo, error) {
+	agg.logger.Info("Aggregator sending new task", "alert", alertHash, "task", taskIndex)
 
 	// TODO: use cfg
-	quorumNumbersValue := []byte{0}
-	quorumThresholdPercentagesValue := []byte{100}
+	quorumNumbersValue := []sdktypes.QuorumNum{0}
+	quorumThresholdPercentagesValue := []sdktypes.QuorumThresholdPercentage{100}
 
 	var err error
 
 	var referenceBlockNumber uint64
 	if referenceBlockNumber, err = agg.ethClient.BlockNumber(context.Background()); err != nil {
-		return err
+		return nil, err
 	}
 
 	agg.logger.Info("get from layer1", "referenceBlockNumber", referenceBlockNumber)
 
-	newTask := csservicemanager.IMachServiceManagerAlertHeader{
-		MessageHash:                messageHash,
+	quorumNumbers, err := agg.avsReader.GetQuorumsByBlockNumber(context.Background(), uint32(referenceBlockNumber))
+	if err != nil {
+		agg.logger.Error("GetQuorumCountByBlockNumber failed", "err", err)
+		return nil, err
+	}
+
+	quorumThresholdPercentages, err := agg.avsReader.GetQuorumThresholdPercentages(context.Background(), uint32(referenceBlockNumber), quorumNumbers)
+	if err != nil {
+		agg.logger.Error("GetQuorumThresholdPercentages failed", "err", err)
+		return nil, err
+	}
+
+	agg.logger.Infof("quorum %v %v", quorumNumbers, quorumThresholdPercentages)
+
+	newAlertTask := &message.AlertTaskInfo{
+		AlertHash:                  alertHash,
 		QuorumNumbers:              quorumNumbersValue,
 		QuorumThresholdPercentages: quorumThresholdPercentagesValue,
-		ReferenceBlockNumber:       uint32(referenceBlockNumber),
+		TaskIndex:                  taskIndex,
+		ReferenceBlockNumber:       referenceBlockNumber,
 	}
 
 	agg.tasksMu.Lock()
-	agg.tasks[taskIndex] = newTask
+	agg.tasks[taskIndex] = newAlertTask
 	agg.tasksMu.Unlock()
 
-	QuorumNumbers := make([]sdktypes.QuorumNum, len(newTask.QuorumNumbers))
-	for i, _ := range newTask.QuorumNumbers {
-		QuorumNumbers[i] = sdktypes.QuorumNum(uint8(newTask.QuorumNumbers[i]))
-	}
-
-	quorumThresholdPercentages := make([]sdktypes.QuorumThresholdPercentage, len(newTask.QuorumNumbers))
-	for i, _ := range newTask.QuorumNumbers {
-		quorumThresholdPercentages[i] = sdktypes.QuorumThresholdPercentage(uint8(newTask.QuorumThresholdPercentages[i]))
-	}
 	// TODO(samlaf): we use seconds for now, but we should ideally pass a blocknumber to the blsAggregationService
 	// and it should monitor the chain and only expire the task aggregation once the chain has reached that block number.
 	taskTimeToExpiry := taskChallengeWindowBlock * blockTimeSeconds
-	agg.blsAggregationService.InitializeNewTask(taskIndex, newTask.ReferenceBlockNumber, QuorumNumbers, quorumThresholdPercentages, taskTimeToExpiry)
-	return nil
+	agg.blsAggregationService.InitializeNewTask(
+		taskIndex,
+		uint32(newAlertTask.ReferenceBlockNumber),
+		newAlertTask.QuorumNumbers,
+		newAlertTask.QuorumThresholdPercentages,
+		taskTimeToExpiry,
+	)
+	return newAlertTask, nil
 }

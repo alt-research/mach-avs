@@ -12,8 +12,9 @@ import (
 	"github.com/alt-research/avs/aggregator"
 	"github.com/alt-research/avs/core/alert"
 	"github.com/alt-research/avs/core/chainio"
+	"github.com/alt-research/avs/core/config"
+	"github.com/alt-research/avs/core/message"
 	"github.com/alt-research/avs/metrics"
-	"github.com/alt-research/avs/types"
 
 	"github.com/Layr-Labs/eigensdk-go/chainio/clients"
 	sdkelcontracts "github.com/Layr-Labs/eigensdk-go/chainio/clients/elcontracts"
@@ -36,7 +37,7 @@ const AVS_NAME = "mach"
 const SEM_VER = "0.0.1"
 
 type Operator struct {
-	config           types.NodeConfig
+	config           config.NodeConfig
 	logger           logging.Logger
 	ethClient        eth.Client
 	metricsReg       *prometheus.Registry
@@ -63,7 +64,7 @@ type Operator struct {
 // TODO(samlaf): config is a mess right now, since the chainio client constructors
 //
 //	take the config in core (which is shared with aggregator and challenger)
-func NewOperatorFromConfig(c types.NodeConfig) (*Operator, error) {
+func NewOperatorFromConfig(c config.NodeConfig) (*Operator, error) {
 	var logLevel logging.LogLevel
 	if c.Production {
 		logLevel = sdklogging.Production
@@ -280,9 +281,15 @@ func (o *Operator) Start(ctx context.Context) error {
 		case newTaskCreatedLog := <-o.newTaskCreatedChan:
 			o.logger.Info("newTaskCreatedLog", "new", newTaskCreatedLog)
 			o.metrics.IncNumTasksReceived()
-			taskResponse := o.ProcessNewTaskCreatedLog(newTaskCreatedLog)
+			taskResponse, err := o.ProcessNewTaskCreatedLog(newTaskCreatedLog)
+			if err != nil {
+				o.logger.Error("newTaskCreatedLog failed by new", "err", err)
+				continue
+			}
+
 			signedTaskResponse, err := o.SignTaskResponse(taskResponse)
 			if err != nil {
+				o.logger.Error("newTaskCreatedLog failed by sign task", "err", err)
 				continue
 			}
 			go o.aggregatorRpcClient.SendSignedTaskResponseToAggregator(signedTaskResponse)
@@ -292,25 +299,22 @@ func (o *Operator) Start(ctx context.Context) error {
 
 // Takes a NewTaskCreatedLog struct as input and returns a TaskResponseHeader struct.
 // The TaskResponseHeader struct is the struct that is signed and sent to the contract as a task response.
-func (o *Operator) ProcessNewTaskCreatedLog(newAlert alert.Alert) *alert.AlertInfo {
+func (o *Operator) ProcessNewTaskCreatedLog(newAlert alert.Alert) (*message.AlertTaskInfo, error) {
 	alertHash := newAlert.MessageHash()
-	alertTaskIndex := newAlert.TaskIndex()
 
 	o.logger.Debug("Received new task", "task", newAlert)
 	o.logger.Info("Received new task",
-		"numberToBeSquared", alertHash,
-		"taskIndex", alertTaskIndex,
+		"alert", alertHash,
 	)
 
-	taskResponse := &alert.AlertInfo{
-		AlertHash: alertHash,
-		TaskIndex: alertTaskIndex,
-	}
-	return taskResponse
+	return o.aggregatorRpcClient.CreateAlertTaskToAggregator(alertHash)
 }
 
-func (o *Operator) SignTaskResponse(taskResponse *alert.AlertInfo) (*aggregator.SignedTaskResponse, error) {
-	hash := taskResponse.AlertHash
+func (o *Operator) SignTaskResponse(taskResponse *message.AlertTaskInfo) (*aggregator.SignedTaskResponse, error) {
+	hash, err := taskResponse.SignHash()
+	if err != nil {
+		return nil, err
+	}
 
 	blsSignature := o.blsKeypair.SignMessage(hash)
 	signedTaskResponse := &aggregator.SignedTaskResponse{

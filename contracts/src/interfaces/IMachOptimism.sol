@@ -6,7 +6,7 @@
 // Research's licensors) own all legal rights, titles and interests in and to the
 // work, software, application, source code, documentation and any other documents
 
-pragma solidity ^0.8.9;
+pragma solidity ^0.8.12;
 
 import {IRiscZeroVerifier} from "./IRiscZeroVerifier.sol";
 import {CallbackAuthorization} from "./IBonsaiRelay.sol";

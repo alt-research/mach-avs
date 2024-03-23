@@ -14,7 +14,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-pragma solidity ^0.8.9;
+pragma solidity ^0.8.12;
 
 /// @notice Data required to authorize a callback to be sent through the relay.
 struct CallbackAuthorization {

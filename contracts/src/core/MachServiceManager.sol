@@ -6,11 +6,11 @@ import {Pausable} from "eigenlayer-core/contracts/permissions/Pausable.sol";
 import {IAVSDirectory} from "eigenlayer-core/contracts/interfaces/IAVSDirectory.sol";
 import {ISignatureUtils} from "eigenlayer-core/contracts/interfaces/ISignatureUtils.sol";
 import {IPauserRegistry} from "eigenlayer-core/contracts/interfaces/IPauserRegistry.sol";
+import {IServiceManager} from "eigenlayer-middleware/interfaces/IServiceManager.sol";
 import {IStakeRegistry} from "eigenlayer-middleware/interfaces/IStakeRegistry.sol";
 import {IRegistryCoordinator} from "eigenlayer-middleware/interfaces/IRegistryCoordinator.sol";
 import {BLSSignatureChecker} from "eigenlayer-middleware/BLSSignatureChecker.sol";
 import {ServiceManagerBase} from "eigenlayer-middleware/ServiceManagerBase.sol";
-import {IServiceManager} from "eigenlayer-middleware/interfaces/IServiceManager.sol";
 import {MachServiceManagerStorage} from "./MachServiceManagerStorage.sol";
 import {
     InvalidConfirmer,
@@ -24,6 +24,7 @@ import {
     InvalidSender,
     NotAllowed
 } from "../error/Errors.sol";
+import {IMachServiceManager} from "../interfaces/IMachServiceManager.sol";
 
 /**
  * @title Primary entrypoint for procuring services from Altlayer Mach Service.
@@ -32,7 +33,13 @@ import {
  * - whitelisting operators
  * - confirming the alert store by the aggregator with inferred aggregated signatures of the quorum
  */
-contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BLSSignatureChecker, Pausable {
+contract MachServiceManager is
+    IMachServiceManager,
+    MachServiceManagerStorage,
+    ServiceManagerBase,
+    BLSSignatureChecker,
+    Pausable
+{
     using EnumerableSet for EnumerableSet.Bytes32Set;
     using EnumerableSet for EnumerableSet.AddressSet;
 
@@ -116,12 +123,17 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
 
     /**
      * @notice Remove an Alert.
+     * @param messageHash The message hash of the alert
      */
     function removeAlert(bytes32 messageHash) external onlyOwner {
         _messageHashes.remove(messageHash);
         emit AlertRemoved(messageHash, _msgSender());
     }
 
+    /**
+     * @notice Update quorum threshold percentage
+     * @param thresholdPercentage The new quorum threshold percentage
+     */
     function updateQuorumThresholdPercentage(uint8 thresholdPercentage) external onlyOwner {
         quorumThresholdPercentage = thresholdPercentage;
         emit QuorumThresholdPercentageChanged(thresholdPercentage);
@@ -224,18 +236,18 @@ contract MachServiceManager is MachServiceManagerStorage, ServiceManagerBase, BL
     //////////////////////////////////////////////////////////////////////////////
 
     /// @notice Returns the length of total alerts
-    function totalAlerts() public view returns (uint256) {
+    function totalAlerts() external view returns (uint256) {
         return _messageHashes.length();
     }
 
     /// @notice Checks if messageHash exists
-    function contains(bytes32 messageHash) public view returns (bool) {
+    function contains(bytes32 messageHash) external view returns (bool) {
         return _messageHashes.contains(messageHash);
     }
 
     /// @notice Returns an array of messageHash
-    function queryMessageHashes(uint256 start, uint256 querySize) public view returns (bytes32[] memory) {
-        uint256 length = totalAlerts();
+    function queryMessageHashes(uint256 start, uint256 querySize) external view returns (bytes32[] memory) {
+        uint256 length = _messageHashes.length();
 
         if (start >= length) {
             revert InvalidStartIndex();

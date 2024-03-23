@@ -6,6 +6,7 @@ import {Pausable} from "eigenlayer-core/contracts/permissions/Pausable.sol";
 import {IAVSDirectory} from "eigenlayer-core/contracts/interfaces/IAVSDirectory.sol";
 import {ISignatureUtils} from "eigenlayer-contracts/src/contracts/interfaces/ISignatureUtils.sol";
 import {IPauserRegistry} from "eigenlayer-core/contracts/interfaces/IPauserRegistry.sol";
+import {IServiceManager} from "eigenlayer-middleware/interfaces/IServiceManager.sol";
 import {IStakeRegistry} from "eigenlayer-middleware/interfaces/IStakeRegistry.sol";
 import {IRegistryCoordinator} from "eigenlayer-middleware/interfaces/IRegistryCoordinator.sol";
 import {BLSSignatureChecker} from "eigenlayer-middleware/BLSSignatureChecker.sol";
@@ -13,9 +14,16 @@ import {ServiceManagerBase} from "eigenlayer-middleware/ServiceManagerBase.sol";
 import {MachServiceManagerStorage} from "./MachServiceManagerStorage.sol";
 import {IMachOptimismL2OutputOracle} from "../interfaces/IMachOptimismL2OutputOracle.sol";
 import {IRiscZeroVerifier} from "../interfaces/IRiscZeroVerifier.sol";
+import {IMachServiceManager} from "../interfaces/IMachServiceManager.sol";
 import {InvalidStartIndex} from "../error/Errors.sol";
 
-contract MachOptimismServiceManager is MachServiceManagerStorage, ServiceManagerBase, BLSSignatureChecker, Pausable {
+contract MachOptimismServiceManager is
+    IMachServiceManager,
+    MachServiceManagerStorage,
+    ServiceManagerBase,
+    BLSSignatureChecker,
+    Pausable
+{
     using EnumerableSet for EnumerableSet.Bytes32Set;
     using EnumerableSet for EnumerableSet.AddressSet;
 
@@ -108,21 +116,25 @@ contract MachOptimismServiceManager is MachServiceManagerStorage, ServiceManager
         emit AlertRemoved(messageHash, _msgSender());
     }
 
+    function updateQuorumThresholdPercentage(uint8 thresholdPercentage) external onlyOwner {
+        quorumThresholdPercentage = thresholdPercentage;
+        emit QuorumThresholdPercentageChanged(thresholdPercentage);
+    }
+
     //////////////////////////////////////////////////////////////////////////////
     //                          Operator Registration                           //
     //////////////////////////////////////////////////////////////////////////////
 
     /**
      * @notice Register an operator with the AVS. Forwards call to EigenLayer' AVSDirectory.
+     * @param operator The address of the operator to register.
      * @param operatorSignature The signature, salt, and expiry of the operator's signature.
      */
-    function registerOperator(ISignatureUtils.SignatureWithSaltAndExpiry memory operatorSignature)
-        external
-        whenNotPaused
-    {
-        address operator = _msgSender();
+    function registerOperatorToAVS(
+        address operator,
+        ISignatureUtils.SignatureWithSaltAndExpiry memory operatorSignature
+    ) public override(ServiceManagerBase, IServiceManager) whenNotPaused onlyRegistryCoordinator {
         require(!allowlistEnabled || _allowlist[operator], "MachServiceManager.registerOperator: not allowed");
-        // todo check strategy and stake
         _operators.add(operator);
         _avsDirectory.registerOperatorToAVS(operator, operatorSignature);
         emit OperatorAdded(operator);
@@ -130,9 +142,14 @@ contract MachOptimismServiceManager is MachServiceManagerStorage, ServiceManager
 
     /**
      * @notice Deregister an operator from the AVS. Forwards a call to EigenLayer's AVSDirectory.
+     * @param operator The address of the operator to register.
      */
-    function deregisterOperator() external whenNotPaused {
-        address operator = _msgSender();
+    function deregisterOperatorFromAVS(address operator)
+        public
+        override(ServiceManagerBase, IServiceManager)
+        whenNotPaused
+        onlyRegistryCoordinator
+    {
         _operators.remove(operator);
         _avsDirectory.deregisterOperatorFromAVS(operator);
         emit OperatorRemoved(operator);
@@ -184,16 +201,16 @@ contract MachOptimismServiceManager is MachServiceManagerStorage, ServiceManager
     //                               View Functions                             //
     //////////////////////////////////////////////////////////////////////////////
 
-    function totalAlerts() public view returns (uint256) {
+    function totalAlerts() external view returns (uint256) {
         return _messageHashes.length();
     }
 
-    function contains(bytes32 messageHash) public view returns (bool) {
+    function contains(bytes32 messageHash) external view returns (bool) {
         return _messageHashes.contains(messageHash);
     }
 
-    function queryMessageHashes(uint256 start, uint256 querySize) public view returns (bytes32[] memory) {
-        uint256 length = totalAlerts();
+    function queryMessageHashes(uint256 start, uint256 querySize) external view returns (bytes32[] memory) {
+        uint256 length = _messageHashes.length();
 
         if (start >= length) {
             revert InvalidStartIndex();

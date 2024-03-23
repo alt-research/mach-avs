@@ -2,9 +2,8 @@
 pragma solidity ^0.8.12;
 
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-import {IMachServiceManager} from "../interfaces/IMachServiceManager.sol";
 
-abstract contract MachServiceManagerStorage is IMachServiceManager {
+abstract contract MachServiceManagerStorage {
     // CONSTANTS
     uint256 public constant THRESHOLD_DENOMINATOR = 100;
 

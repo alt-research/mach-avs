@@ -72,5 +72,53 @@ interface IMachServiceManager is IServiceManager {
      */
     event AlertConfirmed(bytes32 indexed alertHeaderHash, bytes32 messageHash);
 
+    /**
+     * @notice Emitted when a Alert is removed.
+     * @param messageHash The message hash
+     * @param messageHash The sender address
+     */
     event AlertRemoved(bytes32 messageHash, address sender);
+
+    /**
+     * @notice Add an operator to the allowlist.
+     * @param operator The operator to add
+     */
+    function addToAllowlist(address operator) external;
+
+    /**
+     * @notice Remove an operator from the allowlist.
+     * @param operator The operator to remove
+     */
+    function removeFromAllowlist(address operator) external;
+
+    /**
+     * @notice Enable the allowlist.
+     */
+    function enableAllowlist() external;
+
+    /**
+     * @notice Disable the allowlist.
+     */
+    function disableAllowlist() external;
+
+    /**
+     * @notice Remove an Alert.
+     * @param messageHash The message hash of the alert
+     */
+    function removeAlert(bytes32 messageHash) external;
+
+    /**
+     * @notice Update quorum threshold percentage
+     * @param thresholdPercentage The new quorum threshold percentage
+     */
+    function updateQuorumThresholdPercentage(uint8 thresholdPercentage) external;
+
+    /// @notice Returns the length of total alerts
+    function totalAlerts() external view returns (uint256);
+
+    /// @notice Checks if messageHash exists
+    function contains(bytes32 messageHash) external view returns (bool);
+
+    /// @notice Returns an array of messageHash
+    function queryMessageHashes(uint256 start, uint256 querySize) external view returns (bytes32[] memory);
 }

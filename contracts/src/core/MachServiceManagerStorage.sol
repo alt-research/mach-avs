@@ -23,5 +23,5 @@ abstract contract MachServiceManagerStorage is IMachServiceManager {
     bool public allowlistEnabled = true;
 
     /// @notice Minimul quorum threshold percentage
-    uint8 public quorumThresholdPercentage = 66;
+    uint8 public quorumThresholdPercentage;
 }

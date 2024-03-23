@@ -2,15 +2,23 @@
 pragma solidity ^0.8.12;
 
 import {IServiceManager} from "eigenlayer-middleware/interfaces/IServiceManager.sol";
+import {BLSSignatureChecker} from "eigenlayer-middleware/BLSSignatureChecker.sol";
 import {IMachOptimism} from "../interfaces/IMachOptimism.sol";
 
 interface IMachServiceManager is IServiceManager {
     struct AlertHeader {
         bytes32 messageHash;
+        // for BLS verification
         bytes quorumNumbers; // each byte is a different quorum number
         bytes quorumThresholdPercentages; // every bytes is an amount less than 100 specifying the percentage of stake
             // the must have signed in the corresponding quorum in `quorumNumbers`
         uint32 referenceBlockNumber;
+        // for ZK proof
+        bytes32 expectOutputRoot;
+        bytes journal;
+        bytes seal;
+        bytes32 postStateDigest;
+        uint256 l2OutputIndex;
     }
 
     struct ReducedAlertHeader {
@@ -112,6 +120,17 @@ interface IMachServiceManager is IServiceManager {
      * @param thresholdPercentage The new quorum threshold percentage
      */
     function updateQuorumThresholdPercentage(uint8 thresholdPercentage) external;
+
+    /**
+     * @notice This function is used for
+     * - submitting alert,
+     * - check that the aggregate signature is valid,
+     * - and check whether quorum has been achieved or not.
+     */
+    function confirmAlert(
+        AlertHeader calldata alertHeader,
+        BLSSignatureChecker.NonSignerStakesAndSignature memory nonSignerStakesAndSignature
+    ) external;
 
     /// @notice Returns the length of total alerts
     function totalAlerts() external view returns (uint256);

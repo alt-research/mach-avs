@@ -160,20 +160,17 @@ contract MachOptimismServiceManager is
     //////////////////////////////////////////////////////////////////////////////
 
     function confirmAlert(
-        bytes32 messageHash,
-        bytes32 expectOutputRoot,
-        bytes calldata journal,
-        bytes calldata seal,
-        bytes32 postStateDigest,
-        uint256 l2OutputIndex
+        AlertHeader calldata alertHeader,
+        NonSignerStakesAndSignature memory nonSignerStakesAndSignature
     ) external whenNotPaused onlyAlertConfirmer {
         require(
-            verifier.verify(seal, imageId, postStateDigest, sha256(journal)),
+            verifier.verify(alertHeader.seal, imageId, alertHeader.postStateDigest, sha256(alertHeader.journal)),
             "MachServiceManager.confirmAlert: verify failed"
         );
 
         // Got the per l2 ouput root info by index
-        IMachOptimismL2OutputOracle.OutputProposal memory checkpoint = l2OutputOracle.getL2Output(l2OutputIndex);
+        IMachOptimismL2OutputOracle.OutputProposal memory checkpoint =
+            l2OutputOracle.getL2Output(alertHeader.l2OutputIndex);
         require(
             checkpoint.l2BlockNumber != 0 && checkpoint.outputRoot != bytes32(0),
             "MachServiceManager.confirmAlert: invalid checkpoint"
@@ -188,13 +185,13 @@ contract MachOptimismServiceManager is
         uint256 parentCheckpointNumber = 0;
 
         (headerHash, l2BlockNumber, checkpointOutputRoot, parentCheckpointNumber, outputRoot) =
-            abi.decode(journal, (bytes32, uint256, bytes32, uint256, bytes32));
-        require(outputRoot == expectOutputRoot, "MachServiceManager.confirmAlert: invalid outputRoot");
+            abi.decode(alertHeader.journal, (bytes32, uint256, bytes32, uint256, bytes32));
+        require(outputRoot == alertHeader.expectOutputRoot, "MachServiceManager.confirmAlert: invalid outputRoot");
 
         // store alert
-        _messageHashes.add(messageHash);
+        _messageHashes.add(alertHeader.messageHash);
 
-        emit AlertConfirmed(messageHash, messageHash);
+        emit AlertConfirmed(alertHeader.messageHash, alertHeader.messageHash);
     }
 
     //////////////////////////////////////////////////////////////////////////////

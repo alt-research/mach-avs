@@ -35,7 +35,7 @@ Mach AVS uses [EigenLayer Middleware v0.1.2](https://github.com/Layr-Labs/eigenl
 
 ### Alert submission
 
-- Submit alert from aggregator (Alert confirmer): `confirmAlert()`
+- Submit alert: `confirmAlert()`
 
 ### Training wheels
 
@@ -49,7 +49,7 @@ Mach AVS includes operator allowlist which can be managed by contract owner.
 - Add operator to whitelist: `addToAllowlist(address operator)`
 - Remove operator from whitelist: `removeFromAllowlist(address operator)` 
 
-## Mach AVS Aggregator 
+## Mach AVS Aggregator (for Signature Aggregation Mode)
 
 Mach AVS aggregator service can be found in [aggregator](aggregator/)
 
@@ -61,7 +61,7 @@ Operator can be run using the following"
 ```bash
 ./bin/mach-operator-signer --config <PATH_TO_CONFIG> 
 ```
-Node operatgor client can be found in [operator]. For more information on how to run operator, check out our guide at [here](contracts/script/README.md)
+Node operator client can be found in [operator]. For more information on how to run operator, check out our guide at [here](contracts/script/README.md)
 
 ## Mach AVS Verifier
 

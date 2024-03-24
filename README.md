@@ -51,9 +51,17 @@ Mach AVS includes operator allowlist which can be managed by contract owner.
 
 ## Mach AVS Aggregator 
 
-Mach AVS aggregator service can be found in [conaggregatortracts folder](aggregator/)
+Mach AVS aggregator service can be found in [aggregator](aggregator/)
 
 ## Mach AVS Operator
+
+Operator sample configuration file can be found at [config-files/operator.yaml](config-files/operator.yaml).
+
+Operator can be run using the following"
+```bash
+./bin/mach-operator-signer --config <PATH_TO_CONFIG> 
+```
+Node operatgor client can be found in [operator]. For more information on how to run operator, check out our guide at [here](contracts/script/README.md)
 
 # Deployment script
 

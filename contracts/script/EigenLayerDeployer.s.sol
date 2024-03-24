@@ -89,6 +89,8 @@ contract EigenLayerDeployer is Script {
         address executorMultisig = msg.sender;
         address operationsMultisig = msg.sender;
         address pauserMultisig = msg.sender;
+        address owner = msg.sender;
+
         IBeaconChainOracle beaconOracle = IBeaconChainOracle(0x4C116BB629bff7A8373c2378bBd919f8349B8f25);
 
         // EigenLayer Contracts
@@ -303,6 +305,17 @@ contract EigenLayerDeployer is Script {
                     )
                 )
             )
+        );
+
+        // Add deployer address to strategyWhitelister
+        eigenLayerContracts.strategyManager.setStrategyWhitelister(owner);
+        // set the `strategyBaseTVLLimits` to `strategyWhitelister`
+        IStrategy[] memory strategyBaseTVLLimitsWhitelist = new IStrategy[](1);
+        strategyBaseTVLLimitsWhitelist[0] = IStrategy(strategyBaseTVLLimits);
+        bool[] memory strategyBaseTVLLimitsOpts = new bool[](1);
+        strategyBaseTVLLimitsOpts[0] = false;
+        eigenLayerContracts.strategyManager.addStrategiesToDepositWhitelist(
+            strategyBaseTVLLimitsWhitelist, strategyBaseTVLLimitsOpts
         );
 
         vm.stopBroadcast();

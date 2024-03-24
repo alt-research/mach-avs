@@ -61,10 +61,6 @@ First should change the addresses in `operator.yaml`:
 # TODO(samlaf): automate updating these addresses when we deploy new contracts
 avs_registry_coordinator_address: 0xa82fF9aFd8f496c3d6ac40E2a0F282E47488CFc9
 operator_state_retriever_address: 0x0E801D84Fa97b50751Dbf25036d067dCf18858bF
-
-# EigenLayer Delegation Manager contract address
-# This will be provided by EigenLayer team
-el_delegation_manager_address: 0x5FC8d32690cc91D4c39d9d3abcBD16989F875707
 ```
 
 Then reg:
@@ -73,44 +69,9 @@ Then reg:
 ./bin/mach-operator-cli --config ./config-files/operator.yaml rel
 ```
 
-### 1.4 Add `strategyBaseTVLLimits` to `strategyWhitelister`
+### 1.4 (Optional) Add `strategyBaseTVLLimits` to `strategyWhitelister`
 
-```bash
-export STRATEGYMANAGER_ADDR=0x0165878A594ca255338adfa4d48449f69242Eb8F
-```
-
-Add `strategyWhitelister`, use `strategyManager`
-
-get:
-
-```bash
-cast call $STRATEGYMANAGER_ADDR 'strategyWhitelister() (address)' --rpc-url $RPC_URL
-0x0000000000000000000000000000000000000000
-```
-
-set by owner:
-
-```bash
-cast send  -f $OWNER_ADDR --private-key $OWNER_PRIVATE $STRATEGYMANAGER_ADDR \
-'setStrategyWhitelister(address)' $OWNER_ADDR --rpc-url $RPC_URL
-```
-
-get will be owner:
-
-```bash
-cast call $STRATEGYMANAGER_ADDR 'strategyWhitelister() (address)' --rpc-url $RPC_URL
-```
-
-set the `strategyBaseTVLLimits` to `strategyWhitelister`
-
-> Note the `strategyBaseTVLLimits` address is in json.
-
-```bash
-cast send  -f $OWNER_ADDR --private-key $OWNER_PRIVATE --rpc-url $RPC_URL \
-$STRATEGYMANAGER_ADDR \
-'addStrategiesToDepositWhitelist(address[], bool[])' \
-'[0x4A679253410272dd5232B3Ff7cF5dbB88f295319]' '[false]' 
-```
+See Details.
 
 ### 1.5 Deposit tokens into a strategy
 
@@ -148,4 +109,46 @@ operator_server_ip_port_addr: localhost:8091
 curl --noproxy '*' -H "Content-Type: application/json" \
   -d '{"id":2, "jsonrpc":"2.0", "method": "alert_blockMismatch", "params":{"invalid_output_root": "5FC8d32690cc91D4c39d9d3abcBD16989F875700000000000000000000000000", "expect_output_root": "5FC8d32690cc91D4c39d9d3abcBD16989F875700000000000000000000000000", "l2_block_number": 2000}}' \
   http://localhost:8091
+```
+
+## 2. Option Contracts Ops
+
+
+### 2.1 (Optional) Add `strategyBaseTVLLimits` to `strategyWhitelister`
+
+```bash
+export STRATEGYMANAGER_ADDR=0x0165878A594ca255338adfa4d48449f69242Eb8F
+```
+
+Add `strategyWhitelister`, use `strategyManager`
+
+get:
+
+```bash
+cast call $STRATEGYMANAGER_ADDR 'strategyWhitelister() (address)' --rpc-url $RPC_URL
+0x0000000000000000000000000000000000000000
+```
+
+set by owner:
+
+```bash
+cast send  -f $OWNER_ADDR --private-key $OWNER_PRIVATE $STRATEGYMANAGER_ADDR \
+'setStrategyWhitelister(address)' $OWNER_ADDR --rpc-url $RPC_URL
+```
+
+get will be owner:
+
+```bash
+cast call $STRATEGYMANAGER_ADDR 'strategyWhitelister() (address)' --rpc-url $RPC_URL
+```
+
+set the `strategyBaseTVLLimits` to `strategyWhitelister`
+
+> Note the `strategyBaseTVLLimits` address is in json.
+
+```bash
+cast send  -f $OWNER_ADDR --private-key $OWNER_PRIVATE --rpc-url $RPC_URL \
+$STRATEGYMANAGER_ADDR \
+'addStrategiesToDepositWhitelist(address[], bool[])' \
+'[0x4A679253410272dd5232B3Ff7cF5dbB88f295319]' '[false]' 
 ```

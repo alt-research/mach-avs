@@ -1,14 +1,17 @@
-# Some scripts for test
+# Script For Testing AVS Contracts
 
-## 1. Boot testnet then deploy contracts
+## Note
+Private keys in this repository are for testing purposes and should not be reused for production environment.
 
-Boot anvil:
+## 1. Launch a Testing Environemt
+
+Launch anvil:
 
 ```bash
 anvil
 ```
 
-Use env:
+Use this following env:
 
 ```bash
 export OWNER_ADDR=0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
@@ -32,9 +35,9 @@ forge script script/MachServiceManagerDeployer.s.sol \
 
 The address is stored in `./contracts/script/output`.
 
-## 2. Register operators
+## 2. Register Operators
 
-We can just register 3 test operators.
+In this example, we will register 3 operators to Mach AVS
 
 ```bash
 cd ..
@@ -52,7 +55,7 @@ eigenlayer operator keys create -i -k bls testName
 
 the key is in `~/.eigenlayer/operator_keys/`
 
-## 3. Boot aggregator
+## 3. Launch BLS Signature Aggregator
 
 ```bash
 ./bin/mach-aggregator --config ./config-files/aggregator.yaml --ecdsa-private-key $OWNER_PRIVATE --avs-deployment ./contracts/script/output/machavs_deploy_output.json
@@ -68,7 +71,7 @@ We just use the test keys:
 ./bin/mach-operator-signer --config ./config-files/tests/operator_test3.yaml 
 ```
 
-## 5. Commit fake alert for test
+## 5. Create test alert (for testing purposes)
 
 ```bash
 curl --noproxy '*' -H "Content-Type: application/json" \
@@ -84,7 +87,7 @@ curl --noproxy '*' -H "Content-Type: application/json" \
   http://localhost:8093
 ```
 
-it will commit alert to 3 operators, then we can got log in aggregator:
+it will create alert for all the 3 operators. In the aggregator logs, we should be observing that signatures were received and it crossed the threshold needed.
 
 ```log
 {"level":"info","ts":1711197400.2389536,"caller":"logging/zap_logger.go:49","msg":"Received response from blsAggregationService","blsAggServiceResp":{"Err":null,"TaskIndex":0,"TaskResponseDigest":[112,9,108,53,119,234,136,155,76,207,40,99,52,110,43,23,26,111,84,95,174,145,200,118,96,230,38,118,167,197,125,189],"NonSignersPubkeysG1":[],"QuorumApksG1":[{"X":"9245057968145484860804280814781348845784489795866678144111989947626410422422","Y":"4206160717496399935935556607824205312866665547119048439416182281445762835632"}],"SignersApkG2":{"X":{"A0":"5319687821092315421704966764687566991558776008265084532749523747246034678820","A1":"11223072676248240401971043350937406910510747595318510439500982143518357330882"},"Y":{"A0":"4763582069887216360727645755241906558814452159592383203334545463609598755585","A1":"21350356272487941664524832102750065802080684976181056332566094158938378720768"}},"SignersAggSigG1":{"g1_point":{"X":"16428293862790245810342020027165842618240383426525781313336816979755469179242","Y":"11576373886324819258408043941549120009185745867634683580045521586375033792509"}},"NonSignerQuorumBitmapIndices":[],"QuorumApkIndices":[3],"TotalStakeIndices":[3],"NonSignerStakeIndices":[[]]}}

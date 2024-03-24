@@ -61,7 +61,7 @@ Operator can be run using the following:
 ```bash
 ./bin/mach-operator-signer --config <PATH_TO_CONFIG> 
 ```
-Node operator client can be found in [operator]. For more information on how to run operator, check out our guide at [here](contracts/script/README.md)
+Node operator client can be found in [operator](operator/). For more information on how to run operator, check out our guide at [here](contracts/script/README.md)
 
 ## Mach AVS Verifier
 

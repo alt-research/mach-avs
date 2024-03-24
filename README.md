@@ -1,15 +1,11 @@
 # Mach AVS (M2)
 
-Mach AVS is a fast finality layer for Ethereum rollups. In Mach AVS, operators 
-
-1. verifier nodes for rollups
-2. monitor the rollup for fraudulent behavior
-3. submit a alert to the Mach AVS
+AltLayer Mach AVS is a fast finality layer for Ethereum rollups. In Mach AVS , operators will run verifier nodes for rollups, monitor the rollup for fraudulent behavior, and submit a fraudulent alert to Mach AVS. Fraudulent alert can then be confirmed via sufficient quorum or ZK proofs.
 
 # Use cases
 
 1. Fast finality services for Web3 application
-2. Act as a circuit breaker for RPC nodes
+2. Circuit breaker for RPC nodes
 
 # Components 
 

@@ -13,6 +13,10 @@ Mach AVS is a fast finality layer for Ethereum rollups. In Mach AVS, operators
 
 # Mach AVS contract
 
+Mach AVS service manager contracts can be found in [contracts folder](contracts/src/core/)
+- [Mach AVS for OP stack based rollup (ZK proof)](contracts/src/core/MachOptimismServiceManager.sol)
+- [Mach AVS for all rollup stack (Signature aggregation)](contracts/src/core/MachServiceManager.sol)
+
 ## Dependencies 
 
 Mach AVS uses [EigenLayer Middleware v0.1.2](https://github.com/Layr-Labs/eigenlayer-middleware/releases/tag/v0.1.2-holesky-init-deployment)

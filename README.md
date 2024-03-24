@@ -57,7 +57,7 @@ Mach AVS aggregator service can be found in [aggregator](aggregator/)
 
 Operator sample configuration file can be found at [config-files/operator.yaml](config-files/operator.yaml).
 
-Operator can be run using the following"
+Operator can be run using the following:
 ```bash
 ./bin/mach-operator-signer --config <PATH_TO_CONFIG> 
 ```

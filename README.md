@@ -63,9 +63,10 @@ Operator can be run using the following"
 ```
 Node operatgor client can be found in [operator]. For more information on how to run operator, check out our guide at [here](contracts/script/README.md)
 
+## Mach AVS Verifier
+
+The verifier codebase is found at [https://github.com/alt-research/alt-mach-verifier](https://github.com/alt-research/alt-mach-verifier)
+
 # Deployment script
 
 Check out [scripts](contracts/script)
-
-# Licence
-

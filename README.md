@@ -15,6 +15,14 @@ Mach AVS consists of the following componenet:
 - Mach AVS operator
 - Mach verifier
 
+## Architecture
+
+### BLS Signature Aggregation Mode 
+![BLS Mode](docs/images/EigenlayerMachAVSArch(BLS).jpg)
+
+### ZK Proof Mode
+![BLS Mode](docs/images/EigenlayerMachAVSArch(ZK-OP).jpg)
+
 ## Mach AVS service manager contract
 
 Mach AVS service manager contracts can be found in [contracts folder](contracts/src/core/)

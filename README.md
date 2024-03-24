@@ -21,6 +21,10 @@ Mach AVS service manager contracts can be found in [contracts folder](contracts/
 
 Mach AVS uses [EigenLayer Middleware v0.1.2](https://github.com/Layr-Labs/eigenlayer-middleware/releases/tag/v0.1.2-holesky-init-deployment)
 
+## Alert submission
+
+- Submit alert from aggregator (Alert confirmer): `confirmAlert()`
+
 ## Training wheels
 
 Mach AVS includes operator allowlist which can be managed by contract owner. 
@@ -33,9 +37,11 @@ Mach AVS includes operator allowlist which can be managed by contract owner.
 - Add operator to whitelist: `addToAllowlist(address operator)`
 - Remove operator from whitelist: `removeFromAllowlist(address operator)` 
 
-## Alert submission
+# Mach aggregator 
 
-- Submit alert from aggregator (Alert confirmer): `confirmAlert()`
+Mach AVS aggregator service can be found in [conaggregatortracts folder](aggregator/)
+
+# Mach Operator
 
 # Deployment Process
 
@@ -58,3 +64,6 @@ Create bls key:
 ```bash
 eigenlayer operator keys create --key-type bls test1
 ```
+
+# Licence
+

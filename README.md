@@ -20,8 +20,56 @@ Mach AVS consists of the following componenet:
 ### BLS Signature Aggregation Mode 
 ![BLS Mode](docs/images/EigenlayerMachAVSArch(BLS).jpg)
 
+```mermaid
+sequenceDiagram
+    participant MC as Mach Contract
+    
+    participant MA as Mach Aggregator
+    participant MO as Mach Operator
+    
+    participant MV as Mach Verifier
+    
+    participant L2 as Layer2
+    
+    MV ->> L2: Fetch Layer2 Status
+    MV ->> MV: Verify Layer2 Blocks by executor
+    
+    alt the block is valid
+    MV ->> L2: Fetch next blocks
+    else the block is invalid
+    MV ->> MO: Commit alert to operator
+    MV ->> MC: Commit a Earlier Alert
+    MO ->> MO: Sig the alert
+    MO ->> MA: Commit alert bls sig
+    MA ->> MC: If collected, commit Avs confirmed Alert
+    MV ->> MV: generate zk-snark-proof
+    MV ->> MC: commit Zk proved Alert
+    end
+```
+
 ### ZK Proof Mode
 ![ZK Proof Mode](docs/images/EigenlayerMachAVSArch(ZK-OP).jpg)
+
+```mermaid
+sequenceDiagram
+    actor US as UserService
+    actor UC as UserContract
+    participant MC as Mach Contract
+    participant MS as Mach Services
+    participant L2 as Layer2
+
+
+    US->>MC: A Rpc for Layer2
+
+    MC->>L2: Map Rpc request if no alert
+
+    UC->>MC: IsAlert
+
+    MS->>L2: Fetch status and verify
+
+    MS->>MC: Commit Alert for Layer2
+    MS->>MC: Commit ZK proof for Alert
+```
 
 ## Mach AVS service manager contract
 

@@ -21,7 +21,7 @@ Mach AVS consists of the following componenet:
 ![BLS Mode](docs/images/EigenlayerMachAVSArch(BLS).jpg)
 
 ### ZK Proof Mode
-![BLS Mode](docs/images/EigenlayerMachAVSArch(ZK-OP).jpg)
+![ZK Proof Mode](docs/images/EigenlayerMachAVSArch(ZK-OP).jpg)
 
 ## Mach AVS service manager contract
 

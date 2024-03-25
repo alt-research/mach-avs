@@ -8,6 +8,7 @@
 
 pragma solidity ^0.8.12;
 
+import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {IMachOptimismL2OutputOracle} from "../interfaces/IMachOptimismL2OutputOracle.sol";
 import {IRiscZeroVerifier} from "../interfaces/IMachOptimism.sol";
 import {IMachOptimism} from "../interfaces/IMachOptimism.sol";
@@ -30,6 +31,15 @@ contract MachOptimismZkServiceManagerStorage {
     // if provedIndex == l2OutputAlerts.length, means all alert is not proved,
     // the prover just need prove the earliest no proved alert,
     uint256 public provedIndex;
+
+    /// @notice Ethereum addresses of currently register operators
+    EnumerableSet.AddressSet internal _operators;
+
+    /// @notice Set of operators that are allowed to register
+    mapping(address => bool) internal _allowlist;
+
+    /// @notice Whether or not the allowlist is enabled
+    bool public allowlistEnabled = true;
 
     constructor(uint256 settlementChainID_, uint256 rollupChainID_) {
         settlementChainID = settlementChainID_;

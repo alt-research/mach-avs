@@ -8,11 +8,15 @@
 
 pragma solidity ^0.8.12;
 
-import {ISlasher} from "eigenlayer-contracts/src/contracts/interfaces/ISlasher.sol";
+import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import {OwnableUpgradeable} from "@openzeppelin-upgrades/contracts/access/OwnableUpgradeable.sol";
+import {ISlasher} from "eigenlayer-core/contracts/interfaces/ISlasher.sol";
+import {ISignatureUtils} from "eigenlayer-core/contracts/interfaces/ISignatureUtils.sol";
+import {Pausable} from "eigenlayer-core/contracts/permissions/Pausable.sol";
+import {IDelegationManager} from "eigenlayer-core/contracts/interfaces/IDelegationManager.sol";
 import {IAVSDirectory} from "eigenlayer-core/contracts/interfaces/IAVSDirectory.sol";
 import {IStakeRegistry} from "eigenlayer-middleware/interfaces/IStakeRegistry.sol";
-import {IDelegationManager} from "eigenlayer-contracts/src/contracts/interfaces/IDelegationManager.sol";
-import {OwnableUpgradeable} from "@openzeppelin-upgrades/contracts/access/OwnableUpgradeable.sol";
+import {IServiceManager} from "eigenlayer-middleware/interfaces/IServiceManager.sol";
 import {ServiceManagerBase, IRegistryCoordinator, IStakeRegistry} from "eigenlayer-middleware/ServiceManagerBase.sol";
 import {IBLSApkRegistry} from "eigenlayer-middleware/interfaces/IRegistryCoordinator.sol";
 import {MachOptimismZkServiceManagerStorage} from "./MachOptimismZkServiceManagerStorage.sol";
@@ -20,7 +24,14 @@ import {IMachOptimism, CallbackAuthorization, IRiscZeroVerifier} from "../interf
 import {IMachOptimismL2OutputOracle} from "../interfaces/IMachOptimismL2OutputOracle.sol";
 import "../error/Errors.sol";
 
-contract MachOptimismZkServiceManager is IMachOptimism, MachOptimismZkServiceManagerStorage, ServiceManagerBase {
+contract MachOptimismZkServiceManager is
+    IMachOptimism,
+    MachOptimismZkServiceManagerStorage,
+    ServiceManagerBase,
+    Pausable
+{
+    using EnumerableSet for EnumerableSet.AddressSet;
+
     constructor(
         uint256 rollupChainID_,
         IAVSDirectory __avsDirectory,
@@ -115,6 +126,86 @@ contract MachOptimismZkServiceManager is IMachOptimism, MachOptimismZkServiceMan
         }
 
         provedIndex = l2OutputAlerts.length;
+    }
+
+    /**
+     * @notice Add an operator to the allowlist.
+     * @param operator The operator to add
+     */
+    function addToAllowlist(address operator) external onlyOwner {
+        if (operator == address(0)) {
+            revert ZeroAddress();
+        }
+        if (_allowlist[operator]) {
+            revert AlreadyInAllowlist();
+        }
+        _allowlist[operator] = true;
+        emit OperatorAllowed(operator);
+    }
+
+    /**
+     * @notice Remove an operator from the allowlist.
+     * @param operator The operator to remove
+     */
+    function removeFromAllowlist(address operator) external onlyOwner {
+        if (!_allowlist[operator]) {
+            revert NotInAllowlist();
+        }
+        _allowlist[operator] = false;
+        emit OperatorDisallowed(operator);
+    }
+
+    /**
+     * @notice Enable the allowlist.
+     */
+    function enableAllowlist() external onlyOwner {
+        allowlistEnabled = true;
+        emit AllowlistEnabled();
+    }
+
+    /**
+     * @notice Disable the allowlist.
+     */
+    function disableAllowlist() external onlyOwner {
+        allowlistEnabled = false;
+        emit AllowlistDisabled();
+    }
+
+    //////////////////////////////////////////////////////////////////////////////
+    //                          Operator Registration                           //
+    //////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * @notice Register an operator with the AVS. Forwards call to EigenLayer' AVSDirectory.
+     * @param operator The address of the operator to register.
+     * @param operatorSignature The signature, salt, and expiry of the operator's signature.
+     */
+    function registerOperatorToAVS(
+        address operator,
+        ISignatureUtils.SignatureWithSaltAndExpiry memory operatorSignature
+    ) public override(ServiceManagerBase) whenNotPaused onlyRegistryCoordinator {
+        if (allowlistEnabled && !_allowlist[operator]) {
+            revert NotInAllowlist();
+        }
+        _avsDirectory.registerOperatorToAVS(operator, operatorSignature);
+        // we don't check if this operator has registered or not as AVSDirectory has such checking already
+        _operators.add(operator);
+        emit OperatorAdded(operator);
+    }
+
+    /**
+     * @notice Deregister an operator from the AVS. Forwards a call to EigenLayer's AVSDirectory.
+     * @param operator The address of the operator to register.
+     */
+    function deregisterOperatorFromAVS(address operator)
+        public
+        override(ServiceManagerBase)
+        whenNotPaused
+        onlyRegistryCoordinator
+    {
+        _operators.remove(operator);
+        _avsDirectory.deregisterOperatorFromAVS(operator);
+        emit OperatorRemoved(operator);
     }
 
     //////////////////////////////////////////////////////////////////////////////

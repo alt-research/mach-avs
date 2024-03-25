@@ -39,6 +39,40 @@ interface IMachOptimism {
         address indexed toSubmitter
     );
 
+    /**
+     * @notice Emitted when an operator is added to the MachServiceManagerAVS.
+     * @param operator The address of the operator
+     */
+    event OperatorAdded(address indexed operator);
+
+    /**
+     * @notice Emitted when an operator is removed from the MachServiceManagerAVS.
+     * @param operator The address of the operator
+     */
+    event OperatorRemoved(address indexed operator);
+
+    /**
+     * @notice Emitted when an operator is added to the allowlist.
+     * @param operator The operator
+     */
+    event OperatorAllowed(address operator);
+
+    /**
+     * @notice Emitted when an operator is removed from the allowlist.
+     * @param operator The operator
+     */
+    event OperatorDisallowed(address operator);
+
+    /**
+     * @notice Emitted when the allowlist is enabled.
+     */
+    event AllowlistEnabled();
+
+    /**
+     * @notice Emitted when the allowlist is disabled.
+     */
+    event AllowlistDisabled();
+
     struct L2OutputAlert {
         uint256 l2BlockNumber;
         uint256 invalidOutputIndex;

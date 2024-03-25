@@ -20,27 +20,7 @@ import {IMachOptimism, CallbackAuthorization, IRiscZeroVerifier} from "../interf
 import {IMachOptimismL2OutputOracle} from "../interfaces/IMachOptimismL2OutputOracle.sol";
 import "../error/Errors.sol";
 
-contract MachOptimismZkServiceManager is
-    IMachOptimism,
-    MachOptimismZkServiceManagerStorage,
-    ServiceManagerBase
-{
-    IMachOptimismL2OutputOracle public l2OutputOracle;
-    IRiscZeroVerifier public verifier;
-    // The imageId for risc0 guest code.
-    bytes32 public imageId;
-
-    // Alerts for blocks, the tail is for earliest block.
-    // For the proved output, if there are exist a early block alert
-    // we will make it not proved!
-    IMachOptimism.L2OutputAlert[] internal l2OutputAlerts;
-    // The next index for no proved alert,
-    // `l2OutputAlerts[provedIndex - 1]` is the first no proved alerts,
-    // if is 0, means all alert is proved,
-    // if provedIndex == l2OutputAlerts.length, means all alert is not proved,
-    // the prover just need prove the earliest no proved alert,
-    uint256 public provedIndex;
-
+contract MachOptimismZkServiceManager is IMachOptimism, MachOptimismZkServiceManagerStorage, ServiceManagerBase {
     constructor(
         uint256 rollupChainID_,
         IAVSDirectory __avsDirectory,
@@ -58,12 +38,6 @@ contract MachOptimismZkServiceManager is
             revert NotOperator();
         }
         _;
-    }
-
-    ///  @notice Get the address for RegistryCoordinator,
-    ///  it help the verifier to check if self is a valid operator.
-    function getRegistryCoordinatorAddress() public view returns (address) {
-        return address(_registryCoordinator);
     }
 
     /// @notice Initializes the contract with provided parameters.
@@ -89,10 +63,16 @@ contract MachOptimismZkServiceManager is
         imageId = imageId_;
     }
 
+    //////////////////////////////////////////////////////////////////////////////
+    //                              Admin Functions                             //
+    //////////////////////////////////////////////////////////////////////////////
+
+    /// @notice Set imageId.
     function setImageId(bytes32 imageId_) external onlyOwner {
         imageId = imageId_;
     }
 
+    /// @notice Set verifier.
     function setRiscZeroVerifier(IRiscZeroVerifier verifier_) external onlyOwner {
         if (address(verifier_) == address(0)) {
             revert ZeroAddress();
@@ -101,50 +81,45 @@ contract MachOptimismZkServiceManager is
         verifier = verifier_;
     }
 
+    /// @notice Clear alerts.
     function clearAlerts() external onlyOwner {
         delete l2OutputAlerts;
         provedIndex = 0;
     }
 
-    function getAlert(
-        uint256 index
-    ) external view returns (L2OutputAlert memory) {
-        if (index >= l2OutputAlerts.length) {
-            revert InvalidIndex();
-        }
-        return l2OutputAlerts[index];
-    }
+    /// @notice Clear block alerts up to a specific number.
+    function clearBlockAlertsUpTo(uint256 l2BlockNumber) external onlyOwner {
+        require(l2BlockNumber > 0, "Invalid l2BlockNumber");
 
-    function getAlertsLength() public view returns (uint256) {
-        return l2OutputAlerts.length;
-    }
+        uint256 alertsLength = l2OutputAlerts.length;
 
-    /// @notice Return the latest alert 's block number, if not exist, just return 0.
-    ///         TODO: we can add more view functions to get details info about alert.
-    ///         This function just used for verifier check if need commit more
-    ///         alerts to contract.
-    function latestAlertBlockNumber() public view returns (uint256) {
-        return
-            l2OutputAlerts.length == 0
-                ? 0
-                : l2OutputAlerts[l2OutputAlerts.length - 1].l2BlockNumber;
-    }
-
-    /// @notice Return the latest no proved alert 's block number, if not exist, just return 0.
-    function latestUnprovedBlockNumber() external view returns (uint256) {
-        if (provedIndex == 0) {
-            return 0;
+        if (alertsLength == 0 || provedIndex == 0) {
+            revert("No alerts to clear");
         }
 
-        if (provedIndex > l2OutputAlerts.length) {
-            revert InvalidProvedIndex();
+        if (provedIndex > alertsLength) {
+            revert("Invalid provedIndex");
         }
 
-        return
-            l2OutputAlerts.length == 0
-                ? 0
-                : l2OutputAlerts[provedIndex - 1].l2BlockNumber;
+        // Iterate through the alerts and clear those up to l2BlockNumber
+        for (uint256 i = provedIndex - 1; i < alertsLength; i++) {
+            if (l2OutputAlerts[i].l2BlockNumber <= l2BlockNumber) {
+                // Clear the alert by shifting the subsequent alerts
+                for (uint256 j = i; j < alertsLength - 1; j++) {
+                    l2OutputAlerts[j] = l2OutputAlerts[j + 1];
+                }
+                l2OutputAlerts.pop();
+            } else {
+                break; // Stop once we reach an alert with a higher l2BlockNumber
+            }
+        }
+
+        provedIndex = l2OutputAlerts.length;
     }
+
+    //////////////////////////////////////////////////////////////////////////////
+    //                              Alert Functions                             //
+    //////////////////////////////////////////////////////////////////////////////
 
     /// @notice Submit alert for verifier found a op block output mismatch.
     ///         It just a warning without any prove, the prover verifier should
@@ -154,11 +129,10 @@ contract MachOptimismZkServiceManager is
     /// @param invalidOutputRoot the invalid output root verifier got from op-devnet.
     /// @param expectOutputRoot the output root calc by verifier.
     /// @param l2BlockNumber the layer2 block 's number.
-    function alertBlockMismatch(
-        bytes32 invalidOutputRoot,
-        bytes32 expectOutputRoot,
-        uint256 l2BlockNumber
-    ) external onlyValidOperator {
+    function alertBlockMismatch(bytes32 invalidOutputRoot, bytes32 expectOutputRoot, uint256 l2BlockNumber)
+        external
+        onlyValidOperator
+    {
         // Make sure there are no other alert, OR the currently alert is not the earliest error.
         uint256 latestAlertBlockNum = latestAlertBlockNumber();
         if (latestAlertBlockNum != 0 && l2BlockNumber >= latestAlertBlockNum) {
@@ -175,19 +149,9 @@ contract MachOptimismZkServiceManager is
             revert InvalidAlertType();
         }
 
-        emit AlertBlockMismatch(
-            invalidOutputRoot,
-            expectOutputRoot,
-            l2BlockNumber
-        );
+        emit AlertBlockMismatch(invalidOutputRoot, expectOutputRoot, l2BlockNumber);
 
-        _pushAlert(
-            invalidOutputRoot,
-            expectOutputRoot,
-            0,
-            l2BlockNumber,
-            msg.sender
-        );
+        _pushAlert(invalidOutputRoot, expectOutputRoot, 0, l2BlockNumber, msg.sender);
     }
 
     /// @notice Submit alert for verifier found a op block output root mismatch.
@@ -197,16 +161,15 @@ contract MachOptimismZkServiceManager is
     ///         so we just sumit the index for this output root.
     /// @param invalidOutputIndex the invalid output root index.
     /// @param expectOutputRoot the output root calc by verifier.
-    function alertBlockOutputOracleMismatch(
-        uint256 invalidOutputIndex,
-        bytes32 expectOutputRoot
-    ) external onlyValidOperator {
+    function alertBlockOutputOracleMismatch(uint256 invalidOutputIndex, bytes32 expectOutputRoot)
+        external
+        onlyValidOperator
+    {
         if (invalidOutputIndex >= l2OutputOracle.latestOutputIndex()) {
             revert InvalidAlertType();
         }
 
-        IMachOptimismL2OutputOracle.OutputProposal
-            memory proposal = l2OutputOracle.getL2Output(invalidOutputIndex);
+        IMachOptimismL2OutputOracle.OutputProposal memory proposal = l2OutputOracle.getL2Output(invalidOutputIndex);
 
         uint256 l2BlockNumber = proposal.l2BlockNumber;
 
@@ -221,20 +184,9 @@ contract MachOptimismZkServiceManager is
             revert InvalidAlert();
         }
 
-        emit AlertBlockOutputOracleMismatch(
-            invalidOutputIndex,
-            proposal.outputRoot,
-            expectOutputRoot,
-            l2BlockNumber
-        );
+        emit AlertBlockOutputOracleMismatch(invalidOutputIndex, proposal.outputRoot, expectOutputRoot, l2BlockNumber);
 
-        _pushAlert(
-            proposal.outputRoot,
-            expectOutputRoot,
-            invalidOutputIndex,
-            l2BlockNumber,
-            msg.sender
-        );
+        _pushAlert(proposal.outputRoot, expectOutputRoot, invalidOutputIndex, l2BlockNumber, msg.sender);
     }
 
     /// @notice Submit a bonsai prove receipt to mach contract.
@@ -277,11 +229,8 @@ contract MachOptimismZkServiceManager is
         }
 
         // Got the per l2 ouput root info by index
-        IMachOptimismL2OutputOracle.OutputProposal
-            memory checkpoint = l2OutputOracle.getL2Output(l2OutputIndex);
-        if (
-            checkpoint.l2BlockNumber == 0 || checkpoint.outputRoot == bytes32(0)
-        ) {
+        IMachOptimismL2OutputOracle.OutputProposal memory checkpoint = l2OutputOracle.getL2Output(l2OutputIndex);
+        if (checkpoint.l2BlockNumber == 0 || checkpoint.outputRoot == bytes32(0)) {
             revert InvalidCheckpoint();
         }
 
@@ -294,13 +243,8 @@ contract MachOptimismZkServiceManager is
         bytes32 checkpointOutputRoot = bytes32(0);
         uint256 parentCheckpointNumber = 0;
 
-        (
-            headerHash,
-            l2BlockNumber,
-            checkpointOutputRoot,
-            parentCheckpointNumber,
-            outputRoot
-        ) = abi.decode(journal, (bytes32, uint256, bytes32, uint256, bytes32));
+        (headerHash, l2BlockNumber, checkpointOutputRoot, parentCheckpointNumber, outputRoot) =
+            abi.decode(journal, (bytes32, uint256, bytes32, uint256, bytes32));
 
         L2OutputAlert memory alert = l2OutputAlerts[provedIndex - 1];
 
@@ -330,24 +274,13 @@ contract MachOptimismZkServiceManager is
 
                 l2OutputAlerts.pop();
 
-                emit AlertDelete(
-                    invalidOutputIndex,
-                    alert.expectOutputRoot,
-                    outputRoot,
-                    l2BlockNumber,
-                    alert.submitter
-                );
+                emit AlertDelete(invalidOutputIndex, alert.expectOutputRoot, outputRoot, l2BlockNumber, alert.submitter);
             } else {
                 l2OutputAlerts[provedIndex - 1].expectOutputRoot = outputRoot;
                 l2OutputAlerts[provedIndex - 1].submitter = msg.sender;
 
                 emit AlertReset(
-                    invalidOutputIndex,
-                    alert.invalidOutputRoot,
-                    outputRoot,
-                    l2BlockNumber,
-                    alert.submitter,
-                    msg.sender
+                    invalidOutputIndex, alert.invalidOutputRoot, outputRoot, l2BlockNumber, alert.submitter, msg.sender
                 );
             }
         }
@@ -357,34 +290,53 @@ contract MachOptimismZkServiceManager is
         emit SubmittedBlockProve(invalidOutputIndex, outputRoot, l2BlockNumber);
     }
 
-    function clearBlockAlertsUpTo(uint256 l2BlockNumber) external onlyOwner {
-        require(l2BlockNumber > 0, "Invalid l2BlockNumber");
+    //////////////////////////////////////////////////////////////////////////////
+    //                               View Functions                             //
+    //////////////////////////////////////////////////////////////////////////////
 
-        uint256 alertsLength = l2OutputAlerts.length;
-
-        if (alertsLength == 0 || provedIndex == 0) {
-            revert("No alerts to clear");
-        }
-
-        if (provedIndex > alertsLength) {
-            revert("Invalid provedIndex");
-        }
-
-        // Iterate through the alerts and clear those up to l2BlockNumber
-        for (uint256 i = provedIndex - 1; i < alertsLength; i++) {
-            if (l2OutputAlerts[i].l2BlockNumber <= l2BlockNumber) {
-                // Clear the alert by shifting the subsequent alerts
-                for (uint256 j = i; j < alertsLength - 1; j++) {
-                    l2OutputAlerts[j] = l2OutputAlerts[j + 1];
-                }
-                l2OutputAlerts.pop();
-            } else {
-                break; // Stop once we reach an alert with a higher l2BlockNumber
-            }
-        }
-
-        provedIndex = l2OutputAlerts.length;
+    ///  @notice Get the address for RegistryCoordinator,
+    ///  it help the verifier to check if self is a valid operator.
+    function getRegistryCoordinatorAddress() public view returns (address) {
+        return address(_registryCoordinator);
     }
+
+    /// @notice Get total alert length
+    function getAlertsLength() public view returns (uint256) {
+        return l2OutputAlerts.length;
+    }
+
+    /// @notice Return the latest alert 's block number, if not exist, just return 0.
+    ///         TODO: we can add more view functions to get details info about alert.
+    ///         This function just used for verifier check if need commit more
+    ///         alerts to contract.
+    function latestAlertBlockNumber() public view returns (uint256) {
+        return l2OutputAlerts.length == 0 ? 0 : l2OutputAlerts[l2OutputAlerts.length - 1].l2BlockNumber;
+    }
+
+    /// @notice Get Alert by index
+    function getAlert(uint256 index) external view returns (L2OutputAlert memory) {
+        if (index >= l2OutputAlerts.length) {
+            revert InvalidIndex();
+        }
+        return l2OutputAlerts[index];
+    }
+
+    /// @notice Return the latest no proved alert 's block number, if not exist, just return 0.
+    function latestUnprovedBlockNumber() external view returns (uint256) {
+        if (provedIndex == 0) {
+            return 0;
+        }
+
+        if (provedIndex > l2OutputAlerts.length) {
+            revert InvalidProvedIndex();
+        }
+
+        return l2OutputAlerts.length == 0 ? 0 : l2OutputAlerts[provedIndex - 1].l2BlockNumber;
+    }
+
+    //////////////////////////////////////////////////////////////////////////////
+    //                              Internal Functions                          //
+    //////////////////////////////////////////////////////////////////////////////
 
     /// @notice push new alert
     function _pushAlert(

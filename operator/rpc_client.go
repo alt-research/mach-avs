@@ -3,6 +3,7 @@ package operator
 import (
 	"fmt"
 	"net/rpc"
+	"strings"
 	"time"
 
 	"github.com/alt-research/avs/core/alert"
@@ -64,6 +65,9 @@ func (c *AggregatorRpcClient) CreateAlertTaskToAggregator(alertHash [32]byte) (*
 		err := c.rpcClient.Call("Aggregator.CreateTask", req, &reply)
 		if err != nil {
 			c.logger.Info("Received error from aggregator", "err", err)
+			if strings.Contains(err.Error(), "already finished") {
+				return nil, err
+			}
 		} else {
 			c.logger.Info("create task response header accepted by aggregator.", "reply", reply)
 			c.metrics.IncNumTasksAcceptedByAggregator()
@@ -112,7 +116,9 @@ func (c *AggregatorRpcClient) SendSignedTaskResponseToAggregator(signedTaskRespo
 			c.metrics.IncNumTasksAcceptedByAggregator()
 
 			resChan <- alert.AlertResponse{
-				Code: 0,
+				Code:      0,
+				TxHash:    response.TxHash,
+				TaskIndex: signedTaskResponse.Alert.TaskIndex,
 			}
 
 			return

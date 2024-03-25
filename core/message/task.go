@@ -112,5 +112,6 @@ type SignedTaskRespRequest struct {
 }
 
 type SignedTaskRespResponse struct {
-	Reply bool
+	Reply  bool
+	TxHash [32]byte
 }

@@ -82,7 +82,7 @@ func (agg *Aggregator) CreateTask(req *message.CreateTaskRequest, reply *message
 
 	finished := agg.GetFinishedTaskByAlertHash(req.AlertHash)
 	if finished != nil {
-		return fmt.Errorf("The task %v already finished: %#v", req.AlertHash, finished.TxHash)
+		return fmt.Errorf("The task 0x%x already finished: 0x%x", req.AlertHash, finished.TxHash)
 	}
 
 	task := agg.GetTaskByAlertHash(req.AlertHash)

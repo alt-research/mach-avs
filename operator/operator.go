@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -288,9 +289,14 @@ func (o *Operator) Start(ctx context.Context) error {
 			taskResponse, err := o.ProcessNewTaskCreatedLog(newTaskCreatedLog.Alert)
 			if err != nil {
 				o.logger.Error("newTaskCreatedLog failed by new", "err", err)
+				var code uint32
+				if strings.Contains(err.Error(), "already finished") {
+					code = 2
+				}
 				newTaskCreatedLog.ResChan <- alert.AlertResponse{
-					Err: err,
-					Msg: "ProcessNewTaskCreatedLog failed",
+					Code: code,
+					Err:  err,
+					Msg:  "ProcessNewTaskCreatedLog failed",
 				}
 				continue
 			}

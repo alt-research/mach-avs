@@ -78,17 +78,28 @@ sequenceDiagram
 
 Mach AVS service manager contracts can be found in [contracts folder](contracts/src/core/)
 
+- [Mach AVS for all rollup stack (BLS Signature aggregation)](contracts/src/core/MachServiceManager.sol)
 - [Mach AVS for OP stack based rollup (ZK proof)](contracts/src/core/MachOptimismZkServiceManager.sol)
-- [Mach AVS for all rollup stack (Signature aggregation)](contracts/src/core/MachServiceManager.sol)
 
 ### Dependencies
 
 Mach AVS uses [EigenLayer Middleware v0.1.2](https://github.com/Layr-Labs/eigenlayer-middleware/releases/tag/v0.1.2-holesky-init-deployment)
 
-### Alert submission
+### Alert submission and verification
 
-- Submit confirm alert: `confirmAlert()`
-- Submit zk-snark proof: `submitProve()`
+#### BLS Signature Aggregation Mode
+
+The aggregator service will collect BLS signatures from operators in Mach AVS. Upon reaching sufficient threshold,
+the aggregator will `confirmAlert)` to submit the alert. Once verified, the alert will be confirmed.
+
+#### ZK Proof Mode
+
+In this mode, it does not need an aggregator to collect signatures. ZK Proof will replace the process of collecting BLS signature.
+
+Operator can detect block or output root mismatch and submit an alert using `alertBlockMismatch()` and `alertBlockOutputOracleMismatch(`) respectively.
+After the alert is submitted, operator will compute the corresponding ZK proof to prove the alert and submit the proof using `submitProve()`. 
+
+ZK Proof generation can be either done using RISC0 or GPU.
 
 ### Training wheels
 
@@ -118,11 +129,11 @@ The `--avs-deployment` is use the `machavs_deploy_output.json` output by deploy 
 
 Mach AVS aggregator service can be found in [aggregator](aggregator/)
 
-## Mach AVS Operator (for BLS Signature Mode)
+## Mach AVS Operator (for BLS Signature Aggregation Mode)
 
 Operator sample configuration file can be found at [config-files/operator.yaml](config-files/operator.yaml).
 
-Operator can be run using the following:
+Operator can be run using the following command:
 
 ```bash
 ./bin/mach-operator-signer --config <PATH_TO_CONFIG> 
@@ -132,7 +143,13 @@ Node operator client can be found in [operator](operator/). For more information
 
 ## Mach AVS Verifier
 
-The verifier codebase is found at [https://github.com/alt-research/alt-mach-verifier](https://github.com/alt-research/alt-mach-verifier)
+### Verifier for ZK Proof mode
+
+The ZK Proof mode verifier codebase is found at [https://github.com/alt-research/alt-mach-verifier](https://github.com/alt-research/alt-mach-verifier)
+
+### Verifier for BLS Signature Aggregation mode
+
+The verifier codebase is found at [https://github.com/alt-research/mach](https://github.com/alt-research/mach)
 
 ## Deployment scripts for running within local devnet
 

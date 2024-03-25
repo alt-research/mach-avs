@@ -88,7 +88,7 @@ jobs:
 
       - name: Build operator docker with cache and push images
         uses: docker/build-push-action@v5
-        id: docker_build
+        id: docker_operator_build
         with:
           context: .
           builder: ${{ steps.docker-builder.outputs.name }}
@@ -104,6 +104,26 @@ jobs:
             git_credentials=${{ env.XDG_CONFIG_HOME }}/git/credentials
           file: operator.Dockerfile
           labels: mach-operator
+          tags: ${{ steps.meta.outputs.tags }}
+
+      - name: Build aggregator docker with cache and push images
+        uses: docker/build-push-action@v5
+        id: docker_aggregator_build
+        with:
+          context: .
+          builder: ${{ steps.docker-builder.outputs.name }}
+          target: app
+          push: ${{ github.event_name != 'pull_request' }}
+          # push: true
+          provenance: false
+          cache-from: |
+            type=registry,ref=${{ env.ECR_REPO }}:latest
+            type=registry,ref=${{ env.ECR_REPO }}:${{ env.REF_NAME }}
+          secret-files: |
+            git_config=${{ env.HOME }}/.gitconfig
+            git_credentials=${{ env.XDG_CONFIG_HOME }}/git/credentials
+          file: aggregator.Dockerfile
+          labels: mach-aggregator
           tags: ${{ steps.meta.outputs.tags }}
 
       - name: Pull Image

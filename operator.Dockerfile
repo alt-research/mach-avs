@@ -11,7 +11,7 @@ COPY . .
 WORKDIR /usr/src/app/operator/cmd
 RUN go build -v -o /usr/local/bin/operator ./...
 
-FROM debian:latest
+FROM debian:latest as app
 COPY --from=build /usr/local/bin/operator /usr/local/bin/operator
 ENTRYPOINT [ "operator"]
 CMD ["--config=/app/avs_config.yaml"]

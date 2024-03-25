@@ -30,7 +30,6 @@ contract MachOptimismZkServiceManager is
     ServiceManagerBase,
     Pausable
 {
-    using EnumerableSet for EnumerableSet.Bytes32Set;
     using EnumerableSet for EnumerableSet.AddressSet;
 
     constructor(

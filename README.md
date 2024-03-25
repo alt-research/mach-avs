@@ -99,7 +99,7 @@ In this mode, it does not need an aggregator to collect signatures. ZK Proof wil
 Operator can detect block or output root mismatch and submit an alert using `alertBlockMismatch()` and `alertBlockOutputOracleMismatch(`) respectively.
 After the alert is submitted, operator will compute the corresponding ZK proof to prove the alert and submit the proof using `submitProve()`. 
 
-ZK Proof generation can be either done using RISC0 or GGPU.
+ZK Proof generation can be either done using RISC0 or GPU.
 
 ### Training wheels
 

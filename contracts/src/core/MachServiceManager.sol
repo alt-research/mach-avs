@@ -163,7 +163,7 @@ contract MachServiceManager is
             revert NotInAllowlist();
         }
         _avsDirectory.registerOperatorToAVS(operator, operatorSignature);
-        // we don't check if this operator has registered or not as AVSDirectory has such checking already 
+        // we don't check if this operator has registered or not as AVSDirectory has such checking already
         _operators.add(operator);
         emit OperatorAdded(operator);
     }

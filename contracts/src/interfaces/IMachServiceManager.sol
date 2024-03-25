@@ -17,12 +17,6 @@ interface IMachServiceManager is IServiceManager {
         bytes quorumThresholdPercentages; // every bytes is an amount less than 100 specifying the percentage of stake
             // the must have signed in the corresponding quorum in `quorumNumbers`
         uint32 referenceBlockNumber;
-        // for ZK proof
-        bytes32 expectOutputRoot;
-        bytes journal;
-        bytes seal;
-        bytes32 postStateDigest;
-        uint256 l2OutputIndex;
     }
 
     struct ReducedAlertHeader {

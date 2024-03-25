@@ -117,4 +117,4 @@ The verifier codebase is found at [https://github.com/alt-research/alt-mach-veri
 
 # Deployment script
 
-Check out [scripts](contracts/script)
+Check out [scripts](scripts)

@@ -131,7 +131,7 @@ Mach AVS aggregator service can be found in [aggregator](aggregator/)
 
 Operator sample configuration file can be found at [config-files/operator.yaml](config-files/operator.yaml).
 
-Operator can be run using the following:
+Operator can be run using the following command:
 
 ```bash
 ./bin/mach-operator-signer --config <PATH_TO_CONFIG> 
@@ -141,7 +141,13 @@ Node operator client can be found in [operator](operator/). For more information
 
 ## Mach AVS Verifier
 
-The verifier codebase is found at [https://github.com/alt-research/alt-mach-verifier](https://github.com/alt-research/alt-mach-verifier)
+### Verifier for ZK Proof mode
+
+The ZK Proof mode verifier codebase is found at [https://github.com/alt-research/alt-mach-verifier](https://github.com/alt-research/alt-mach-verifier)
+
+### Verifier for BLS Signature Aggregation mode
+
+The verifier codebase is found at [https://github.com/alt-research/mach](https://github.com/alt-research/mach)
 
 ## Deployment scripts for running within local devnet
 

@@ -43,7 +43,7 @@ contract MachOptimismZkServiceManager is
     {}
 
     modifier onlyValidOperator() {
-        if (_operators.contains(msg.sender)) {
+        if (!_operators.contains(msg.sender)) {
             revert NotOperator();
         }
         _;

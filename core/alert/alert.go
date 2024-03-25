@@ -123,3 +123,25 @@ func (a AlertBlockOutputOracleMismatch) MessageHash() [32]byte {
 }
 
 var _ Alert = (*AlertBlockOutputOracleMismatch)(nil)
+
+//	AlertBlockOutputOracleMismatch is Submit alert for verifier found a op block output root mismatch.
+//
+// It just a warning without any prove, the prover verifier should
+// submit a prove to ensure the alert is valid.
+// This alert only for the porposaled output root by proposer,
+// so we just sumit the index for this output root.
+type AlertBlockHashMismatch struct {
+	// The block hash which to alert
+	Hash HexEncodedBytes32 `json:"expect_output_root"`
+}
+
+// Return the message hash for signature in avs
+func (a AlertBlockHashMismatch) MessageHash() [32]byte {
+	var res [32]byte
+
+	copy(res[:], a.Hash[:32])
+
+	return res
+}
+
+var _ Alert = (*AlertBlockHashMismatch)(nil)

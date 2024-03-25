@@ -14,7 +14,6 @@ import (
 )
 
 type RpcResponse struct {
-	Code      uint64                  `json:"code"`
 	TaskIndex uint64                  `json:"task_index"`
 	TxHash    alert.HexEncodedBytes32 `json:"tx_hash"`
 	AlertHash alert.HexEncodedBytes32 `json:"alert_hash"`
@@ -95,7 +94,6 @@ func (s *RpcServer) httpRPCHandler(w http.ResponseWriter, r *http.Request) {
 			}
 
 			response := RpcResponse{
-				Code:      uint64(res.Code),
 				TaskIndex: uint64(res.TaskIndex),
 				TxHash:    res.TxHash,
 				AlertHash: alert.MessageHash(),
@@ -118,7 +116,6 @@ func (s *RpcServer) httpRPCHandler(w http.ResponseWriter, r *http.Request) {
 			}
 
 			response := RpcResponse{
-				Code:      uint64(res.Code),
 				TaskIndex: uint64(res.TaskIndex),
 				TxHash:    res.TxHash,
 				AlertHash: alert.MessageHash(),
@@ -141,7 +138,6 @@ func (s *RpcServer) httpRPCHandler(w http.ResponseWriter, r *http.Request) {
 			}
 
 			response := RpcResponse{
-				Code:      uint64(res.Code),
 				TaskIndex: uint64(res.TaskIndex),
 				TxHash:    res.TxHash,
 				AlertHash: alert.MessageHash(),

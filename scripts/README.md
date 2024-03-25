@@ -41,9 +41,9 @@ In this example, we will register 3 operators to Mach AVS
 
 ```bash
 cd ..
-bash ./scripts/register_operator.sh $OWNER_ADDR $OWNER_PRIVATE 0xE9A7669aC9eBE9b7E21E0A323FC3A6f34CE744eb test1
-bash ./scripts/register_operator.sh $OWNER_ADDR $OWNER_PRIVATE 0x957D781ab2Bc6D27Fde0a0b427ebF46ee1395661 test2
-bash ./scripts/register_operator.sh $OWNER_ADDR $OWNER_PRIVATE 0x91d45D72e36c5a6838f14f49D607e9b16eD33f58 test3
+bash ./scripts/register_operator.sh $OWNER_ADDR $OWNER_PRIVATE $METADATA_URI 0xE9A7669aC9eBE9b7E21E0A323FC3A6f34CE744eb test1
+bash ./scripts/register_operator.sh $OWNER_ADDR $OWNER_PRIVATE $METADATA_URI 0x957D781ab2Bc6D27Fde0a0b427ebF46ee1395661 test2
+bash ./scripts/register_operator.sh $OWNER_ADDR $OWNER_PRIVATE $METADATA_URI 0x91d45D72e36c5a6838f14f49D607e9b16eD33f58 test3
 ```
 
 It will use the keys in `./config-files/key/`, we can create new key by:
@@ -54,6 +54,17 @@ eigenlayer operator keys create -i -k bls testName
 ```
 
 the key is in `~/.eigenlayer/operator_keys/`
+
+Metadata example:
+```json
+{
+  "name": "Some operator",
+  "website": "https://www.example.com",
+  "description": "I operate on some data",
+  "logo": "https://www.example.com/logo.png",
+  "twitter": "https://x.com/example"
+}
+```
 
 ## 3. Launch BLS Signature Aggregator
 

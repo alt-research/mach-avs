@@ -27,6 +27,8 @@ sed -i 's/avs_registry_coordinator_address: .\+/avs_registry_coordinator_address
 sed -i 's/operator_state_retriever_address: .\+/operator_state_retriever_address: '${OPERATOR_STATE_RETRIEVER_ADDR}'/g' ./config-files/operator.yaml
 sed -i 's/ecdsa_private_key_store_path: .\+/ecdsa_private_key_store_path: .\/config-files\/key\/'${OPERATOR_KEY_NAME}'.ecdsa.key.json/g' ./config-files/operator.yaml
 sed -i 's/bls_private_key_store_path: .\+/bls_private_key_store_path: .\/config-files\/key\/'${OPERATOR_KEY_NAME}'.bls.key.json/g' ./config-files/operator.yaml
+sed -i 's/metadata_uri: .\+/metadata_uri: '${METADATA_URI}'/g' ./config-files/operator.yaml
+
 
 ./bin/mach-operator-cli --config ./config-files/operator.yaml rel
 echo './bin/mach-operator-cli --config ./config-files/operator.yaml d'

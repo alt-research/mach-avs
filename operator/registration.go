@@ -27,6 +27,7 @@ func (o *Operator) RegisterOperatorWithEigenlayer() error {
 	op := eigenSdkTypes.Operator{
 		Address:                 o.operatorAddr.String(),
 		EarningsReceiverAddress: o.operatorAddr.String(),
+		MetadataUrl:             o.metadataURI,
 	}
 	_, err := o.eigenlayerWriter.RegisterAsOperator(context.Background(), op)
 	if err != nil {

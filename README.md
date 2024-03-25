@@ -116,7 +116,7 @@ Aggregator sample configuration file can be found at [config-files/aggregator.ya
 
 The `--avs-deployment` is use the `machavs_deploy_output.json` output by deploy script.
 
-Some Details Mach AVS aggregator service can be found in [aggregator](aggregator/)
+Mach AVS aggregator service can be found in [aggregator](aggregator/)
 
 ## Mach AVS Operator (for BLS Signature Mode)
 
@@ -134,6 +134,6 @@ Node operator client can be found in [operator](operator/). For more information
 
 The verifier codebase is found at [https://github.com/alt-research/alt-mach-verifier](https://github.com/alt-research/alt-mach-verifier)
 
-## Deployment scripts for build local devnet
+## Deployment scripts for running within local devnet
 
 Check out [scripts](scripts)

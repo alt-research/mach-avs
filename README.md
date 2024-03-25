@@ -78,8 +78,8 @@ sequenceDiagram
 
 Mach AVS service manager contracts can be found in [contracts folder](contracts/src/core/)
 
-- [Mach AVS for OP stack based rollup (ZK proof)](contracts/src/core/MachOptimismZkServiceManager.sol)
 - [Mach AVS for all rollup stack (BLS Signature aggregation)](contracts/src/core/MachServiceManager.sol)
+- [Mach AVS for OP stack based rollup (ZK proof)](contracts/src/core/MachOptimismZkServiceManager.sol)
 
 ### Dependencies
 

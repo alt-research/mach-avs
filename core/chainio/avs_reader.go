@@ -23,6 +23,8 @@ type AvsReaderer interface {
 		ctx context.Context, msgHash [32]byte, quorumNumbers []byte, referenceBlockNumber uint32, nonSignerStakesAndSignature csservicemanager.IBLSSignatureCheckerNonSignerStakesAndSignature,
 	) (csservicemanager.IBLSSignatureCheckerQuorumStakeTotals, error)
 
+	IsAlertContains(ctx context.Context, messageHash [32]byte) (bool, error)
+
 	// GetQuorumsByBlockNumber
 	GetQuorumsByBlockNumber(ctx context.Context, blockNumber uint32) ([]sdktypes.QuorumNum, error)
 
@@ -70,6 +72,17 @@ func (r *AvsReader) CheckSignatures(
 		return csservicemanager.IBLSSignatureCheckerQuorumStakeTotals{}, err
 	}
 	return stakeTotalsPerQuorum, nil
+}
+
+func (r *AvsReader) IsAlertContains(ctx context.Context, messageHash [32]byte) (bool, error) {
+	isContain, err := r.AvsServiceBindings.ServiceManager.Contains(&bind.CallOpts{
+		Context: ctx,
+	}, messageHash)
+	if err != nil {
+		return false, err
+	}
+
+	return isContain, nil
 }
 
 func (r *AvsReader) GetQuorumsByBlockNumber(ctx context.Context, blockNumber uint32) ([]sdktypes.QuorumNum, error) {

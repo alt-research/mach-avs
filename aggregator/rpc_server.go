@@ -9,8 +9,6 @@ import (
 
 	"github.com/alt-research/avs/aggregator/types"
 	"github.com/alt-research/avs/core/message"
-
-	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
 )
 
 var (
@@ -35,12 +33,6 @@ func (agg *Aggregator) startServer(ctx context.Context) error {
 	}
 
 	return nil
-}
-
-type SignedTaskResponse struct {
-	Alert        message.AlertTaskInfo
-	BlsSignature bls.Signature
-	OperatorId   bls.OperatorId
 }
 
 func (agg *Aggregator) GetTaskByAlertHash(alertHash [32]byte) *message.AlertTaskInfo {
@@ -75,11 +67,23 @@ func (agg *Aggregator) newIndex() types.TaskIndex {
 	return res
 }
 
+func (agg *Aggregator) GetFinishedTaskByAlertHash(alertHash [32]byte) *FinishedTaskStatus {
+	agg.finishedTasksMu.RLock()
+	defer agg.finishedTasksMu.RUnlock()
+
+	return agg.finishedTasks[alertHash]
+}
+
 // rpc endpoint which is called by operator
 // will try to init the task, if currently had a same task for the alert,
 // it will return the existing task.
 func (agg *Aggregator) CreateTask(req *message.CreateTaskRequest, reply *message.CreateTaskResponse) error {
 	agg.logger.Infof("Received signed task response: %#v", req)
+
+	finished := agg.GetFinishedTaskByAlertHash(req.AlertHash)
+	if finished != nil {
+		return fmt.Errorf("The task %v already finished: %#v", req.AlertHash, finished.TxHash)
+	}
 
 	task := agg.GetTaskByAlertHash(req.AlertHash)
 	if task == nil {
@@ -103,7 +107,7 @@ func (agg *Aggregator) CreateTask(req *message.CreateTaskRequest, reply *message
 // rpc endpoint which is called by operator
 // reply doesn't need to be checked. If there are no errors, the task response is accepted
 // rpc framework forces a reply type to exist, so we put bool as a placeholder
-func (agg *Aggregator) ProcessSignedTaskResponse(signedTaskResponse *SignedTaskResponse, reply *bool) error {
+func (agg *Aggregator) ProcessSignedTaskResponse(signedTaskResponse *message.SignedTaskRespRequest, reply *message.SignedTaskRespResponse) error {
 	agg.logger.Infof("Received signed task response: %#v", signedTaskResponse)
 	taskIndex := signedTaskResponse.Alert.TaskIndex
 	taskResponseDigest, err := signedTaskResponse.Alert.SignHash()

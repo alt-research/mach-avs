@@ -9,7 +9,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/prometheus/client_golang/prometheus"
 
-	"github.com/alt-research/avs/aggregator"
 	"github.com/alt-research/avs/core/alert"
 	"github.com/alt-research/avs/core/chainio"
 	"github.com/alt-research/avs/core/config"
@@ -323,14 +322,14 @@ func (o *Operator) ProcessNewTaskCreatedLog(newAlert alert.Alert) (*message.Aler
 	return o.aggregatorRpcClient.CreateAlertTaskToAggregator(alertHash)
 }
 
-func (o *Operator) SignTaskResponse(taskResponse *message.AlertTaskInfo) (*aggregator.SignedTaskResponse, error) {
+func (o *Operator) SignTaskResponse(taskResponse *message.AlertTaskInfo) (*message.SignedTaskRespRequest, error) {
 	hash, err := taskResponse.SignHash()
 	if err != nil {
 		return nil, err
 	}
 
 	blsSignature := o.blsKeypair.SignMessage(hash)
-	signedTaskResponse := &aggregator.SignedTaskResponse{
+	signedTaskResponse := &message.SignedTaskRespRequest{
 		Alert:        *taskResponse,
 		BlsSignature: *blsSignature,
 		OperatorId:   o.operatorId,

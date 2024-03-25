@@ -2,10 +2,12 @@ package aggregator
 
 import (
 	"context"
+	"math/big"
 	"sync"
 	"time"
 
 	"github.com/Layr-Labs/eigensdk-go/logging"
+	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/Layr-Labs/eigensdk-go/chainio/clients"
 	sdkclients "github.com/Layr-Labs/eigensdk-go/chainio/clients"
@@ -32,6 +34,14 @@ const (
 	blockTimeSeconds         = 12 * time.Second
 	avsName                  = "mach"
 )
+
+type FinishedTaskStatus struct {
+	Message          *message.AlertTaskInfo
+	TxHash           [32]byte
+	BlockHash        common.Hash `json:"blockHash,omitempty"`
+	BlockNumber      *big.Int    `json:"blockNumber,omitempty"`
+	TransactionIndex uint        `json:"transactionIndex"`
+}
 
 // Aggregator sends tasks (numbers to square) onchain, then listens for operator signed TaskResponses.
 // It aggregates responses signatures, and if any of the TaskResponses reaches the QuorumThresholdPercentage for each quorum
@@ -76,6 +86,8 @@ type Aggregator struct {
 	blsAggregationService blsagg.BlsAggregationService
 	tasks                 map[types.TaskIndex]*message.AlertTaskInfo
 	tasksMu               sync.RWMutex
+	finishedTasks         map[[32]byte]*FinishedTaskStatus
+	finishedTasksMu       sync.RWMutex
 	nextTaskIndex         types.TaskIndex
 	nextTaskIndexMu       sync.RWMutex
 }
@@ -121,6 +133,7 @@ func NewAggregator(c *config.Config) (*Aggregator, error) {
 		ethClient:             clients.EthHttpClient,
 		blsAggregationService: blsAggregationService,
 		tasks:                 make(map[types.TaskIndex]*message.AlertTaskInfo),
+		finishedTasks:         make(map[[32]byte]*FinishedTaskStatus),
 	}, nil
 }
 
@@ -175,9 +188,20 @@ func (agg *Aggregator) sendAggregatedResponseToContract(blsAggServiceResp blsagg
 	task := agg.tasks[blsAggServiceResp.TaskIndex]
 	agg.tasksMu.RUnlock()
 
-	_, err := agg.avsWriter.SendConfirmAlert(context.Background(), task, nonSignerStakesAndSignature)
+	res, err := agg.avsWriter.SendConfirmAlert(context.Background(), task, nonSignerStakesAndSignature)
 	if err != nil {
 		agg.logger.Error("Aggregator failed to respond to task", "err", err)
+	}
+
+	agg.finishedTasksMu.Lock()
+	defer agg.finishedTasksMu.Unlock()
+
+	agg.finishedTasks[task.AlertHash] = &FinishedTaskStatus{
+		Message:          task,
+		TxHash:           res.TxHash,
+		BlockHash:        res.BlockHash,
+		BlockNumber:      res.BlockNumber,
+		TransactionIndex: res.TransactionIndex,
 	}
 }
 

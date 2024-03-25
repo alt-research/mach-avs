@@ -50,6 +50,7 @@ type Operator struct {
 	blsKeypair       *bls.KeyPair
 	operatorId       bls.OperatorId
 	operatorAddr     common.Address
+	metadataURI      string
 	rpcServer        RpcServer
 	// receive new tasks in this chan (typically from mach service)
 	newTaskCreatedChan chan alert.Alert
@@ -221,6 +222,7 @@ func NewOperatorFromConfig(c config.NodeConfig) (*Operator, error) {
 		aggregatorRpcClient:        aggregatorRpcClient,
 		newTaskCreatedChan:         newTaskCreatedChan,
 		serviceManagerAddr:         common.HexToAddress(c.AVSRegistryCoordinatorAddress),
+		metadataURI:                c.MetadataURI,
 		operatorId:                 [32]byte{0}, // this is set below
 
 	}

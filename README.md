@@ -134,6 +134,6 @@ Node operator client can be found in [operator](operator/). For more information
 
 The verifier codebase is found at [https://github.com/alt-research/alt-mach-verifier](https://github.com/alt-research/alt-mach-verifier)
 
-## Deployment script for local devnet
+## Deployment scripts for build local devnet
 
 Check out [scripts](scripts)

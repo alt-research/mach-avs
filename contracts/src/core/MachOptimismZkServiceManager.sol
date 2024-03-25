@@ -43,9 +43,7 @@ contract MachOptimismZkServiceManager is
     {}
 
     modifier onlyValidOperator() {
-        IBLSApkRegistry blsApkRegistry = _registryCoordinator.blsApkRegistry();
-        bytes32 operatorId = blsApkRegistry.getOperatorId(msg.sender);
-        if (operatorId == bytes32(0)) {
+        if (_operators.contains(msg.sender)) {
             revert NotOperator();
         }
         _;

@@ -97,7 +97,9 @@ the aggregator will `confirmAlert)` to submit the alert. Once verified, the aler
 In this mode, it does not need an aggregator to collect signatures. ZK Proof will replace the process of collecting BLS signature.
 
 Operator can detect block or output root mismatch and submit an alert using `alertBlockMismatch()` and `alertBlockOutputOracleMismatch(`) respectively.
-After the alert is submitted, operator will compute the corresponding ZK proof to prove the alert. ZK Proof generation can be either done using RISC0 or GGPU.
+After the alert is submitted, operator will compute the corresponding ZK proof to prove the alert and submit the proof using `submitProve()`. 
+
+ZK Proof generation can be either done using RISC0 or GGPU.
 
 ### Training wheels
 

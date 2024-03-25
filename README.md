@@ -104,11 +104,21 @@ Mach AVS includes operator allowlist which can be managed by contract owner.
 - Add operator to whitelist: `addToAllowlist(address operator)`
 - Remove operator from whitelist: `removeFromAllowlist(address operator)`
 
-## Mach AVS Aggregator (for Signature Aggregation Mode)
+## Mach AVS Aggregator (for BLS Signature Mode)
 
-Mach AVS aggregator service can be found in [aggregator](aggregator/)
+Aggregator sample configuration file can be found at [config-files/aggregator.yaml](config-files/aggregator.yaml).
 
-## Mach AVS Operator
+```bash
+./bin/mach-aggregator --config <PATH_TO_CONFIG> \
+    --ecdsa-private-key <OWNER_PRIVATE> \
+    --avs-deployment ./contracts/script/output/machavs_deploy_output.json
+```
+
+The `--avs-deployment` is use the `machavs_deploy_output.json` output by deploy script.
+
+Some Details Mach AVS aggregator service can be found in [aggregator](aggregator/)
+
+## Mach AVS Operator (for BLS Signature Mode)
 
 Operator sample configuration file can be found at [config-files/operator.yaml](config-files/operator.yaml).
 
@@ -118,7 +128,7 @@ Operator can be run using the following:
 ./bin/mach-operator-signer --config <PATH_TO_CONFIG> 
 ```
 
-Node operator client can be found in [operator](operator/). For more information on how to run operator, check out our guide at [here](contracts/script/README.md)
+Node operator client can be found in [operator](operator/). For more information on how to run operator, check out our guide at [here](scripts/README.md)
 
 ## Mach AVS Verifier
 

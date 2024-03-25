@@ -56,6 +56,7 @@ eigenlayer operator keys create -i -k bls testName
 the key is in `~/.eigenlayer/operator_keys/`
 
 Metadata example:
+
 ```json
 {
   "name": "Some operator",

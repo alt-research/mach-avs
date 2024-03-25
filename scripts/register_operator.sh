@@ -19,7 +19,7 @@ STRATEGY_BASE_TVL_LIMITS_ADDR=$(cat $EIGENLAYER_ADDRESS_PATH | jq -r '.strategyB
 
 echo $UNDERLAYING_TOKEN
 
-cast send  -f $OWNER_ADDR --private-key $OWNER_PRIVATE --rpc-url $RPC_URL --value 10ether $OPERATOR_ADDR
+cast send  -f $OWNER_ADDR --private-key $OWNER_PRIVATE --rpc-url $RPC_URL --value 2ether $OPERATOR_ADDR
 cast send  -f $OWNER_ADDR --private-key $OWNER_PRIVATE $UNDERLAYING_TOKEN --rpc-url $RPC_URL 'transfer(address, uint256) (bool)' $OPERATOR_ADDR 100000000000 
 
 # Reset the config

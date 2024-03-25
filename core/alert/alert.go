@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/big"
+	"strings"
 
 	"golang.org/x/crypto/sha3"
 )
@@ -25,6 +26,9 @@ func (b *HexEncodedBytes32) UnmarshalJSON(data []byte) (err error) {
 	}
 
 	var hexBytes []byte
+
+	hexString = strings.TrimPrefix(hexString, "0x")
+	hexString = strings.TrimPrefix(hexString, "0X")
 
 	if hexBytes, err = hex.DecodeString(hexString); err != nil {
 		return err
@@ -123,3 +127,21 @@ func (a AlertBlockOutputOracleMismatch) MessageHash() [32]byte {
 }
 
 var _ Alert = (*AlertBlockOutputOracleMismatch)(nil)
+
+//	AlertBlockOutputOracleMismatch is Submit alert for verifier found a op block output root mismatch.
+//
+// It just a warning without any prove, the prover verifier should
+// submit a prove to ensure the alert is valid.
+// This alert only for the porposaled output root by proposer,
+// so we just sumit the index for this output root.
+type AlertBlockHashMismatch struct {
+	// The block hash which to alert
+	Hash HexEncodedBytes32 `json:"hash"`
+}
+
+// Return the message hash for signature in avs
+func (a AlertBlockHashMismatch) MessageHash() [32]byte {
+	return a.Hash
+}
+
+var _ Alert = (*AlertBlockHashMismatch)(nil)

@@ -111,6 +111,23 @@ func (s *RpcServer) httpRPCHandler(w http.ResponseWriter, r *http.Request) {
 				result: true,
 			})
 		}
+	case "alert_blockHash":
+		{
+			var alert alert.AlertBlockHashMismatch
+			if err = json.Unmarshal(*rpcRequest.Params, &alert); err != nil {
+				s.writeErrorJSON(w, rpcRequest.ID, http.StatusBadRequest, fmt.Errorf("failed to unmarshal alert bundle params: %v", err))
+				return
+			}
+
+			if err = s.AlertBlockHashMismatch(&alert); err != nil {
+				s.writeErrorJSON(w, rpcRequest.ID, http.StatusBadRequest, fmt.Errorf("failed to call alert output oracle: %v", err))
+				return
+			}
+
+			s.writeJSON(w, rpcRequest.ID, http.StatusOK, RpcResponse{
+				result: true,
+			})
+		}
 	default:
 		err := fmt.Errorf("got unsupported method name: %v", rpcRequest.Method)
 		s.writeErrorJSON(w, rpcRequest.ID, http.StatusNotFound, err)
@@ -168,6 +185,14 @@ func (s *RpcServer) AlertBlockMismatch(alert *alert.AlertBlockMismatch) error {
 
 func (s *RpcServer) AlertBlockOutputOracleMismatch(alert *alert.AlertBlockOutputOracleMismatch) error {
 	s.logger.Info("AlertBlockOutputOracleMismatch", "alert", alert)
+
+	s.newTaskCreatedChan <- alert
+
+	return nil
+}
+
+func (s *RpcServer) AlertBlockHashMismatch(alert *alert.AlertBlockHashMismatch) error {
+	s.logger.Info("AlertBlockHashMismatch", "alert", alert)
 
 	s.newTaskCreatedChan <- alert
 

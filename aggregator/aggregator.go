@@ -197,6 +197,9 @@ func (agg *Aggregator) sendNewTask(alertHash [32]byte, taskIndex types.TaskIndex
 		return nil, err
 	}
 
+	// the reference block number must < the current block number.
+	referenceBlockNumber -= 1
+
 	agg.logger.Info("get from layer1", "referenceBlockNumber", referenceBlockNumber)
 
 	quorumNumbers, err := agg.avsReader.GetQuorumsByBlockNumber(context.Background(), uint32(referenceBlockNumber))

@@ -5,6 +5,10 @@ import {IServiceManager} from "eigenlayer-middleware/interfaces/IServiceManager.
 import {BLSSignatureChecker} from "eigenlayer-middleware/BLSSignatureChecker.sol";
 import {IMachOptimism} from "../interfaces/IMachOptimism.sol";
 
+/**
+ * @title Interface for the MachServiceManager contract.
+ * @author Altlayer, Inc.
+ */
 interface IMachServiceManager is IServiceManager {
     struct AlertHeader {
         bytes32 messageHash;
@@ -13,12 +17,6 @@ interface IMachServiceManager is IServiceManager {
         bytes quorumThresholdPercentages; // every bytes is an amount less than 100 specifying the percentage of stake
             // the must have signed in the corresponding quorum in `quorumNumbers`
         uint32 referenceBlockNumber;
-        // for ZK proof
-        bytes32 expectOutputRoot;
-        bytes journal;
-        bytes seal;
-        bytes32 postStateDigest;
-        uint256 l2OutputIndex;
     }
 
     struct ReducedAlertHeader {

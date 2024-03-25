@@ -1,11 +1,12 @@
 # Deploy script
 
-## 1. Boot a test environment by anvil
+## 1. Boot a test environment using anvil
 
 ```bash
 anvil
 ```
 
+Use the following env:
 ```bash
 export OPERATOR_ADDR=0x957D781ab2Bc6D27Fde0a0b427ebF46ee1395661
 export OWNER_ADDR=0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266

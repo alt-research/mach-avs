@@ -71,6 +71,20 @@ type Alert interface {
 	MessageHash() [32]byte
 }
 
+// The Alert Request Message
+type AlertRequest struct {
+	Alert   Alert
+	ResChan chan AlertResponse
+}
+
+// The Alert Response Message
+type AlertResponse struct {
+	Code   uint32
+	TxHash [32]byte
+	Err    error
+	Msg    string
+}
+
 // AlertBlockMismatch is submit alert for verifier found a op block output mismatch.
 //
 //	It just a warning without any prove, the prover verifier should

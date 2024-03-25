@@ -52,7 +52,7 @@ type Operator struct {
 	operatorAddr     common.Address
 	rpcServer        RpcServer
 	// receive new tasks in this chan (typically from mach service)
-	newTaskCreatedChan chan alert.Alert
+	newTaskCreatedChan chan alert.AlertRequest
 	// ip address of aggregator
 	aggregatorServerIpPortAddr string
 	// rpc client to send signed task responses to aggregator
@@ -196,7 +196,7 @@ func NewOperatorFromConfig(c config.NodeConfig) (*Operator, error) {
 		return nil, err
 	}
 
-	newTaskCreatedChan := make(chan alert.Alert, 32)
+	newTaskCreatedChan := make(chan alert.AlertRequest, 32)
 	rpcServer := RpcServer{
 		logger:             logger,
 		serverIpPortAddr:   c.OperatorServerIpPortAddr,
@@ -286,18 +286,26 @@ func (o *Operator) Start(ctx context.Context) error {
 		case newTaskCreatedLog := <-o.newTaskCreatedChan:
 			o.logger.Info("newTaskCreatedLog", "new", newTaskCreatedLog)
 			o.metrics.IncNumTasksReceived()
-			taskResponse, err := o.ProcessNewTaskCreatedLog(newTaskCreatedLog)
+			taskResponse, err := o.ProcessNewTaskCreatedLog(newTaskCreatedLog.Alert)
 			if err != nil {
 				o.logger.Error("newTaskCreatedLog failed by new", "err", err)
+				newTaskCreatedLog.ResChan <- alert.AlertResponse{
+					Err: err,
+					Msg: "ProcessNewTaskCreatedLog failed",
+				}
 				continue
 			}
 
 			signedTaskResponse, err := o.SignTaskResponse(taskResponse)
 			if err != nil {
 				o.logger.Error("newTaskCreatedLog failed by sign task", "err", err)
+				newTaskCreatedLog.ResChan <- alert.AlertResponse{
+					Err: err,
+					Msg: "SignTaskResponse failed",
+				}
 				continue
 			}
-			go o.aggregatorRpcClient.SendSignedTaskResponseToAggregator(signedTaskResponse)
+			go o.aggregatorRpcClient.SendSignedTaskResponseToAggregator(signedTaskResponse, newTaskCreatedLog.ResChan)
 		}
 	}
 }

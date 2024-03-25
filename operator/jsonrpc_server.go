@@ -21,7 +21,7 @@ type RpcServer struct {
 	logger             logging.Logger
 	server             *http.Server
 	serverIpPortAddr   string
-	newTaskCreatedChan chan alert.Alert
+	newTaskCreatedChan chan alert.AlertRequest
 }
 
 func (s *RpcServer) StartServer(ctx context.Context) error {
@@ -120,7 +120,7 @@ func (s *RpcServer) httpRPCHandler(w http.ResponseWriter, r *http.Request) {
 			}
 
 			if err = s.AlertBlockHashMismatch(&alert); err != nil {
-				s.writeErrorJSON(w, rpcRequest.ID, http.StatusBadRequest, fmt.Errorf("failed to call alert output oracle: %v", err))
+				s.writeErrorJSON(w, rpcRequest.ID, http.StatusBadRequest, fmt.Errorf("failed to call alert block hash: %v", err))
 				return
 			}
 
@@ -137,8 +137,10 @@ func (s *RpcServer) httpRPCHandler(w http.ResponseWriter, r *http.Request) {
 func (s *RpcServer) writeErrorJSON(w http.ResponseWriter, id jsonrpc2.ID, statusCode int, err error) {
 	s.logger.Info("writeErrorJSON", "id", id, "err", err)
 
-	jsonrpcErr := jsonrpc2.Error{}
-	jsonrpcErr.SetError(err)
+	jsonrpcErr := jsonrpc2.Error{
+		Code:    1,
+		Message: err.Error(),
+	}
 
 	resp := jsonrpc2.Response{
 		ID:    id,
@@ -175,26 +177,59 @@ func (s *RpcServer) writeJSON(w http.ResponseWriter, id jsonrpc2.ID, resultHTTPC
 	}
 }
 
-func (s *RpcServer) AlertBlockMismatch(alert *alert.AlertBlockMismatch) error {
-	s.logger.Info("AlertBlockMismatch", "alert", alert)
+func (s *RpcServer) AlertBlockMismatch(alertReq *alert.AlertBlockMismatch) error {
+	s.logger.Info("AlertBlockMismatch", "alert", alertReq)
 
-	s.newTaskCreatedChan <- alert
+	responseChan := make(chan alert.AlertResponse)
 
-	return nil
+	s.newTaskCreatedChan <- alert.AlertRequest{
+		Alert:   alertReq,
+		ResChan: responseChan,
+	}
+
+	response := <-responseChan
+
+	if response.Msg != "" {
+		s.logger.Error("AlertBlockMismatch failed", "msg", response.Msg)
+	}
+
+	return response.Err
 }
 
-func (s *RpcServer) AlertBlockOutputOracleMismatch(alert *alert.AlertBlockOutputOracleMismatch) error {
-	s.logger.Info("AlertBlockOutputOracleMismatch", "alert", alert)
+func (s *RpcServer) AlertBlockOutputOracleMismatch(alertReq *alert.AlertBlockOutputOracleMismatch) error {
+	s.logger.Info("AlertBlockOutputOracleMismatch", "alert", alertReq)
 
-	s.newTaskCreatedChan <- alert
+	responseChan := make(chan alert.AlertResponse)
 
-	return nil
+	s.newTaskCreatedChan <- alert.AlertRequest{
+		Alert:   alertReq,
+		ResChan: responseChan,
+	}
+
+	response := <-responseChan
+
+	if response.Msg != "" {
+		s.logger.Error("AlertBlockOutputOracleMismatch failed", "msg", response.Msg)
+	}
+
+	return response.Err
 }
 
-func (s *RpcServer) AlertBlockHashMismatch(alert *alert.AlertBlockHashMismatch) error {
-	s.logger.Info("AlertBlockHashMismatch", "alert", alert)
+func (s *RpcServer) AlertBlockHashMismatch(alertReq *alert.AlertBlockHashMismatch) error {
+	s.logger.Info("AlertBlockHashMismatch", "alert", alertReq)
 
-	s.newTaskCreatedChan <- alert
+	responseChan := make(chan alert.AlertResponse)
 
-	return nil
+	s.newTaskCreatedChan <- alert.AlertRequest{
+		Alert:   alertReq,
+		ResChan: responseChan,
+	}
+
+	response := <-responseChan
+
+	if response.Msg != "" {
+		s.logger.Error("AlertBlockHashMismatch failed", "msg", response.Msg)
+	}
+
+	return response.Err
 }

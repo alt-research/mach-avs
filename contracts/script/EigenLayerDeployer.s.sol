@@ -354,8 +354,12 @@ contract EigenLayerDeployer is Script {
         vm.serializeAddress(output, "underlayingToken", tokenAddress);
         vm.serializeAddress(output, "strategyBaseTVLLimits", address(strategyBaseTVLLimits));
 
+        string memory EIGENLAYER = "EIGENLAYER_ADDRESSES_OUTPUT_PATH";
+        string memory defaultPath = "./script/output/eigenlayer_deploy_output.json";
+        string memory deployedPath = vm.envOr(EIGENLAYER, defaultPath);
         vm.createDir("./script/output", true);
+
         string memory finalJson = vm.serializeString(output, "object", output);
-        vm.writeJson(finalJson, "./script/output/eigenlayer_deploy_output.json");
+        vm.writeJson(finalJson, deployedPath);
     }
 }

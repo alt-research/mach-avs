@@ -67,7 +67,10 @@ contract MachServiceManagerDeployer is Script {
         EigenLayerContracts memory eigenLayerContracts;
 
         {
-            string memory deployedEigenLayerAddresses = vm.readFile("./script/output/eigenlayer_deploy_output.json");
+            string memory EIGENLAYER = "EIGENLAYER_ADDRESSES_OUTPUT_PATH";
+            string memory defaultPath = "./script/output/eigenlayer_deploy_output.json";
+            string memory deployedPath = vm.envOr(EIGENLAYER, defaultPath);
+            string memory deployedEigenLayerAddresses = vm.readFile(deployedPath);
 
             bytes memory deployedStrategyManagerData = vm.parseJson(deployedEigenLayerAddresses, ".strategyManager");
             address deployedStrategyManager = abi.decode(deployedStrategyManagerData, (address));
@@ -219,6 +222,10 @@ contract MachServiceManagerDeployer is Script {
         );
         vm.stopBroadcast();
 
+        string memory MACH = "MACHAVS_ADDRESSES_OUTPUT_PATH";
+        string memory defaultMachPath = "./script/output/machavs_deploy_output.json";
+        string memory deployedMachPath = vm.envOr(MACH, defaultMachPath);
+
         string memory output = "machAVS deployment output";
         vm.serializeAddress(output, "machServiceManager", address(machServiceContract.machServiceManager));
         vm.serializeAddress(output, "registryCoordinator", address(machServiceContract.registryCoordinator));
@@ -230,6 +237,6 @@ contract MachServiceManagerDeployer is Script {
         vm.serializeAddress(output, "operatorStateRetriever", address(machServiceContract.operatorStateRetriever));
         string memory finalJson = vm.serializeString(output, "object", output);
         vm.createDir("./script/output", true);
-        vm.writeJson(finalJson, "./script/output/machavs_deploy_output.json");
+        vm.writeJson(finalJson, deployedMachPath);
     }
 }

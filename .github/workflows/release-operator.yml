@@ -17,7 +17,7 @@ env:
   CARGO_INCREMENTAL: "0"
   CARGO_NET_GIT_FETCH_WITH_CLI: true
   ECR_REPO: 305587085711.dkr.ecr.us-west-2.amazonaws.com/mach-operator
-  PUB_REPO: public.ecr.aws/altlayer/mach-operator
+  PUB_REPO: public.ecr.aws
 
 jobs:
   build-docker-image:
@@ -73,7 +73,7 @@ jobs:
         with:
           images: |
             ${{ env.ECR_REPO }}
-            ${{ env.PUB_REPO }}
+            ${{ env.PUB_REPO }}/altlayer/mach-operator
           flavor: |
             prefix=
             suffix=

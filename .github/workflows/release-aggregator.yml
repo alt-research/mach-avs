@@ -90,7 +90,7 @@ jobs:
         uses: docker/build-push-action@v5
         id: docker_aggregator_build
         with:
-          context: .
+          context: ops
           builder: ${{ steps.docker-builder.outputs.name }}
           target: app
           push: ${{ github.event_name != 'pull_request' }}

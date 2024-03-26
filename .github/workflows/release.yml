@@ -67,12 +67,12 @@ jobs:
           echo "REF_NAME=$(echo ${GIT_TAG:-$GITHUB_REF_NAME} | sed 's/[^a-zA-Z0-9._]/-/g')" | tee -a $GITHUB_ENV
       - run: cat $HOME/.gitconfig && cat $XDG_CONFIG_HOME/git/credentials
 
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
+      - name: Extract operator metadata (tags, labels) for Docker
+        id: operator-meta
         uses: docker/metadata-action@v5
         with:
           images: |
-            ${{ env.ECR_REPO }}
+            ${{ env.ECR_REPO }}/mach-operator
           # ${{ env.PUB_REPO }}/altlayer/mach-avs
           flavor: |
             prefix=
@@ -97,14 +97,34 @@ jobs:
           # push: true
           provenance: false
           cache-from: |
-            type=registry,ref=${{ env.ECR_REPO }}:latest
-            type=registry,ref=${{ env.ECR_REPO }}:${{ env.REF_NAME }}
+            type=registry,ref=${{ env.ECR_REPO }}/mach-operator:latest
+            type=registry,ref=${{ env.ECR_REPO }}/mach-operator:${{ env.REF_NAME }}
           secret-files: |
             git_config=${{ env.HOME }}/.gitconfig
             git_credentials=${{ env.XDG_CONFIG_HOME }}/git/credentials
           file: operator.Dockerfile
-          labels: mach-operator
-          tags: ${{ steps.meta.outputs.tags }}
+          labels:  ${{ steps.operator-meta.outputs.labels }}
+          tags: ${{ steps.operator-meta.outputs.tags }}
+
+      - name: Extract aggregator metadata (tags, labels) for Docker
+        id: aggregator-meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ env.ECR_REPO }}/mach-aggregator
+          # ${{ env.PUB_REPO }}/altlayer/mach-avs
+          flavor: |
+            prefix=
+            suffix=
+          tags: |
+            type=sha,format=short,prefix=
+            type=ref,event=branch
+            type=ref,event=branch,suffix=-${{ github.run_number }}
+            type=ref,event=tag
+            type=raw,value=${{ env.REF_NAME }},enable=${{ github.event_name == 'pull_request' }}
+            type=raw,value=${{ env.GIT_BRANCH }},enable=${{ env.GIT_BRANCH != '' }}
+            type=raw,value=latest,enable=${{ env.GIT_BRANCH == 'master' }}
+
 
       - name: Build aggregator docker with cache and push images
         uses: docker/build-push-action@v5
@@ -117,14 +137,14 @@ jobs:
           # push: true
           provenance: false
           cache-from: |
-            type=registry,ref=${{ env.ECR_REPO }}:latest
-            type=registry,ref=${{ env.ECR_REPO }}:${{ env.REF_NAME }}
+            type=registry,ref=${{ env.ECR_REPO }}/mach-aggregator:latest
+            type=registry,ref=${{ env.ECR_REPO }}/mach-aggregator:${{ env.REF_NAME }}
           secret-files: |
             git_config=${{ env.HOME }}/.gitconfig
             git_credentials=${{ env.XDG_CONFIG_HOME }}/git/credentials
           file: aggregator.Dockerfile
-          labels: mach-aggregator
-          tags: ${{ steps.meta.outputs.tags }}
+          labels:  ${{ steps.aggregator-meta.outputs.labels }}
+          tags: ${{ steps.aggregator-meta.outputs.tags }}
 
       - name: Pull Image
         run: |

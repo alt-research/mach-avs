@@ -1,4 +1,4 @@
-name: Release-Aggregator
+name: Release Aggregator
 on:
   push:
     tags: ["*"]

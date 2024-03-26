@@ -17,7 +17,7 @@ env:
   CARGO_INCREMENTAL: "0"
   CARGO_NET_GIT_FETCH_WITH_CLI: true
   ECR_REPO: 305587085711.dkr.ecr.us-west-2.amazonaws.com/mach-aggregator
-  # PUB_REPO: public.ecr.aws
+  PUB_REPO: public.ecr.aws/altlayer/mach-aggregator
 
 jobs:
   build-docker-image:
@@ -31,12 +31,12 @@ jobs:
           username: ${{ secrets.ECR_ACCESS_KEY_ID }}
           password: ${{ secrets.ECR_ACCESS_KEY }}
 
-      # - name: Login to public ECR
-      #   uses: docker/login-action@v3
-      #   with:
-      #     registry: ${{ env.PUB_REPO }}
-      #     username: ${{ secrets.ECR_ACCESS_KEY_ID }}
-      #     password: ${{ secrets.ECR_ACCESS_KEY }}
+      - name: Login to public ECR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.PUB_REPO }}
+          username: ${{ secrets.ECR_ACCESS_KEY_ID }}
+          password: ${{ secrets.ECR_ACCESS_KEY }}
 
       - name: Checkout Sources
         uses: actions/checkout@v4
@@ -73,7 +73,7 @@ jobs:
         with:
           images: |
             ${{ env.ECR_REPO }}
-          # ${{ env.PUB_REPO }}/altlayer/mach-avs
+            ${{ env.PUB_REPO }}
           flavor: |
             prefix=
             suffix=

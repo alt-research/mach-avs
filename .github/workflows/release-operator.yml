@@ -17,7 +17,7 @@ env:
   CARGO_INCREMENTAL: "0"
   CARGO_NET_GIT_FETCH_WITH_CLI: true
   ECR_REPO: 305587085711.dkr.ecr.us-west-2.amazonaws.com/mach-operator
-  PUB_REPO: public.ecr.aws/altlayer/amach-operator
+  PUB_REPO: public.ecr.aws/altlayer/mach-operator
 
 jobs:
   build-docker-image:
@@ -94,7 +94,6 @@ jobs:
           builder: ${{ steps.docker-builder.outputs.name }}
           target: app
           push: ${{ github.event_name != 'pull_request' }}
-          # push: true
           provenance: false
           cache-from: |
             type=registry,ref=${{ env.ECR_REPO }}:latest

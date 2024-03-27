@@ -30,4 +30,8 @@ abstract contract MachServiceManagerStorage {
 
     /// @notice Minimul quorum threshold percentage
     uint8 public quorumThresholdPercentage;
+
+    // storage gap for upgradeability
+    // slither-disable-next-line shadowing-state
+    uint256[47] private __GAP;
 }

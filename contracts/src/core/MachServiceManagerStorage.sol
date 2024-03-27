@@ -19,11 +19,11 @@ abstract contract MachServiceManagerStorage {
     /// @notice Ethereum addresses of currently register operators
     EnumerableSet.AddressSet internal _operators;
 
-    /// @notice address that is permissioned to confirm alerts
-    address public alertConfirmer;
-
     /// @notice Set of operators that are allowed to register
     mapping(address => bool) internal _allowlist;
+
+    /// @notice address that is permissioned to confirm alerts
+    address public alertConfirmer;
 
     /// @notice Whether or not the allowlist is enabled
     bool public allowlistEnabled;

@@ -1,0 +1,36 @@
+# this sets the logger level (true = info, false = debug)
+production: true
+
+# ETH RPC URL
+eth_rpc_url: http://anvil:8545
+eth_ws_url: ws://anvil:8545
+
+# If you running this using eigenlayer CLI and the provided AVS packaging structure,
+# this should be /operator_keys/ecdsa_key.json as the host path will be asked while running
+#
+# If you are running locally using go run main.go, this should be full path to your local ecdsa key file
+ecdsa_private_key_store_path: ./config-files/key/test1.ecdsa.key.json
+
+# If you running this using eigenlayer CLI and the provided AVS packaging structure,
+# this should be /operator_keys/bls_key.json as the host path will be asked while running
+#
+# We are using bn254 curve for bls keys
+#
+# If you are running locally using go run main.go, this should be full path to your local bls key file
+bls_private_key_store_path: ./config-files/key/test1.bls.key.json
+
+aggregator_server_ip_port_address: aggregator:8090
+
+# avs node spec compliance https://eigen.nethermind.io/docs/spec/intro
+eigen_metrics_ip_port_address: 0.0.0.0:9090
+enable_metrics: true
+node_api_ip_port_address: 0.0.0.0:9010
+enable_node_api: true
+
+# EigenLayer Slasher contract address
+
+# This is the address of the slasher which is deployed in the anvil saved state
+avs_registry_coordinator_address: 0xa82fF9aFd8f496c3d6ac40E2a0F282E47488CFc9
+operator_state_retriever_address: 0x0E801D84Fa97b50751Dbf25036d067dCf18858bF
+
+operator_server_ip_port_addr: 0.0.0.0:8091

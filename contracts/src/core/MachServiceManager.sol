@@ -78,6 +78,7 @@ contract MachServiceManager is
         _initializePauser(_pauserRegistry, _initialPausedStatus);
         _transferOwnership(_initialOwner);
         _setAlertConfirmer(_alertConfirmer);
+        allowlistEnabled = true;
         quorumThresholdPercentage = 66;
     }
 

@@ -26,7 +26,7 @@ abstract contract MachServiceManagerStorage {
     mapping(address => bool) internal _allowlist;
 
     /// @notice Whether or not the allowlist is enabled
-    bool public allowlistEnabled = true;
+    bool public allowlistEnabled;
 
     /// @notice Minimul quorum threshold percentage
     uint8 public quorumThresholdPercentage;

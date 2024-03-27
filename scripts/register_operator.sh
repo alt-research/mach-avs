@@ -35,3 +35,6 @@ echo './bin/mach-operator-cli --config ./config-files/operator.yaml d'
 ./bin/mach-operator-cli --config ./config-files/operator.yaml d --strategy-addr $STRATEGY_BASE_TVL_LIMITS_ADDR --amount 10000000
 echo 'reg avs'
 ./bin/mach-operator-cli --config ./config-files/operator.yaml r
+
+# Send eth to operator addr for make a new block
+cast send  -f $OWNER_ADDR --private-key $OWNER_PRIVATE --rpc-url $RPC_URL --value 1ether $OPERATOR_ADDR

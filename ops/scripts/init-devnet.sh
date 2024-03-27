@@ -36,3 +36,6 @@ sed -i 's/metadata_uri: .\+/metadata_uri: '${METADATA_URI}'/g' ./ops/configs/ope
 ./bin/mach-operator-cli --config ./ops/configs/operator-docker-compose.yaml rel
 ./bin/mach-operator-cli --config ./ops/configs/operator-docker-compose.yaml d --strategy-addr $STRATEGY_BASE_TVL_LIMITS_ADDR --amount 10000000
 ./bin/mach-operator-cli --config ./ops/configs/operator-docker-compose.yaml r
+
+# Send eth to operator addr for make a new block
+cast send  -f $OWNER_ADDR --private-key $OWNER_PRIVATE --rpc-url $RPC_URL --value 1ether $OPERATOR_ADDR

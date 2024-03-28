@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/prometheus/client_golang/prometheus"
 
-	"github.com/alt-research/avs/aggregator"
 	"github.com/alt-research/avs/core/alert"
 	"github.com/alt-research/avs/core/chainio"
 	"github.com/alt-research/avs/core/config"
@@ -53,7 +53,7 @@ type Operator struct {
 	metadataURI      string
 	rpcServer        RpcServer
 	// receive new tasks in this chan (typically from mach service)
-	newTaskCreatedChan chan alert.Alert
+	newTaskCreatedChan chan alert.AlertRequest
 	// ip address of aggregator
 	aggregatorServerIpPortAddr string
 	// rpc client to send signed task responses to aggregator
@@ -197,7 +197,7 @@ func NewOperatorFromConfig(c config.NodeConfig) (*Operator, error) {
 		return nil, err
 	}
 
-	newTaskCreatedChan := make(chan alert.Alert, 32)
+	newTaskCreatedChan := make(chan alert.AlertRequest, 32)
 	rpcServer := RpcServer{
 		logger:             logger,
 		serverIpPortAddr:   c.OperatorServerIpPortAddr,
@@ -288,18 +288,31 @@ func (o *Operator) Start(ctx context.Context) error {
 		case newTaskCreatedLog := <-o.newTaskCreatedChan:
 			o.logger.Info("newTaskCreatedLog", "new", newTaskCreatedLog)
 			o.metrics.IncNumTasksReceived()
-			taskResponse, err := o.ProcessNewTaskCreatedLog(newTaskCreatedLog)
+			taskResponse, err := o.ProcessNewTaskCreatedLog(newTaskCreatedLog.Alert)
 			if err != nil {
 				o.logger.Error("newTaskCreatedLog failed by new", "err", err)
+				var code uint32
+				if strings.Contains(err.Error(), "already finished") {
+					code = 2
+				}
+				newTaskCreatedLog.ResChan <- alert.AlertResponse{
+					Code: code,
+					Err:  err,
+					Msg:  "ProcessNewTaskCreatedLog failed",
+				}
 				continue
 			}
 
 			signedTaskResponse, err := o.SignTaskResponse(taskResponse)
 			if err != nil {
 				o.logger.Error("newTaskCreatedLog failed by sign task", "err", err)
+				newTaskCreatedLog.ResChan <- alert.AlertResponse{
+					Err: err,
+					Msg: "SignTaskResponse failed",
+				}
 				continue
 			}
-			go o.aggregatorRpcClient.SendSignedTaskResponseToAggregator(signedTaskResponse)
+			go o.aggregatorRpcClient.SendSignedTaskResponseToAggregator(signedTaskResponse, newTaskCreatedLog.ResChan)
 		}
 	}
 }
@@ -317,14 +330,14 @@ func (o *Operator) ProcessNewTaskCreatedLog(newAlert alert.Alert) (*message.Aler
 	return o.aggregatorRpcClient.CreateAlertTaskToAggregator(alertHash)
 }
 
-func (o *Operator) SignTaskResponse(taskResponse *message.AlertTaskInfo) (*aggregator.SignedTaskResponse, error) {
+func (o *Operator) SignTaskResponse(taskResponse *message.AlertTaskInfo) (*message.SignedTaskRespRequest, error) {
 	hash, err := taskResponse.SignHash()
 	if err != nil {
 		return nil, err
 	}
 
 	blsSignature := o.blsKeypair.SignMessage(hash)
-	signedTaskResponse := &aggregator.SignedTaskResponse{
+	signedTaskResponse := &message.SignedTaskRespRequest{
 		Alert:        *taskResponse,
 		BlsSignature: *blsSignature,
 		OperatorId:   o.operatorId,

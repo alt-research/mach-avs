@@ -12,7 +12,8 @@ package mocks
 import (
 	reflect "reflect"
 
-	aggregator "github.com/alt-research/avs/aggregator"
+	alert "github.com/alt-research/avs/core/alert"
+	message "github.com/alt-research/avs/core/message"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -39,14 +40,29 @@ func (m *MockAggregatorRpcClienter) EXPECT() *MockAggregatorRpcClienterMockRecor
 	return m.recorder
 }
 
-// SendSignedTaskResponseToAggregator mocks base method.
-func (m *MockAggregatorRpcClienter) SendSignedTaskResponseToAggregator(arg0 *aggregator.SignedTaskResponse) {
+// CreateAlertTaskToAggregator mocks base method.
+func (m *MockAggregatorRpcClienter) CreateAlertTaskToAggregator(arg0 [32]byte) (*message.AlertTaskInfo, error) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "SendSignedTaskResponseToAggregator", arg0)
+	ret := m.ctrl.Call(m, "CreateAlertTaskToAggregator", arg0)
+	ret0, _ := ret[0].(*message.AlertTaskInfo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateAlertTaskToAggregator indicates an expected call of CreateAlertTaskToAggregator.
+func (mr *MockAggregatorRpcClienterMockRecorder) CreateAlertTaskToAggregator(arg0 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAlertTaskToAggregator", reflect.TypeOf((*MockAggregatorRpcClienter)(nil).CreateAlertTaskToAggregator), arg0)
+}
+
+// SendSignedTaskResponseToAggregator mocks base method.
+func (m *MockAggregatorRpcClienter) SendSignedTaskResponseToAggregator(arg0 *message.SignedTaskRespRequest, arg1 chan alert.AlertResponse) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SendSignedTaskResponseToAggregator", arg0, arg1)
 }
 
 // SendSignedTaskResponseToAggregator indicates an expected call of SendSignedTaskResponseToAggregator.
-func (mr *MockAggregatorRpcClienterMockRecorder) SendSignedTaskResponseToAggregator(arg0 any) *gomock.Call {
+func (mr *MockAggregatorRpcClienterMockRecorder) SendSignedTaskResponseToAggregator(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendSignedTaskResponseToAggregator", reflect.TypeOf((*MockAggregatorRpcClienter)(nil).SendSignedTaskResponseToAggregator), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendSignedTaskResponseToAggregator", reflect.TypeOf((*MockAggregatorRpcClienter)(nil).SendSignedTaskResponseToAggregator), arg0, arg1)
 }

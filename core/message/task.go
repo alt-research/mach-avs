@@ -5,6 +5,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"golang.org/x/crypto/sha3"
 
+	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
 	sdktypes "github.com/Layr-Labs/eigensdk-go/types"
 	"github.com/alt-research/avs/aggregator/types"
 )
@@ -99,4 +100,18 @@ type CreateTaskRequest struct {
 // The Alert task create response
 type CreateTaskResponse struct {
 	Info AlertTaskInfo
+}
+
+type ProcessSignedTaskResponseResponse struct {
+}
+
+type SignedTaskRespRequest struct {
+	Alert        AlertTaskInfo
+	BlsSignature bls.Signature
+	OperatorId   bls.OperatorId
+}
+
+type SignedTaskRespResponse struct {
+	Reply  bool
+	TxHash [32]byte
 }

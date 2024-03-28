@@ -3,9 +3,10 @@ package operator
 import (
 	"fmt"
 	"net/rpc"
+	"strings"
 	"time"
 
-	"github.com/alt-research/avs/aggregator"
+	"github.com/alt-research/avs/core/alert"
 	"github.com/alt-research/avs/core/message"
 	"github.com/alt-research/avs/metrics"
 
@@ -14,7 +15,7 @@ import (
 
 type AggregatorRpcClienter interface {
 	CreateAlertTaskToAggregator(alertHash [32]byte) (*message.AlertTaskInfo, error)
-	SendSignedTaskResponseToAggregator(signedTaskResponse *aggregator.SignedTaskResponse)
+	SendSignedTaskResponseToAggregator(signedTaskResponse *message.SignedTaskRespRequest, resChan chan alert.AlertResponse)
 }
 type AggregatorRpcClient struct {
 	rpcClient            *rpc.Client
@@ -64,6 +65,9 @@ func (c *AggregatorRpcClient) CreateAlertTaskToAggregator(alertHash [32]byte) (*
 		err := c.rpcClient.Call("Aggregator.CreateTask", req, &reply)
 		if err != nil {
 			c.logger.Info("Received error from aggregator", "err", err)
+			if strings.Contains(err.Error(), "already finished") {
+				return nil, err
+			}
 		} else {
 			c.logger.Info("create task response header accepted by aggregator.", "reply", reply)
 			c.metrics.IncNumTasksAcceptedByAggregator()
@@ -82,33 +86,49 @@ func (c *AggregatorRpcClient) CreateAlertTaskToAggregator(alertHash [32]byte) (*
 // this is because sending the signed task response to the aggregator is time sensitive,
 // so there is no point in retrying if it fails for a few times.
 // Currently hardcoded to retry sending the signed task response 5 times, waiting 2 seconds in between each attempt.
-func (c *AggregatorRpcClient) SendSignedTaskResponseToAggregator(signedTaskResponse *aggregator.SignedTaskResponse) {
+func (c *AggregatorRpcClient) SendSignedTaskResponseToAggregator(signedTaskResponse *message.SignedTaskRespRequest, resChan chan alert.AlertResponse) {
 	if c.rpcClient == nil {
 		c.logger.Info("rpc client is nil. Dialing aggregator rpc client")
 		err := c.dialAggregatorRpcClient()
 		if err != nil {
 			c.logger.Error("Could not dial aggregator rpc client. Not sending signed task response header to aggregator. Is aggregator running?", "err", err)
+			resChan <- alert.AlertResponse{
+				Err: err,
+				Msg: "Could not dial aggregator rpc client",
+			}
 			return
 		}
 	}
 	// we don't check this bool. It's just needed because rpc.Call requires rpc methods to have a return value
-	var reply bool
+	var response message.SignedTaskRespResponse
 	// We try to send the response 5 times to the aggregator, waiting 2 times in between each attempt.
 	// This is mostly only necessary for local testing, since the aggregator sometimes is not ready to process task responses
 	// before the operator gets the new task created log from anvil (because blocks are mined instantly)
 	// the aggregator needs to read some onchain data related to quorums before it can accept operator signed task responses.
 	c.logger.Info("Sending signed task response header to aggregator", "signedTaskResponse", fmt.Sprintf("%#v", signedTaskResponse))
+	var err error
 	for i := 0; i < 5; i++ {
-		err := c.rpcClient.Call("Aggregator.ProcessSignedTaskResponse", signedTaskResponse, &reply)
+		err = c.rpcClient.Call("Aggregator.ProcessSignedTaskResponse", signedTaskResponse, &response)
 		if err != nil {
 			c.logger.Info("Received error from aggregator", "err", err)
 		} else {
-			c.logger.Info("Signed task response header accepted by aggregator.", "reply", reply)
+			c.logger.Info("Signed task response header accepted by aggregator.", "response", response)
 			c.metrics.IncNumTasksAcceptedByAggregator()
+
+			resChan <- alert.AlertResponse{
+				Code:      0,
+				TxHash:    response.TxHash,
+				TaskIndex: signedTaskResponse.Alert.TaskIndex,
+			}
+
 			return
 		}
 		c.logger.Infof("Retrying in 2 seconds")
 		time.Sleep(2 * time.Second)
 	}
 	c.logger.Errorf("Could not send signed task response to aggregator. Tried 5 times.")
+
+	resChan <- alert.AlertResponse{
+		Err: fmt.Errorf("Could not send signed task response to aggregator by %v.", err),
+	}
 }

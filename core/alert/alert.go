@@ -15,7 +15,7 @@ type HexEncodedBytes32 [32]byte
 func (b HexEncodedBytes32) MarshalJSON() ([]byte, error) {
 	hexString := hex.EncodeToString(b[:])
 
-	return json.Marshal(hexString)
+	return json.Marshal(fmt.Sprintf("0x%s", hexString))
 }
 
 func (b *HexEncodedBytes32) UnmarshalJSON(data []byte) (err error) {
@@ -69,6 +69,21 @@ func (b *BigIntJSON) UnmarshalJSON(data []byte) (err error) {
 // The Alert submit to avs
 type Alert interface {
 	MessageHash() [32]byte
+}
+
+// The Alert Request Message
+type AlertRequest struct {
+	Alert   Alert
+	ResChan chan AlertResponse
+}
+
+// The Alert Response Message
+type AlertResponse struct {
+	Code      uint32
+	TxHash    [32]byte
+	TaskIndex uint32
+	Err       error
+	Msg       string
 }
 
 // AlertBlockMismatch is submit alert for verifier found a op block output mismatch.

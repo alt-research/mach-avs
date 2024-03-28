@@ -41,7 +41,7 @@ func operatorMain(ctx *cli.Context) error {
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
-	log.Println("Config:", string(configJson))
+	log.Println("Config from file:", string(configJson))
 
 	log.Println("initializing operator")
 	operator, err := operator.NewOperatorFromConfig(nodeConfig)

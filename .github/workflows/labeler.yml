@@ -1,0 +1,14 @@
+name: Label Issues and PRs
+
+on:
+- pull_request
+- pull_request_review
+- issues
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: srvaroa/labeler@master
+      env:
+        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"

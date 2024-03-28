@@ -1,0 +1,225 @@
+{
+  "categories": [
+    {
+      "title": "## 🚀 Features",
+      "labels": [
+        "feature",
+        "feat"
+      ],
+      "rules": [
+        {
+          "on_property": "branch",
+          "pattern": "^(feat|feature)/.+",
+          "flags": "igu"
+        },
+        {
+          "on_property": "title",
+          "pattern": "^(feat|feature): .+",
+          "flags": "igu"
+        }
+      ]
+    },
+    {
+      "title": "## 🐛 Fixes",
+      "labels": [
+        "fix",
+        "bug",
+        "bugfix"
+      ],
+      "rules": [
+        {
+          "on_property": "branch",
+          "pattern": "^(fix|bug|bugfix)/.+",
+          "flags": "igu"
+        },
+        {
+          "on_property": "title",
+          "pattern": "^(fix|bug|bugfix): .+",
+          "flags": "igu"
+        }
+      ]
+    },
+    {
+      "title": "## 🧪 CI",
+      "labels": [
+        "test",
+        "ci",
+        "build"
+      ],
+      "rules": [
+        {
+          "on_property": "branch",
+          "pattern": "^(test|ci|build)/.+",
+          "flags": "igu"
+        },
+        {
+          "on_property": "title",
+          "pattern": "^(test|ci|build): .+",
+          "flags": "igu"
+        }
+      ]
+    },
+    {
+      "title": "## 💬 Miscellaneous",
+      "labels": [
+        "other",
+        "chore",
+        "misc"
+      ],
+      "rules": [
+        {
+          "on_property": "branch",
+          "pattern": "^(other|chore|misc)/.+",
+          "flags": "igu"
+        },
+        {
+          "on_property": "title",
+          "pattern": "^(other|chore|misc): .+",
+          "flags": "igu"
+        }
+      ]
+    },
+    {
+      "title": "## 📦 Dependencies",
+      "labels": [
+        "dependencies",
+        "deps",
+        "dep"
+      ],
+      "rules": [
+        {
+          "on_property": "branch",
+          "pattern": "^(deps|dep|dependencies)/.+",
+          "flags": "igu"
+        },
+        {
+          "on_property": "title",
+          "pattern": "^(deps|dep|dependencies): .+",
+          "flags": "igu"
+        }
+      ]
+    },
+    {
+      "title": "## 📝 Documentation",
+      "labels": [
+        "docs",
+        "documentation"
+      ],
+      "rules": [
+        {
+          "on_property": "branch",
+          "pattern": "^(docs|documentation)/.+",
+          "flags": "igu"
+        },
+        {
+          "on_property": "title",
+          "pattern": "^(docs|documentation): .+",
+          "flags": "igu"
+        }
+      ]
+    },
+    {
+      "title": "## 🔧 Refactoring",
+      "labels": [
+        "refactor",
+        "refactory",
+        "refactoring"
+      ],
+      "rules": [
+        {
+          "on_property": "branch",
+          "pattern": "^(refactor|refactory|refactoring)/.+",
+          "flags": "igu"
+        },
+        {
+          "on_property": "title",
+          "pattern": "^(refactor|refactory|refactoring): .+",
+          "flags": "igu"
+        }
+      ]
+    },
+    {
+      "title": "## 🧹 Cleanup",
+      "labels": [
+        "cleanup",
+        "clean"
+      ],
+      "rules": [
+        {
+          "on_property": "branch",
+          "pattern": "^(cleanup|clean)/.+",
+          "flags": "igu"
+        },
+        {
+          "on_property": "title",
+          "pattern": "^(cleanup|clean): .+",
+          "flags": "igu"
+        }
+      ]
+    },
+    {
+      "title": "## 🚨 Breaking Changes",
+      "labels": [
+        "breaking",
+        "breaking-change",
+        "breaking-changes",
+        "breaking change",
+        "breaking changes"
+      ],
+      "rules": [
+        {
+          "on_property": "branch",
+          "pattern": "^(breaking|breaking-change|breaking-changes|breaking change|breaking changes)/.+",
+          "flags": "igu"
+        },
+        {
+          "on_property": "title",
+          "pattern": "^(breaking|breaking-change|breaking-changes|breaking change|breaking changes): .+",
+          "flags": "igu"
+        }
+      ]
+    },
+    {
+      "title": "## ❤️ Runtime Changes",
+      "labels": [
+        "runtime"
+      ],
+      "rules": [
+        {
+          "on_property": "branch",
+          "pattern": "^(runtime)/.+",
+          "flags": "igu"
+        },
+        {
+          "on_property": "title",
+          "pattern": "^(runtime): .+",
+          "flags": "igu"
+        }
+      ]
+    }
+  ],
+  "label_extractor": [
+    {
+      "pattern": "(.+) (.+)",
+      "on_property": "title",
+      "target": "$1",
+      "flags": "gu"
+    },
+    {
+      "pattern": "(.+)\\/(.+)",
+      "target": "$1",
+      "flags": "igu",
+      "on_property": "branch",
+      "method": "match"
+    }
+  ],
+  "ignore_labels": [
+    "ignore"
+  ],
+  "sort": "ASC",
+  "template": "${{RELEASE_DIFF}}\n${{CHANGELOG}}",
+  "pr_template": "- ${{TITLE}} (#${{NUMBER}}) @${{AUTHOR}}",
+  "empty_template": "- no changes",
+  "max_pull_requests": 1000,
+  "max_back_track_time_days": 1000
+}

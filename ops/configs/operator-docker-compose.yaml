@@ -2,8 +2,8 @@
 production: true
 
 # ETH RPC URL
-eth_rpc_url: http://localhost:8545
-eth_ws_url: ws://localhost:8545
+eth_rpc_url: http://anvil:8545
+eth_ws_url: ws://anvil:8545
 
 # If you running this using eigenlayer CLI and the provided AVS packaging structure,
 # this should be /operator_keys/ecdsa_key.json as the host path will be asked while running
@@ -19,12 +19,12 @@ ecdsa_private_key_store_path: ./config-files/key/test1.ecdsa.key.json
 # If you are running locally using go run main.go, this should be full path to your local bls key file
 bls_private_key_store_path: ./config-files/key/test1.bls.key.json
 
-aggregator_server_ip_port_address: localhost:8090
+aggregator_server_ip_port_address: aggregator:8090
 
 # avs node spec compliance https://eigen.nethermind.io/docs/spec/intro
-eigen_metrics_ip_port_address: localhost:9090
+eigen_metrics_ip_port_address: 0.0.0.0:9090
 enable_metrics: true
-node_api_ip_port_address: localhost:9010
+node_api_ip_port_address: 0.0.0.0:9010
 enable_node_api: true
 
 # EigenLayer Slasher contract address
@@ -33,4 +33,4 @@ enable_node_api: true
 avs_registry_coordinator_address: 0xa82fF9aFd8f496c3d6ac40E2a0F282E47488CFc9
 operator_state_retriever_address: 0x0E801D84Fa97b50751Dbf25036d067dCf18858bF
 
-operator_server_ip_port_addr: localhost:8091
+operator_server_ip_port_addr: 0.0.0.0:8091

@@ -1,0 +1,73 @@
+# https://github.com/srvaroa/labeler
+version: 1
+issues: true
+labels:
+  - label: "XS"
+    size: { below: 10 }
+  - label: "S"
+    size: { above: 10, below: 50 }
+  - label: "M"
+    size: { above: 50, below: 200 }
+  - label: "L"
+    size: { above: 200, below: 500 }
+  - label: "XL"
+    size: { above: 500 }
+
+  - label: WIP
+    title: (?mi)\s*(wip|in progress)\s*
+
+  - label: mergeable
+    mergeable: true
+
+  - label: bug
+    title: (?mi)^\s*(bugfix|fix|bug)\W
+  - label: bug
+    branch: (?mi)^(bugfix|fix|bug)/
+
+  - label: feature
+    title: (?mi)^\s*(feature|feat)\W
+  - label: feature
+    branch: (?mi)^(feature|feat)/
+
+  - label: breaking
+    title: (?mi)^\s*(breaking)\W
+
+  - label: dependencies
+    title: (?mi)^\s*(dependencies|deps|dep)\W
+  - label: dependencies
+    branch: (?mi)^(dependencies|deps|dep)/
+  - label: dependencies
+    files:
+      - Cargo.lock
+      - rust-toolchain\.toml
+
+  - label: documentation
+    title: (?mi)^\s*(documentation|docs|doc)\W
+  - label: documentation
+    branch: (?mi)^(documentation|docs|doc)/
+
+  - label: chore
+    title: (?mi)^\s*(chore|misc)\W
+  - label: chore
+    branch: (?mi)^(chore|misc)/
+
+  - label: ci
+    title: "(?mi)(ci|deploy):"
+  - label: ci
+    branch: (?mi)^(ci|deploy)/
+  - label: ci
+    files:
+      - \.github/.*
+      - Dockerfile
+
+  - label: release
+    title: (?mi)^\s*(release|releasing)\W
+  - label: release
+    branch: (?mi)^(release|releasing)\W
+
+  - label: runtime
+    title: (?mi)^\s*(runtime)\W
+  - label: runtime
+    branch: (?mi)^(runtime)/
+  - label: runtime
+    files: [runtime/.*]

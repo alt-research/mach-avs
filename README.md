@@ -154,3 +154,14 @@ The verifier codebase is found at [https://github.com/alt-research/mach](https:/
 ## Deployment scripts for running within local devnet
 
 Check out [scripts](scripts)
+
+## Build a devnet by docker-compose
+
+For devnet, we can use docker-compose:
+
+```bash
+docker compose build
+docker compose up
+```
+
+it will boot anvil as layer1, a aggregator and a operator for test.

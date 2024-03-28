@@ -2,7 +2,9 @@ package operator
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 
@@ -62,12 +64,105 @@ type Operator struct {
 	serviceManagerAddr common.Address
 }
 
+// use the env config first for some keys
+func withEnvConfig(c config.NodeConfig) config.NodeConfig {
+	// This keys can use the environment:
+	//
+	// - `ETH_RPC_URL` : eth_rpc_url
+	// - `ETH_WS_URL` : eth_ws_url
+	// - `ECDSA_PRIVATE_KEY_PATH` : ecdsa_private_key_store_path
+	// - `BLS_PRIVATE_KEY_PATH` : bls_private_key_store_path
+	// - `AGGREGATOR_SERVER_URL` : eth_rpc_url
+	// - `EIGEN_METRICS_URL` : eigen_metrics_ip_port_address
+	// - `NODE_API_URL` : node_api_ip_port_address
+	// - `ENABLE_METRICS` : enable_metrics
+	// - `ENABLE_NODE_API` : enable_node_api
+	// - `AVS_REGISTRY_COORDINATOR_ADDRESS` : avs_registry_coordinator_address
+	// - `OPERATOR_STATE_RETRIEVER_ADDRESS` : operator_state_retriever_address
+	// - `OPERATOR_SERVER_URL` : operator_server_ip_port_addr
+	// - `METADATA_URI` : metadata_uri
+
+	ethRpcUrl, ok := os.LookupEnv("ETH_RPC_URL")
+	if ok && ethRpcUrl != "" {
+		c.EthRpcUrl = ethRpcUrl
+	}
+
+	EthWsUrl, ok := os.LookupEnv("ETH_WS_URL")
+	if ok && EthWsUrl != "" {
+		c.EthWsUrl = EthWsUrl
+	}
+
+	ecdsaPrivateKeyStorePath, ok := os.LookupEnv("ECDSA_PRIVATE_KEY_PATH")
+	if ok && ecdsaPrivateKeyStorePath != "" {
+		c.EcdsaPrivateKeyStorePath = ecdsaPrivateKeyStorePath
+	}
+
+	blsPrivateKeyStorePath, ok := os.LookupEnv("BLS_PRIVATE_KEY_PATH")
+	if ok && blsPrivateKeyStorePath != "" {
+		c.BlsPrivateKeyStorePath = blsPrivateKeyStorePath
+	}
+
+	aggregatorServerIpPortAddress, ok := os.LookupEnv("AGGREGATOR_SERVER_URL")
+	if ok && aggregatorServerIpPortAddress != "" {
+		c.AggregatorServerIpPortAddress = aggregatorServerIpPortAddress
+	}
+
+	eigenMetricsIpPortAddress, ok := os.LookupEnv("EIGEN_METRICS_URL")
+	if ok && eigenMetricsIpPortAddress != "" {
+		c.EigenMetricsIpPortAddress = eigenMetricsIpPortAddress
+	}
+
+	nodeApiIpPortAddress, ok := os.LookupEnv("NODE_API_URL")
+	if ok && nodeApiIpPortAddress != "" {
+		c.NodeApiIpPortAddress = nodeApiIpPortAddress
+	}
+
+	enableMetrics, ok := os.LookupEnv("ENABLE_METRICS")
+	if ok && enableMetrics != "" {
+		c.EnableMetrics = enableMetrics == "true"
+	}
+
+	enableNodeApi, ok := os.LookupEnv("ENABLE_NODE_API")
+	if ok && enableNodeApi != "" {
+		c.EnableNodeApi = enableNodeApi == "true"
+	}
+
+	aVSRegistryCoordinatorAddress, ok := os.LookupEnv("AVS_REGISTRY_COORDINATOR_ADDRESS")
+	if ok && aVSRegistryCoordinatorAddress != "" {
+		c.AVSRegistryCoordinatorAddress = aVSRegistryCoordinatorAddress
+	}
+
+	operatorStateRetrieverAddress, ok := os.LookupEnv("OPERATOR_STATE_RETRIEVER_ADDRESS")
+	if ok && operatorStateRetrieverAddress != "" {
+		c.OperatorStateRetrieverAddress = operatorStateRetrieverAddress
+	}
+
+	operatorServerIpPortAddr, ok := os.LookupEnv("OPERATOR_SERVER_URL")
+	if ok && operatorServerIpPortAddr != "" {
+		c.OperatorServerIpPortAddr = operatorServerIpPortAddr
+	}
+
+	metadataURI, ok := os.LookupEnv("METADATA_URI")
+	if ok && metadataURI != "" {
+		c.MetadataURI = metadataURI
+	}
+
+	configJson, err := json.MarshalIndent(c, "", "  ")
+	if err != nil {
+		panic(err)
+	}
+
+	log.Println("Config Env:", string(configJson))
+
+	return c
+}
+
 // TODO(samlaf): config is a mess right now, since the chainio client constructors
 //
 //	take the config in core (which is shared with aggregator and challenger)
-func NewOperatorFromConfig(c config.NodeConfig) (*Operator, error) {
+func NewOperatorFromConfig(cfg config.NodeConfig) (*Operator, error) {
 	var logLevel logging.LogLevel
-	if c.Production {
+	if cfg.Production {
 		logLevel = sdklogging.Production
 	} else {
 		logLevel = sdklogging.Development
@@ -76,6 +171,9 @@ func NewOperatorFromConfig(c config.NodeConfig) (*Operator, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	c := withEnvConfig(cfg)
+
 	reg := prometheus.NewRegistry()
 	eigenMetrics := sdkmetrics.NewEigenMetrics(AVS_NAME, c.EigenMetricsIpPortAddress, reg, logger)
 	avsAndEigenMetrics := metrics.NewAvsAndEigenMetrics(AVS_NAME, eigenMetrics, reg)

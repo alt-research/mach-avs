@@ -68,12 +68,42 @@ func NewConfig(ctx *cli.Context) (*Config, error) {
 		sdkutils.ReadYamlConfig(configFilePath, &configRaw)
 	}
 
-	var deploymentRaw MachAvsDeploymentRaw
-	deploymentFilePath := ctx.GlobalString(DeploymentFileFlag.Name)
-	if _, err := os.Stat(deploymentFilePath); errors.Is(err, os.ErrNotExist) {
-		panic("Path " + deploymentFilePath + " does not exist")
+	ethRpcUrl, ok := os.LookupEnv("ETH_RPC_URL")
+	if ok && ethRpcUrl != "" {
+		configRaw.EthRpcUrl = ethRpcUrl
 	}
-	sdkutils.ReadJsonConfig(deploymentFilePath, &deploymentRaw)
+
+	EthWsUrl, ok := os.LookupEnv("ETH_WS_URL")
+	if ok && EthWsUrl != "" {
+		configRaw.EthWsUrl = EthWsUrl
+	}
+
+	aggregatorServerIpPortAddress, ok := os.LookupEnv("AGGREGATOR_SERVER_URL")
+	if ok && aggregatorServerIpPortAddress != "" {
+		configRaw.AggregatorServerIpPortAddr = aggregatorServerIpPortAddress
+	}
+
+	var deploymentRaw MachAvsDeploymentRaw
+
+	avsRegistryCoordinatorAddress, rcOk := os.LookupEnv("AVS_REGISTRY_COORDINATOR_ADDRESS")
+	operatorStateRetrieverAddress, osOk := os.LookupEnv("OPERATOR_STATE_RETRIEVER_ADDRESS")
+
+	if rcOk && osOk && avsRegistryCoordinatorAddress != "" && operatorStateRetrieverAddress != "" {
+		deploymentRaw.OperatorStateRetrieverAddr = operatorStateRetrieverAddress
+		deploymentRaw.RegistryCoordinatorAddr = avsRegistryCoordinatorAddress
+	} else {
+		deploymentFilePath := ctx.GlobalString(DeploymentFileFlag.Name)
+		if deploymentFilePath == "" {
+			panic("If not use env `AVS_REGISTRY_COORDINATOR_ADDRESS` and `OPERATOR_STATE_RETRIEVER_ADDRESS`, should use --avs-deployment to use config for avs contract addresses!")
+		}
+
+		if _, err := os.Stat(deploymentFilePath); errors.Is(err, os.ErrNotExist) {
+			panic("Path " + deploymentFilePath + " does not exist")
+		}
+		if err := sdkutils.ReadJsonConfig(deploymentFilePath, &deploymentRaw); err != nil {
+			panic(err)
+		}
+	}
 
 	logger, err := sdklogging.NewZapLogger(configRaw.Environment)
 	if err != nil {
@@ -162,7 +192,7 @@ var (
 	}
 	DeploymentFileFlag = cli.StringFlag{
 		Name:     "avs-deployment",
-		Required: true,
+		Required: false,
 		Usage:    "Load avs contract addresses from `FILE`",
 	}
 	EcdsaPrivateKeyFlag = cli.StringFlag{

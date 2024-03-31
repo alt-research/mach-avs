@@ -20,7 +20,7 @@ abstract contract MachServiceManagerStorage {
     EnumerableSet.AddressSet internal _operators;
 
     /// @notice Set of operators that are allowed to register
-    mapping(address => bool) internal _allowlist;
+    mapping(address => bool) public allowlist;
 
     /// @notice address that is permissioned to confirm alerts
     address public alertConfirmer;

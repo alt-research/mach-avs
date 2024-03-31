@@ -94,10 +94,10 @@ contract MachServiceManager is
         if (operator == address(0)) {
             revert ZeroAddress();
         }
-        if (_allowlist[operator]) {
+        if (allowlist[operator]) {
             revert AlreadyInAllowlist();
         }
-        _allowlist[operator] = true;
+        allowlist[operator] = true;
         emit OperatorAllowed(operator);
     }
 
@@ -106,10 +106,10 @@ contract MachServiceManager is
      * @param operator The operator to remove
      */
     function removeFromAllowlist(address operator) external onlyOwner {
-        if (!_allowlist[operator]) {
+        if (!allowlist[operator]) {
             revert NotInAllowlist();
         }
-        _allowlist[operator] = false;
+        allowlist[operator] = false;
         emit OperatorDisallowed(operator);
     }
 
@@ -160,7 +160,7 @@ contract MachServiceManager is
         address operator,
         ISignatureUtils.SignatureWithSaltAndExpiry memory operatorSignature
     ) public override(ServiceManagerBase, IServiceManager) whenNotPaused onlyRegistryCoordinator {
-        if (allowlistEnabled && !_allowlist[operator]) {
+        if (allowlistEnabled && !allowlist[operator]) {
             revert NotInAllowlist();
         }
         _avsDirectory.registerOperatorToAVS(operator, operatorSignature);

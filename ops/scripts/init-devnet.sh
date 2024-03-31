@@ -21,6 +21,7 @@ AVS_ADDRESS_PATH='./contracts/script/output/machavs_deploy_output.json'
 UNDERLAYING_TOKEN=$(cat $EIGENLAYER_ADDRESS_PATH | jq -r '.underlayingToken' )
 REGISTRY_COORDINATOR_ADDR=$(cat $AVS_ADDRESS_PATH | jq -r '.registryCoordinator' )
 OPERATOR_STATE_RETRIEVER_ADDR=$(cat $AVS_ADDRESS_PATH | jq -r '.operatorStateRetriever' )
+MACH_AVS_ADDR=$(cat $AVS_ADDRESS_PATH | jq -r '.machServiceManager' )
 STRATEGY_BASE_TVL_LIMITS_ADDR=$(cat $EIGENLAYER_ADDRESS_PATH | jq -r '.strategyBaseTVLLimits' )
 
 cast send  -f $OWNER_ADDR --private-key $OWNER_PRIVATE --rpc-url $RPC_URL --value 2ether $OPERATOR_ADDR
@@ -32,6 +33,9 @@ sed -i 's/operator_state_retriever_address: .\+/operator_state_retriever_address
 sed -i 's/ecdsa_private_key_store_path: .\+/ecdsa_private_key_store_path: .\/config-files\/key\/'${OPERATOR_KEY_NAME}'.ecdsa.key.json/g' ./ops/configs/operator-docker-compose.yaml
 sed -i 's/bls_private_key_store_path: .\+/bls_private_key_store_path: .\/config-files\/key\/'${OPERATOR_KEY_NAME}'.bls.key.json/g' ./ops/configs/operator-docker-compose.yaml
 sed -i 's/metadata_uri: .\+/metadata_uri: '${METADATA_URI}'/g' ./ops/configs/operator-docker-compose.yaml
+
+# disable the allow list, so we can test easy.
+cast send  -f $OWNER_ADDR --private-key $OWNER_PRIVATE $MACH_AVS_ADDR --rpc-url $RPC_URL 'disableAllowlist()'
 
 ./bin/mach-operator-cli --config ./ops/configs/operator-docker-compose.yaml rel
 ./bin/mach-operator-cli --config ./ops/configs/operator-docker-compose.yaml d --strategy-addr $STRATEGY_BASE_TVL_LIMITS_ADDR --amount 10000000

@@ -448,3 +448,7 @@ func (o *Operator) SignTaskResponse(taskResponse *message.AlertTaskInfo) (*messa
 	o.logger.Debug("Signed task response", "signedTaskResponse", signedTaskResponse)
 	return signedTaskResponse, nil
 }
+
+func (o Operator) Config() config.NodeConfig {
+	return o.config
+}

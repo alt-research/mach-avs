@@ -187,7 +187,7 @@ var (
 	/* Required Flags */
 	ConfigFileFlag = cli.StringFlag{
 		Name:     "config",
-		Required: true,
+		Required: false,
 		Usage:    "Load configuration from `FILE`",
 	}
 	DeploymentFileFlag = cli.StringFlag{

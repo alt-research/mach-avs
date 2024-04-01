@@ -82,6 +82,11 @@ func withEnvConfig(c config.NodeConfig) config.NodeConfig {
 	// - `OPERATOR_SERVER_URL` : operator_server_ip_port_addr
 	// - `METADATA_URI` : metadata_uri
 
+	Production, ok := os.LookupEnv("OPERATOR_PRODUCTION")
+	if ok && Production != "" {
+		c.Production = Production == "true"
+	}
+
 	ethRpcUrl, ok := os.LookupEnv("ETH_RPC_URL")
 	if ok && ethRpcUrl != "" {
 		c.EthRpcUrl = ethRpcUrl

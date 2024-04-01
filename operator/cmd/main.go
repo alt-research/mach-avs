@@ -33,15 +33,18 @@ func operatorMain(ctx *cli.Context) error {
 	log.Println("Initializing Operator")
 	configPath := ctx.GlobalString(config.ConfigFileFlag.Name)
 	nodeConfig := config.NodeConfig{}
-	err := sdkutils.ReadYamlConfig(configPath, &nodeConfig)
-	if err != nil {
-		return err
+
+	if configPath != "" {
+		err := sdkutils.ReadYamlConfig(configPath, &nodeConfig)
+		if err != nil {
+			return err
+		}
+		configJson, err := json.MarshalIndent(nodeConfig, "", "  ")
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
+		log.Println("Config from file:", string(configJson))
 	}
-	configJson, err := json.MarshalIndent(nodeConfig, "", "  ")
-	if err != nil {
-		log.Fatalf(err.Error())
-	}
-	log.Println("Config from file:", string(configJson))
 
 	log.Println("initializing operator")
 	operator, err := operator.NewOperatorFromConfig(nodeConfig)

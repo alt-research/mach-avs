@@ -52,7 +52,7 @@ func (o *Operator) RegisterOperatorWithAvs(
 ) error {
 	// hardcode these things for now
 	quorumNumbers := []byte{0}
-	socket := "Not Needed"
+	socket := o.config.OperatorSocket
 	operatorToAvsRegistrationSigSalt := [32]byte{123}
 	curBlockNum, err := o.ethClient.BlockNumber(context.Background())
 	if err != nil {
@@ -89,6 +89,36 @@ func (o *Operator) RegisterOperatorWithAvs(
 		return err
 	}
 	o.logger.Infof("Registered operator with avs registry coordinator.")
+
+	return nil
+}
+
+// Deregistration specific functions
+func (o *Operator) DeregisterOperatorWithAvs() error {
+	// hardcode these things for now
+	quorumNumbers := []byte{0}
+	operatorAddr := o.operatorAddr
+	o.logger.Info(
+		"DeregisterOperatorFromAvs",
+		"quorumNumbers", quorumNumbers[0],
+		"operatorAddr", operatorAddr,
+	)
+
+	quorumNumbersToSDK := make([]sdktypes.QuorumNum, len(quorumNumbers))
+	for i, _ := range quorumNumbers {
+		quorumNumbersToSDK[i] = sdktypes.QuorumNum(uint8(quorumNumbers[i]))
+	}
+
+	_, err := o.avsWriter.DeregisterOperator(
+		context.Background(),
+		quorumNumbersToSDK,
+		regcoord.BN254G1Point{},
+	)
+	if err != nil {
+		o.logger.Error("Unable to deregister operator with avs registry coordinator", err)
+		return err
+	}
+	o.logger.Infof("Deregister operator with avs registry coordinator.")
 
 	return nil
 }

@@ -47,10 +47,7 @@ func main() {
 		{
 			Name:    "deregister-operator-with-avs",
 			Aliases: []string{"d"},
-			Action: func(ctx *cli.Context) error {
-				log.Fatal("Command not implemented.")
-				return nil
-			},
+			Action:  actions.DeregisterOperatorWithAvs,
 		},
 		{
 			Name:    "print-operator-status",

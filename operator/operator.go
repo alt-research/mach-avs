@@ -152,6 +152,11 @@ func withEnvConfig(c config.NodeConfig) config.NodeConfig {
 		c.MetadataURI = metadataURI
 	}
 
+	operatorSocket, ok := os.LookupEnv("OPERATOR_SOCKET")
+	if ok && operatorSocket != "" {
+		c.OperatorSocket = operatorSocket
+	}
+
 	configJson, err := json.MarshalIndent(c, "", "  ")
 	if err != nil {
 		panic(err)

@@ -12,9 +12,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/big"
+	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
 
 	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
 	eigenSdkTypes "github.com/Layr-Labs/eigensdk-go/types"
@@ -53,7 +55,14 @@ func (o *Operator) RegisterOperatorWithAvs(
 	// hardcode these things for now
 	quorumNumbers := []byte{0}
 	socket := o.config.OperatorSocket
-	operatorToAvsRegistrationSigSalt := [32]byte{123}
+
+	// Generate salt and expiry
+	privateKeyBytes := []byte(o.blsKeypair.PrivKey.String())
+	salt := [32]byte{}
+	copy(salt[:], crypto.Keccak256([]byte("churn"), []byte(time.Now().String()), quorumNumbers[:], privateKeyBytes))
+
+	operatorToAvsRegistrationSigSalt := salt
+
 	curBlockNum, err := o.ethClient.BlockNumber(context.Background())
 	if err != nil {
 		o.logger.Errorf("Unable to get current block number")

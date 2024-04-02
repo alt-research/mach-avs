@@ -15,7 +15,7 @@ abstract contract MachServiceManagerStorage {
     uint256 public constant THRESHOLD_DENOMINATOR = 100;
 
     /// @notice Rollup chain id, it is different from block.chainid
-    uint256 public immutable chainId;
+    uint256 public immutable rollupChainId;
 
     EnumerableSet.Bytes32Set internal _messageHashes;
 
@@ -38,7 +38,7 @@ abstract contract MachServiceManagerStorage {
     // slither-disable-next-line shadowing-state
     uint256[46] private __GAP;
 
-    constructor(uint256 _chainId) {
-        chainId = _chainId;
+    constructor(uint256 _rollupChainId) {
+        rollupChainId = _rollupChainId;
     }
 }

@@ -81,7 +81,7 @@ func (c *AggregatorRpcClient) InitOperatorToAggregator() error {
 	c.logger.Info("Create task header to aggregator", "req", fmt.Sprintf("%#v", req))
 
 	for i := 0; i < 5; i++ {
-		err := c.rpcClient.Call("Aggregator.CreateTask", req, &reply)
+		err := c.rpcClient.Call("Aggregator.InitOperator", req, &reply)
 		if err != nil {
 			c.logger.Info("Received error from aggregator", "err", err)
 			if strings.Contains(err.Error(), "already finished") {

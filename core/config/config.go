@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"errors"
+	"fmt"
 	"os"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -36,6 +37,8 @@ type Config struct {
 	OperatorStateRetrieverAddr common.Address
 	RegistryCoordinatorAddr    common.Address
 	AggregatorServerIpPortAddr string
+	Layer1ChainId              uint32
+	Layer2ChainId              uint32
 	// json:"-" skips this field when marshaling (only used for logging to stdout), since SignerFn doesnt implement marshalJson
 	SignerFn          signerv2.SignerFn `json:"-"`
 	PrivateKey        *ecdsa.PrivateKey `json:"-"`
@@ -49,6 +52,8 @@ type ConfigRaw struct {
 	EthRpcUrl                  string              `yaml:"eth_rpc_url"`
 	EthWsUrl                   string              `yaml:"eth_ws_url"`
 	AggregatorServerIpPortAddr string              `yaml:"aggregator_server_ip_port_address"`
+	Layer1ChainId              uint32              `yaml:"layer1_chain_id"`
+	Layer2ChainId              uint32              `yaml:"layer2_chain_id"`
 }
 
 // These are read from DeploymentFileFlag
@@ -116,6 +121,17 @@ func NewConfig(ctx *cli.Context) (*Config, error) {
 		return nil, err
 	}
 
+	layer1ChainIdFromRpc, err := ethRpcClient.ChainID(context.Background())
+	if err != nil {
+		logger.Errorf("Cannot got chain id from eth rpc client", "err", err)
+		return nil, err
+	}
+
+	if layer1ChainIdFromRpc.Uint64() != uint64(configRaw.Layer1ChainId) {
+		logger.Errorf("The layer1 chain id not expect", "layer1 rpc", layer1ChainIdFromRpc, "config", configRaw.Layer1ChainId)
+		return nil, fmt.Errorf("layer1 chain id not expect")
+	}
+
 	ethWsClient, err := eth.NewClient(configRaw.EthWsUrl)
 	if err != nil {
 		logger.Errorf("Cannot create ws ethclient", "err", err)
@@ -168,6 +184,8 @@ func NewConfig(ctx *cli.Context) (*Config, error) {
 		PrivateKey:                 ecdsaPrivateKey,
 		TxMgr:                      txMgr,
 		AggregatorAddress:          aggregatorAddr,
+		Layer1ChainId:              configRaw.Layer1ChainId,
+		Layer2ChainId:              configRaw.Layer2ChainId,
 	}
 	config.validate()
 	return config, nil

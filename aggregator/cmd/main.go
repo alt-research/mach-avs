@@ -21,7 +21,6 @@ var (
 )
 
 func main() {
-
 	app := cli.NewApp()
 	app.Flags = config.Flags
 	app.Version = fmt.Sprintf("%s-%s-%s", Version, GitCommit, GitDate)
@@ -37,7 +36,6 @@ func main() {
 }
 
 func aggregatorMain(ctx *cli.Context) error {
-
 	log.Println("Initializing Aggregator")
 	config, err := config.NewConfig(ctx)
 	if err != nil {
@@ -60,5 +58,4 @@ func aggregatorMain(ctx *cli.Context) error {
 	}
 
 	return nil
-
 }

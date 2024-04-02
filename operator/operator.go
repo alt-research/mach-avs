@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -157,6 +158,26 @@ func withEnvConfig(c config.NodeConfig) config.NodeConfig {
 		c.OperatorSocket = operatorSocket
 	}
 
+	layer1ChainId, ok := os.LookupEnv("LAYER1_CHAIN_ID")
+	if ok && layer1ChainId != "" {
+		layer1ChainId, err := strconv.Atoi(layer1ChainId)
+		if err != nil {
+			panic(fmt.Sprintf("layer1_chain_id parse error: %v", err))
+		}
+
+		c.Layer1ChainId = uint32(layer1ChainId)
+	}
+
+	layer2ChainId, ok := os.LookupEnv("LAYER2_CHAIN_ID")
+	if ok && layer2ChainId != "" {
+		layer2ChainId, err := strconv.Atoi(layer2ChainId)
+		if err != nil {
+			panic(fmt.Sprintf("layer2_chain_id parse error: %v", err))
+		}
+
+		c.Layer2ChainId = uint32(layer2ChainId)
+	}
+
 	configJson, err := json.MarshalIndent(c, "", "  ")
 	if err != nil {
 		panic(err)
@@ -299,7 +320,14 @@ func NewOperatorFromConfig(cfg config.NodeConfig) (*Operator, error) {
 		AVS_NAME, logger, operatorAddress, quorumNames)
 	reg.MustRegister(economicMetricsCollector)
 
-	aggregatorRpcClient, err := NewAggregatorRpcClient(c.AggregatorServerIpPortAddress, logger, avsAndEigenMetrics)
+	// OperatorId is set in contract during registration so we get it after registering operator.
+	operatorId, err := sdkClients.AvsRegistryChainReader.GetOperatorId(&bind.CallOpts{}, operatorAddress)
+	if err != nil {
+		logger.Error("Cannot get operator id", "err", err)
+		return nil, err
+	}
+
+	aggregatorRpcClient, err := NewAggregatorRpcClient(c, operatorId, operatorAddress, logger, avsAndEigenMetrics)
 	if err != nil {
 		logger.Error("Cannot create AggregatorRpcClient. Is aggregator running?", "err", err)
 		return nil, err
@@ -331,17 +359,9 @@ func NewOperatorFromConfig(cfg config.NodeConfig) (*Operator, error) {
 		newTaskCreatedChan:         newTaskCreatedChan,
 		serviceManagerAddr:         common.HexToAddress(c.AVSRegistryCoordinatorAddress),
 		metadataURI:                c.MetadataURI,
-		operatorId:                 [32]byte{0}, // this is set below
-
+		operatorId:                 operatorId,
 	}
 
-	// OperatorId is set in contract during registration so we get it after registering operator.
-	operatorId, err := sdkClients.AvsRegistryChainReader.GetOperatorId(&bind.CallOpts{}, operator.operatorAddr)
-	if err != nil {
-		logger.Error("Cannot get operator id", "err", err)
-		return nil, err
-	}
-	operator.operatorId = operatorId
 	logger.Info("Operator info",
 		"operatorId", operatorId,
 		"operatorAddr", operatorAddress,
@@ -367,6 +387,14 @@ func (o *Operator) Start(ctx context.Context) error {
 	}
 
 	o.logger.Infof("Starting operator.")
+
+	o.logger.Infof("Init operator to aggregator.")
+	err = o.aggregatorRpcClient.InitOperatorToAggregator()
+	if err != nil {
+		o.logger.Errorf("Init operator to aggregator failed: %v", err)
+		return err
+	}
+	o.logger.Infof("Init operator to aggregator succeeded.")
 
 	if o.config.EnableNodeApi {
 		o.nodeApi.Start()

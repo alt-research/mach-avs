@@ -16,4 +16,5 @@ type NodeConfig struct {
 	EnableNodeApi                 bool   `yaml:"enable_node_api"`
 	OperatorServerIpPortAddr      string `yaml:"operator_server_ip_port_addr"`
 	MetadataURI                   string `yaml:"metadata_uri"`
+	OperatorSocket                string `yaml:"operator_socket"`
 }

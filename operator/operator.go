@@ -82,6 +82,11 @@ func withEnvConfig(c config.NodeConfig) config.NodeConfig {
 	// - `OPERATOR_SERVER_URL` : operator_server_ip_port_addr
 	// - `METADATA_URI` : metadata_uri
 
+	Production, ok := os.LookupEnv("OPERATOR_PRODUCTION")
+	if ok && Production != "" {
+		c.Production = Production == "true"
+	}
+
 	ethRpcUrl, ok := os.LookupEnv("ETH_RPC_URL")
 	if ok && ethRpcUrl != "" {
 		c.EthRpcUrl = ethRpcUrl
@@ -145,6 +150,11 @@ func withEnvConfig(c config.NodeConfig) config.NodeConfig {
 	metadataURI, ok := os.LookupEnv("METADATA_URI")
 	if ok && metadataURI != "" {
 		c.MetadataURI = metadataURI
+	}
+
+	operatorSocket, ok := os.LookupEnv("OPERATOR_SOCKET")
+	if ok && operatorSocket != "" {
+		c.OperatorSocket = operatorSocket
 	}
 
 	configJson, err := json.MarshalIndent(c, "", "  ")
@@ -442,4 +452,8 @@ func (o *Operator) SignTaskResponse(taskResponse *message.AlertTaskInfo) (*messa
 	}
 	o.logger.Debug("Signed task response", "signedTaskResponse", signedTaskResponse)
 	return signedTaskResponse, nil
+}
+
+func (o Operator) Config() config.NodeConfig {
+	return o.config
 }

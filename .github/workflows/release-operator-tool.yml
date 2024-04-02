@@ -1,4 +1,4 @@
-name: Release Operator
+name: Release Operator Tool
 on:
   push:
     tags: ["*"]
@@ -16,7 +16,7 @@ env:
   SUBWASM_VERSION: v0.20.0
   CARGO_INCREMENTAL: "0"
   CARGO_NET_GIT_FETCH_WITH_CLI: true
-  ECR_REPO: 305587085711.dkr.ecr.us-west-2.amazonaws.com/mach-operator
+  ECR_REPO: 305587085711.dkr.ecr.us-west-2.amazonaws.com/mach-operator-tool
   PUB_REPO: public.ecr.aws
 
 jobs:
@@ -73,7 +73,7 @@ jobs:
         with:
           images: |
             ${{ env.ECR_REPO }}
-            ${{ env.PUB_REPO }}/altlayer/mach-operator
+            ${{ env.PUB_REPO }}/altlayer/mach-operator-tool
           flavor: |
             prefix=
             suffix=
@@ -88,7 +88,7 @@ jobs:
 
       - name: Build operator docker with cache and push images
         uses: docker/build-push-action@v5
-        id: docker_operator_build
+        id: docker_operator_tool_build
         with:
           context: .
           builder: ${{ steps.docker-builder.outputs.name }}
@@ -101,7 +101,7 @@ jobs:
           secret-files: |
             git_config=${{ env.HOME }}/.gitconfig
             git_credentials=${{ env.XDG_CONFIG_HOME }}/git/credentials
-          file: ./ops/operator.Dockerfile
+          file: ops/operator-tool.Dockerfile
           labels:  ${{ steps.operator-meta.outputs.labels }}
           tags: ${{ steps.operator-meta.outputs.tags }}
 

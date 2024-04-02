@@ -14,15 +14,18 @@ func PrintOperatorStatus(ctx *cli.Context) error {
 
 	configPath := ctx.GlobalString(config.ConfigFileFlag.Name)
 	nodeConfig := config.NodeConfig{}
-	err := sdkutils.ReadYamlConfig(configPath, &nodeConfig)
-	if err != nil {
-		return err
+
+	if configPath != "" {
+		err := sdkutils.ReadYamlConfig(configPath, &nodeConfig)
+		if err != nil {
+			return err
+		}
+		configJson, err := json.MarshalIndent(nodeConfig, "", "  ")
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
+		log.Println("Config:", string(configJson))
 	}
-	configJson, err := json.MarshalIndent(nodeConfig, "", "  ")
-	if err != nil {
-		log.Fatalf(err.Error())
-	}
-	log.Println("Config:", string(configJson))
 
 	operator, err := operator.NewOperatorFromConfig(nodeConfig)
 	if err != nil {

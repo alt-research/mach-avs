@@ -20,7 +20,7 @@ services:
   contracts-deploy:
     build:
       context: .
-      dockerfile: contract-deployer.Dockerfile
+      dockerfile: ./ops/contract-deployer.Dockerfile
     container_name: contracts-deploy
     working_dir: /app/
     volumes:

@@ -12,9 +12,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/big"
+	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
 
 	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
 	eigenSdkTypes "github.com/Layr-Labs/eigensdk-go/types"
@@ -52,8 +54,15 @@ func (o *Operator) RegisterOperatorWithAvs(
 ) error {
 	// hardcode these things for now
 	quorumNumbers := []byte{0}
-	socket := "Not Needed"
-	operatorToAvsRegistrationSigSalt := [32]byte{123}
+	socket := o.config.OperatorSocket
+
+	// Generate salt and expiry
+	privateKeyBytes := []byte(o.blsKeypair.PrivKey.String())
+	salt := [32]byte{}
+	copy(salt[:], crypto.Keccak256([]byte("churn"), []byte(time.Now().String()), quorumNumbers[:], privateKeyBytes))
+
+	operatorToAvsRegistrationSigSalt := salt
+
 	curBlockNum, err := o.ethClient.BlockNumber(context.Background())
 	if err != nil {
 		o.logger.Errorf("Unable to get current block number")
@@ -89,6 +98,36 @@ func (o *Operator) RegisterOperatorWithAvs(
 		return err
 	}
 	o.logger.Infof("Registered operator with avs registry coordinator.")
+
+	return nil
+}
+
+// Deregistration specific functions
+func (o *Operator) DeregisterOperatorWithAvs() error {
+	// hardcode these things for now
+	quorumNumbers := []byte{0}
+	operatorAddr := o.operatorAddr
+	o.logger.Info(
+		"DeregisterOperatorFromAvs",
+		"quorumNumbers", quorumNumbers[0],
+		"operatorAddr", operatorAddr,
+	)
+
+	quorumNumbersToSDK := make([]sdktypes.QuorumNum, len(quorumNumbers))
+	for i, _ := range quorumNumbers {
+		quorumNumbersToSDK[i] = sdktypes.QuorumNum(uint8(quorumNumbers[i]))
+	}
+
+	_, err := o.avsWriter.DeregisterOperator(
+		context.Background(),
+		quorumNumbersToSDK,
+		regcoord.BN254G1Point{},
+	)
+	if err != nil {
+		o.logger.Error("Unable to deregister operator with avs registry coordinator", err)
+		return err
+	}
+	o.logger.Infof("Deregister operator with avs registry coordinator.")
 
 	return nil
 }

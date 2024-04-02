@@ -102,7 +102,7 @@ jobs:
           secret-files: |
             git_config=${{ env.HOME }}/.gitconfig
             git_credentials=${{ env.XDG_CONFIG_HOME }}/git/credentials
-          file: aggregator.Dockerfile
+          file: ./ops/aggregator.Dockerfile
           labels:  ${{ steps.aggregator-meta.outputs.labels }}
           tags: ${{ steps.aggregator-meta.outputs.tags }}
 

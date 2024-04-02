@@ -1,8 +1,6 @@
-version: "3"
-
 networks:
   mach-avs-network:
-    name: mach-avs-network
+    name: mach-avs-network-devnet
     driver: bridge
 
 services:

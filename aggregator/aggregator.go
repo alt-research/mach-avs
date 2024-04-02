@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
 	"github.com/Layr-Labs/eigensdk-go/logging"
 	"github.com/ethereum/go-ethereum/common"
 
@@ -41,6 +42,11 @@ type FinishedTaskStatus struct {
 	BlockHash        common.Hash `json:"blockHash,omitempty"`
 	BlockNumber      *big.Int    `json:"blockNumber,omitempty"`
 	TransactionIndex uint        `json:"transactionIndex"`
+}
+
+type OperatorStatus struct {
+	LastTime   int64          `json:"lastTime"`
+	OperatorId bls.OperatorId `json:"operatorId"`
 }
 
 // Aggregator sends tasks (numbers to square) onchain, then listens for operator signed TaskResponses.
@@ -90,6 +96,10 @@ type Aggregator struct {
 	finishedTasksMu       sync.RWMutex
 	nextTaskIndex         types.TaskIndex
 	nextTaskIndexMu       sync.RWMutex
+
+	cfg              *config.Config
+	operatorStatus   map[common.Address]*OperatorStatus
+	operatorStatusMu sync.RWMutex
 }
 
 // NewAggregator creates a new Aggregator with the provided config.
@@ -134,6 +144,8 @@ func NewAggregator(c *config.Config) (*Aggregator, error) {
 		blsAggregationService: blsAggregationService,
 		tasks:                 make(map[types.TaskIndex]*message.AlertTaskInfo),
 		finishedTasks:         make(map[[32]byte]*FinishedTaskStatus),
+		operatorStatus:        make(map[common.Address]*OperatorStatus),
+		cfg:                   c,
 	}, nil
 }
 

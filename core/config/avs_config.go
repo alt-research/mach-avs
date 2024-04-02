@@ -17,4 +17,6 @@ type NodeConfig struct {
 	OperatorServerIpPortAddr      string `yaml:"operator_server_ip_port_addr"`
 	MetadataURI                   string `yaml:"metadata_uri"`
 	OperatorSocket                string `yaml:"operator_socket"`
+	Layer1ChainId                 uint32 `yaml:"layer1_chain_id"`
+	Layer2ChainId                 uint32 `yaml:"layer2_chain_id"`
 }

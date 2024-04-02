@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/rpc"
+	"time"
 
 	"github.com/alt-research/avs/aggregator/types"
 	"github.com/alt-research/avs/core/message"
@@ -72,6 +73,48 @@ func (agg *Aggregator) GetFinishedTaskByAlertHash(alertHash [32]byte) *FinishedT
 	defer agg.finishedTasksMu.RUnlock()
 
 	return agg.finishedTasks[alertHash]
+}
+
+// rpc endpoint which is called by operator
+// will init operator, just for keep config valid
+func (agg *Aggregator) InitOperator(req *message.InitOperatorRequest, reply *message.InitOperatorResponse) error {
+	agg.logger.Infof("Received InitOperator: %#v", req)
+
+	reply.Ok = false
+
+	if agg.cfg.OperatorStateRetrieverAddr != req.OperatorStateRetrieverAddr {
+		reply.Res = fmt.Sprintf("OperatorStateRetrieverAddr invaild, expect %s", agg.cfg.OperatorStateRetrieverAddr.Hex())
+		return nil
+	}
+
+	if agg.cfg.RegistryCoordinatorAddr != req.RegistryCoordinatorAddr {
+		reply.Res = fmt.Sprintf("RegistryCoordinatorAddr invaild, expect %s", agg.cfg.RegistryCoordinatorAddr.Hex())
+		return nil
+	}
+
+	if agg.cfg.Layer1ChainId != req.Layer1ChainId {
+		reply.Res = fmt.Sprintf("Layer1ChainId invaild, expect %d", agg.cfg.Layer1ChainId)
+		return nil
+	}
+
+	if agg.cfg.Layer2ChainId != req.ChainId {
+		reply.Res = fmt.Sprintf("Layer2ChainId invaild, expect %d", agg.cfg.Layer2ChainId)
+		return nil
+	}
+
+	agg.operatorStatusMu.Lock()
+	defer agg.operatorStatusMu.Unlock()
+
+	agg.operatorStatus[req.OperatorAddress] = &OperatorStatus{
+		LastTime:   time.Now().Unix(),
+		OperatorId: req.OperatorId,
+	}
+
+	reply.Ok = true
+
+	agg.logger.Infof("new operator status: %s", req.OperatorAddress.Hex())
+
+	return nil
 }
 
 // rpc endpoint which is called by operator

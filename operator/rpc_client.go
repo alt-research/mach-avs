@@ -7,30 +7,44 @@ import (
 	"time"
 
 	"github.com/alt-research/avs/core/alert"
+	"github.com/alt-research/avs/core/config"
 	"github.com/alt-research/avs/core/message"
 	"github.com/alt-research/avs/metrics"
+	"github.com/ethereum/go-ethereum/common"
 
+	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
 	"github.com/Layr-Labs/eigensdk-go/logging"
 )
 
 type AggregatorRpcClienter interface {
+	InitOperatorToAggregator() error
 	CreateAlertTaskToAggregator(alertHash [32]byte) (*message.AlertTaskInfo, error)
 	SendSignedTaskResponseToAggregator(signedTaskResponse *message.SignedTaskRespRequest, resChan chan alert.AlertResponse)
 }
 type AggregatorRpcClient struct {
-	rpcClient            *rpc.Client
-	metrics              metrics.Metrics
-	logger               logging.Logger
-	aggregatorIpPortAddr string
+	rpcClient                  *rpc.Client
+	metrics                    metrics.Metrics
+	logger                     logging.Logger
+	config                     config.NodeConfig
+	operatorId                 bls.OperatorId
+	operatorAddr               common.Address
+	OperatorStateRetrieverAddr common.Address
+	RegistryCoordinatorAddr    common.Address
+	aggregatorIpPortAddr       string
 }
 
-func NewAggregatorRpcClient(aggregatorIpPortAddr string, logger logging.Logger, metrics metrics.Metrics) (*AggregatorRpcClient, error) {
+func NewAggregatorRpcClient(config config.NodeConfig, operatorId bls.OperatorId, operatorAddr common.Address, logger logging.Logger, metrics metrics.Metrics) (*AggregatorRpcClient, error) {
 	return &AggregatorRpcClient{
 		// set to nil so that we can create an rpc client even if the aggregator is not running
-		rpcClient:            nil,
-		metrics:              metrics,
-		logger:               logger,
-		aggregatorIpPortAddr: aggregatorIpPortAddr,
+		rpcClient:                  nil,
+		metrics:                    metrics,
+		logger:                     logger,
+		config:                     config,
+		operatorId:                 operatorId,
+		operatorAddr:               operatorAddr,
+		OperatorStateRetrieverAddr: common.HexToAddress(config.OperatorStateRetrieverAddress),
+		RegistryCoordinatorAddr:    common.HexToAddress(config.AVSRegistryCoordinatorAddress),
+		aggregatorIpPortAddr:       config.AggregatorServerIpPortAddress,
 	}, nil
 }
 
@@ -41,6 +55,58 @@ func (c *AggregatorRpcClient) dialAggregatorRpcClient() error {
 	}
 	c.rpcClient = client
 	return nil
+}
+
+// CreateAlertTaskToAggregator create a new alert task, if had existing, just return current alert task.
+func (c *AggregatorRpcClient) InitOperatorToAggregator() error {
+	if c.rpcClient == nil {
+		c.logger.Info("rpc client is nil. Dialing aggregator rpc client")
+		err := c.dialAggregatorRpcClient()
+		if err != nil {
+			c.logger.Error("Could not dial aggregator rpc client. Not sending signed task response header to aggregator. Is aggregator running?", "err", err)
+			return err
+		}
+	}
+	// we don't check this bool. It's just needed because rpc.Call requires rpc methods to have a return value
+	var reply message.InitOperatorResponse
+	req := message.InitOperatorRequest{
+		Layer1ChainId:              c.config.Layer1ChainId,
+		ChainId:                    c.config.Layer2ChainId,
+		OperatorId:                 c.operatorId,
+		OperatorAddress:            c.operatorAddr,
+		OperatorStateRetrieverAddr: c.OperatorStateRetrieverAddr,
+		RegistryCoordinatorAddr:    c.RegistryCoordinatorAddr,
+	}
+
+	c.logger.Info("Create task header to aggregator", "req", fmt.Sprintf("%#v", req))
+
+	for i := 0; i < 5; i++ {
+		err := c.rpcClient.Call("Aggregator.InitOperator", req, &reply)
+		if err != nil {
+			c.logger.Info("Received error from aggregator", "err", err)
+			if strings.Contains(err.Error(), "already finished") {
+				return err
+			}
+		} else {
+			c.logger.Info("init operator accepted by aggregator.", "reply", reply)
+			c.metrics.IncNumTasksAcceptedByAggregator()
+
+			if !reply.Ok {
+				if reply.Res != "" {
+					return fmt.Errorf("init operator failed by %s", reply.Res)
+				} else {
+					return fmt.Errorf("init operator failed by unknown")
+				}
+			}
+
+			return nil
+		}
+		c.logger.Infof("Retrying in 2 seconds")
+		time.Sleep(2 * time.Second)
+	}
+	c.logger.Errorf("Could not send init operator to aggregator. Tried 5 times.")
+
+	return fmt.Errorf("Could not send init operator to aggregator")
 }
 
 // CreateAlertTaskToAggregator create a new alert task, if had existing, just return current alert task.

@@ -3,6 +3,7 @@ package message
 import (
 	csservicemanager "github.com/alt-research/avs/contracts/bindings/MachServiceManager"
 	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/common"
 	"golang.org/x/crypto/sha3"
 
 	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
@@ -90,6 +91,22 @@ func (a AlertTaskInfo) ToIMachServiceManagerAlertHeader() csservicemanager.IMach
 		QuorumThresholdPercentages: quorumThresholdPercentages,
 		ReferenceBlockNumber:       uint32(a.ReferenceBlockNumber),
 	}
+}
+
+// The init operator request
+type InitOperatorRequest struct {
+	Layer1ChainId              uint32
+	ChainId                    uint32
+	OperatorId                 bls.OperatorId
+	OperatorAddress            common.Address
+	OperatorStateRetrieverAddr common.Address
+	RegistryCoordinatorAddr    common.Address
+}
+
+// The init operator response
+type InitOperatorResponse struct {
+	Ok  bool
+	Res string
 }
 
 // The Alert task create request

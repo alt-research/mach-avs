@@ -34,3 +34,9 @@ avs_registry_coordinator_address: 0xa82fF9aFd8f496c3d6ac40E2a0F282E47488CFc9
 operator_state_retriever_address: 0x0E801D84Fa97b50751Dbf25036d067dCf18858bF
 
 operator_server_ip_port_addr: 0.0.0.0:8091
+
+# the layer1 chain id the avs contracts in
+layer1_chain_id: 31337
+
+# the layer2 chain id
+layer2_chain_id: 20240219

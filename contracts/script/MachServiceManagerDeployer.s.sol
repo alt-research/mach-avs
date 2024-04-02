@@ -55,6 +55,7 @@ contract MachServiceManagerDeployer is Script {
         address churner;
         address ejector;
         address confirmer;
+        uint256 chainId;
         // from eigenlayer contracts
         address avsDirectory;
         address delegationManager;
@@ -103,6 +104,7 @@ contract MachServiceManagerDeployer is Script {
         addressConfig.churner = msg.sender;
         addressConfig.ejector = msg.sender;
         addressConfig.confirmer = msg.sender;
+        addressConfig.chainId = 1;
         addressConfig.avsDirectory = address(eigenLayerContracts.avsDirectory);
         addressConfig.delegationManager = address(eigenLayerContracts.delegationManager);
 
@@ -206,7 +208,8 @@ contract MachServiceManagerDeployer is Script {
         machServiceContract.machServiceManagerImplementation = new MachServiceManager(
             IAVSDirectory(addressConfig.avsDirectory),
             machServiceContract.registryCoordinator,
-            machServiceContract.stakeRegistry
+            machServiceContract.stakeRegistry,
+            addressConfig.chainId
         );
         // Third, upgrade the proxy contracts to use the correct implementation contracts and initialize them.
         machAVSProxyAdmin.upgradeAndCall(

@@ -61,10 +61,12 @@ contract MachServiceManager is
     constructor(
         IAVSDirectory __avsDirectory,
         IRegistryCoordinator __registryCoordinator,
-        IStakeRegistry __stakeRegistry
+        IStakeRegistry __stakeRegistry,
+        uint256 __chainId
     )
         BLSSignatureChecker(__registryCoordinator)
         ServiceManagerBase(__avsDirectory, __registryCoordinator, __stakeRegistry)
+        MachServiceManagerStorage(__chainId)
     {
         _disableInitializers();
     }

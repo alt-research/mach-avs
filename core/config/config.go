@@ -169,7 +169,7 @@ func NewConfig(ctx *cli.Context) (*Config, error) {
 	if err != nil {
 		return nil, types.WrapError(errors.New("Failed to create transaction sender"), err)
 	}
-	txMgr := txmgr.NewSimpleTxManager(txSender, ethRpcClient, logger, signerV2, aggregatorAddr)
+	txMgr := txmgr.NewSimpleTxManager(txSender, ethRpcClient, logger, aggregatorAddr)
 
 	config := &Config{
 		Logger:                     logger,

@@ -1,7 +1,10 @@
 package operator
 
 import (
+	"crypto/tls"
 	"fmt"
+	"io"
+	"net"
 	"net/rpc"
 	"strings"
 	"time"
@@ -48,13 +51,19 @@ func NewAggregatorRpcClient(config config.NodeConfig, operatorId bls.OperatorId,
 	}, nil
 }
 
-func (c *AggregatorRpcClient) dialAggregatorRpcClient() error {
-	client, err := rpc.DialHTTP("tcp", c.aggregatorIpPortAddr)
+func (c *AggregatorRpcClient) dialAggregatorRpcClient() (err error) {
+	var conn io.ReadWriteCloser
+	conn, err = tls.Dial("tcp", c.aggregatorIpPortAddr, &tls.Config{})
 	if err != nil {
-		return err
+		if _, ok := err.(tls.RecordHeaderError); !ok {
+			return err
+		}
+		// retry connect without tls
+		conn, err = net.Dial("tcp", c.aggregatorIpPortAddr)
 	}
+	client := rpc.NewClient(conn)
 	c.rpcClient = client
-	return nil
+	return
 }
 
 // CreateAlertTaskToAggregator create a new alert task, if had existing, just return current alert task.

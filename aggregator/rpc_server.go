@@ -110,6 +110,8 @@ func (agg *Aggregator) InitOperator(req *message.InitOperatorRequest, reply *mes
 		OperatorId: req.OperatorId,
 	}
 
+	reply.Ok = true
+
 	agg.logger.Infof("new operator status: %s", req.OperatorAddress.Hex())
 
 	return nil

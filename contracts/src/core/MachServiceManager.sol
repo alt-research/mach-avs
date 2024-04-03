@@ -78,7 +78,7 @@ contract MachServiceManager is
         address _alertConfirmer
     ) public initializer {
         _initializePauser(_pauserRegistry, _initialPausedStatus);
-        _transferOwnership(_initialOwner);
+        __ServiceManagerBase_init(_initialOwner);
         _setAlertConfirmer(_alertConfirmer);
         allowlistEnabled = true;
         quorumThresholdPercentage = 66;

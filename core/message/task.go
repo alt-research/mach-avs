@@ -97,7 +97,7 @@ func (a AlertTaskInfo) ToIMachServiceManagerAlertHeader() csservicemanager.IMach
 type InitOperatorRequest struct {
 	Layer1ChainId              uint32
 	ChainId                    uint32
-	OperatorId                 bls.OperatorId
+	OperatorId                 sdktypes.OperatorId
 	OperatorAddress            common.Address
 	OperatorStateRetrieverAddr common.Address
 	RegistryCoordinatorAddr    common.Address
@@ -125,7 +125,7 @@ type ProcessSignedTaskResponseResponse struct {
 type SignedTaskRespRequest struct {
 	Alert        AlertTaskInfo
 	BlsSignature bls.Signature
-	OperatorId   bls.OperatorId
+	OperatorId   sdktypes.OperatorId
 }
 
 type SignedTaskRespResponse struct {

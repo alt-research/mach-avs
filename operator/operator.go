@@ -51,7 +51,7 @@ type Operator struct {
 	eigenlayerReader sdkelcontracts.ELReader
 	eigenlayerWriter sdkelcontracts.ELWriter
 	blsKeypair       *bls.KeyPair
-	operatorId       bls.OperatorId
+	operatorId       sdktypes.OperatorId
 	operatorAddr     common.Address
 	metadataURI      string
 	rpcServer        RpcServer
@@ -290,7 +290,7 @@ func NewOperatorFromConfig(cfg config.NodeConfig) (*Operator, error) {
 	if err != nil {
 		return nil, err
 	}
-	txMgr := txmgr.NewSimpleTxManager(txSender, ethRpcClient, logger, signerV2, addr)
+	txMgr := txmgr.NewSimpleTxManager(txSender, ethRpcClient, logger, addr)
 
 	avsWriter, err := chainio.BuildAvsWriter(
 		txMgr, common.HexToAddress(c.AVSRegistryCoordinatorAddress),

@@ -6,7 +6,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
 	"github.com/Layr-Labs/eigensdk-go/logging"
 	"github.com/ethereum/go-ethereum/common"
 
@@ -45,8 +44,8 @@ type FinishedTaskStatus struct {
 }
 
 type OperatorStatus struct {
-	LastTime   int64          `json:"lastTime"`
-	OperatorId bls.OperatorId `json:"operatorId"`
+	LastTime   int64               `json:"lastTime"`
+	OperatorId sdktypes.OperatorId `json:"operatorId"`
 }
 
 // Aggregator sends tasks (numbers to square) onchain, then listens for operator signed TaskResponses.

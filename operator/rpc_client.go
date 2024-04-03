@@ -12,8 +12,8 @@ import (
 	"github.com/alt-research/avs/metrics"
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
 	"github.com/Layr-Labs/eigensdk-go/logging"
+	sdktypes "github.com/Layr-Labs/eigensdk-go/types"
 )
 
 type AggregatorRpcClienter interface {
@@ -26,14 +26,14 @@ type AggregatorRpcClient struct {
 	metrics                    metrics.Metrics
 	logger                     logging.Logger
 	config                     config.NodeConfig
-	operatorId                 bls.OperatorId
+	operatorId                 sdktypes.OperatorId
 	operatorAddr               common.Address
 	OperatorStateRetrieverAddr common.Address
 	RegistryCoordinatorAddr    common.Address
 	aggregatorIpPortAddr       string
 }
 
-func NewAggregatorRpcClient(config config.NodeConfig, operatorId bls.OperatorId, operatorAddr common.Address, logger logging.Logger, metrics metrics.Metrics) (*AggregatorRpcClient, error) {
+func NewAggregatorRpcClient(config config.NodeConfig, operatorId sdktypes.OperatorId, operatorAddr common.Address, logger logging.Logger, metrics metrics.Metrics) (*AggregatorRpcClient, error) {
 	return &AggregatorRpcClient{
 		// set to nil so that we can create an rpc client even if the aggregator is not running
 		rpcClient:                  nil,

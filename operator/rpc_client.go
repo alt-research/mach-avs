@@ -1,10 +1,7 @@
 package operator
 
 import (
-	"crypto/tls"
 	"fmt"
-	"io"
-	"net"
 	"net/rpc"
 	"strings"
 	"time"
@@ -52,18 +49,13 @@ func NewAggregatorRpcClient(config config.NodeConfig, operatorId sdktypes.Operat
 }
 
 func (c *AggregatorRpcClient) dialAggregatorRpcClient() (err error) {
-	var conn io.ReadWriteCloser
-	conn, err = tls.Dial("tcp", c.aggregatorIpPortAddr, &tls.Config{})
+	client, err := rpc.DialHTTP("tcp", c.aggregatorIpPortAddr)
 	if err != nil {
-		if _, ok := err.(tls.RecordHeaderError); !ok {
-			return err
-		}
-		// retry connect without tls
-		conn, err = net.Dial("tcp", c.aggregatorIpPortAddr)
+		c.logger.Errorf("dialAggregatorRpcClient failed: %v", err)
+		return err
 	}
-	client := rpc.NewClient(conn)
 	c.rpcClient = client
-	return
+	return nil
 }
 
 // CreateAlertTaskToAggregator create a new alert task, if had existing, just return current alert task.
@@ -93,8 +85,13 @@ func (c *AggregatorRpcClient) InitOperatorToAggregator() error {
 		err := c.rpcClient.Call("Aggregator.InitOperator", req, &reply)
 		if err != nil {
 			c.logger.Info("Received error from aggregator", "err", err)
-			if strings.Contains(err.Error(), "already finished") {
-				return err
+			if strings.Contains(err.Error(), "connection is shut down") {
+				c.logger.Info("rpc client is down. Dialing aggregator rpc client")
+				err := c.dialAggregatorRpcClient()
+				if err != nil {
+					c.logger.Error("Could not dial aggregator rpc client. Not sending signed task response header to aggregator. Is aggregator running?", "err", err)
+					return err
+				}
 			}
 		} else {
 			c.logger.Info("init operator accepted by aggregator.", "reply", reply)
@@ -143,6 +140,14 @@ func (c *AggregatorRpcClient) CreateAlertTaskToAggregator(alertHash [32]byte) (*
 			if strings.Contains(err.Error(), "already finished") {
 				return nil, err
 			}
+			if strings.Contains(err.Error(), "connection is shut down") {
+				c.logger.Info("rpc client is down. Dialing aggregator rpc client")
+				err := c.dialAggregatorRpcClient()
+				if err != nil {
+					c.logger.Error("Could not dial aggregator rpc client. Not sending signed task response header to aggregator. Is aggregator running?", "err", err)
+					return nil, err
+				}
+			}
 		} else {
 			c.logger.Info("create task accepted by aggregator.", "reply", reply)
 			c.metrics.IncNumTasksAcceptedByAggregator()
@@ -186,6 +191,13 @@ func (c *AggregatorRpcClient) SendSignedTaskResponseToAggregator(signedTaskRespo
 		err = c.rpcClient.Call("Aggregator.ProcessSignedTaskResponse", signedTaskResponse, &response)
 		if err != nil {
 			c.logger.Info("Received error from aggregator", "err", err)
+			if strings.Contains(err.Error(), "connection is shut down") {
+				c.logger.Info("rpc client is down. Dialing aggregator rpc client")
+				err := c.dialAggregatorRpcClient()
+				if err != nil {
+					c.logger.Error("Could not dial aggregator rpc client. Not sending signed task response header to aggregator. Is aggregator running?", "err", err)
+				}
+			}
 		} else {
 			c.logger.Info("Signed task response header accepted by aggregator.", "response", response)
 			c.metrics.IncNumTasksAcceptedByAggregator()

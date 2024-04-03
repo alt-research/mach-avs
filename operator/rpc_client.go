@@ -87,7 +87,7 @@ func (c *AggregatorRpcClient) InitOperatorToAggregator() error {
 		RegistryCoordinatorAddr:    c.RegistryCoordinatorAddr,
 	}
 
-	c.logger.Info("Create task header to aggregator", "req", fmt.Sprintf("%#v", req))
+	c.logger.Info("Init operator to aggregator", "req", fmt.Sprintf("%#v", req))
 
 	for i := 0; i < 5; i++ {
 		err := c.rpcClient.Call("Aggregator.InitOperator", req, &reply)
@@ -134,7 +134,7 @@ func (c *AggregatorRpcClient) CreateAlertTaskToAggregator(alertHash [32]byte) (*
 		AlertHash: alertHash,
 	}
 
-	c.logger.Info("Create task header to aggregator", "req", fmt.Sprintf("%#v", req))
+	c.logger.Info("Create task to aggregator", "req", fmt.Sprintf("%#v", req))
 
 	for i := 0; i < 5; i++ {
 		err := c.rpcClient.Call("Aggregator.CreateTask", req, &reply)
@@ -144,16 +144,16 @@ func (c *AggregatorRpcClient) CreateAlertTaskToAggregator(alertHash [32]byte) (*
 				return nil, err
 			}
 		} else {
-			c.logger.Info("create task response header accepted by aggregator.", "reply", reply)
+			c.logger.Info("create task accepted by aggregator.", "reply", reply)
 			c.metrics.IncNumTasksAcceptedByAggregator()
 			return &reply.Info, nil
 		}
 		c.logger.Infof("Retrying in 2 seconds")
 		time.Sleep(2 * time.Second)
 	}
-	c.logger.Errorf("Could not send signed task response to aggregator. Tried 5 times.")
+	c.logger.Errorf("Could not create task to aggregator. Tried 5 times.")
 
-	return nil, fmt.Errorf("Could not send signed task response to aggregator")
+	return nil, fmt.Errorf("Could not create task to aggregator")
 }
 
 // SendSignedTaskResponseToAggregator sends a signed task response to the aggregator.

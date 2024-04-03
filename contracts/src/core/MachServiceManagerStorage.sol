@@ -31,7 +31,7 @@ abstract contract MachServiceManagerStorage {
     /// @notice Whether or not the allowlist is enabled
     bool public allowlistEnabled;
 
-    /// @notice Minimul quorum threshold percentage
+    /// @notice Minimal quorum threshold percentage
     uint8 public quorumThresholdPercentage;
 
     // storage gap for upgradeability

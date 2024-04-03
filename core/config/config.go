@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/alt-research/avs/core"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/urfave/cli"
@@ -110,7 +111,7 @@ func NewConfig(ctx *cli.Context) (*Config, error) {
 		}
 	}
 
-	logger, err := sdklogging.NewZapLogger(configRaw.Environment)
+	logger, err := core.NewZapLogger(configRaw.Environment)
 	if err != nil {
 		return nil, err
 	}

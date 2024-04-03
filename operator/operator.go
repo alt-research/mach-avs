@@ -13,6 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/prometheus/client_golang/prometheus"
 
+	"github.com/alt-research/avs/core"
 	"github.com/alt-research/avs/core/alert"
 	"github.com/alt-research/avs/core/chainio"
 	"github.com/alt-research/avs/core/config"
@@ -198,7 +199,7 @@ func NewOperatorFromConfig(cfg config.NodeConfig) (*Operator, error) {
 	} else {
 		logLevel = sdklogging.Development
 	}
-	logger, err := sdklogging.NewZapLogger(logLevel)
+	logger, err := core.NewZapLogger(logLevel)
 	if err != nil {
 		return nil, err
 	}

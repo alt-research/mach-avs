@@ -113,6 +113,11 @@ func withEnvConfig(c config.NodeConfig) config.NodeConfig {
 		c.AggregatorServerIpPortAddress = aggregatorServerIpPortAddress
 	}
 
+	grpcAggregatorServerIpPortAddress, ok := os.LookupEnv("AGGREGATOR_GRPC_SERVER_URL")
+	if ok && grpcAggregatorServerIpPortAddress != "" {
+		c.AggregatorGRPCServerIpPortAddress = grpcAggregatorServerIpPortAddress
+	}
+
 	eigenMetricsIpPortAddress, ok := os.LookupEnv("EIGEN_METRICS_URL")
 	if ok && eigenMetricsIpPortAddress != "" {
 		c.EigenMetricsIpPortAddress = eigenMetricsIpPortAddress
@@ -327,10 +332,28 @@ func NewOperatorFromConfig(cfg config.NodeConfig) (*Operator, error) {
 		return nil, err
 	}
 
-	aggregatorRpcClient, err := NewAggregatorRpcClient(c, operatorId, operatorAddress, logger, avsAndEigenMetrics)
-	if err != nil {
-		logger.Error("Cannot create AggregatorRpcClient. Is aggregator running?", "err", err)
-		return nil, err
+	var aggregatorRpcClient AggregatorRpcClienter
+
+	if c.AggregatorGRPCServerIpPortAddress != "" {
+		logger.Info("Use grpc server to connect to the aggregator", "address", c.AggregatorGRPCServerIpPortAddress)
+
+		cli, err := NewAggregatorGRpcClient(c, operatorId, operatorAddress, logger, avsAndEigenMetrics)
+		if err != nil {
+			logger.Error("Cannot create AggregatorGRpcClient. Is aggregator running?", "err", err)
+			return nil, err
+		}
+
+		aggregatorRpcClient = cli
+	} else {
+		logger.Info("Use legacy rpc server to connect to the aggregator", "address", c.AggregatorServerIpPortAddress)
+
+		cli, err := NewAggregatorRpcClient(c, operatorId, operatorAddress, logger, avsAndEigenMetrics)
+		if err != nil {
+			logger.Error("Cannot create AggregatorRpcClient. Is aggregator running?", "err", err)
+			return nil, err
+		}
+
+		aggregatorRpcClient = cli
 	}
 
 	newTaskCreatedChan := make(chan alert.AlertRequest, 32)

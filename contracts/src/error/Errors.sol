@@ -8,6 +8,7 @@ error InvalidSender();
 error InvalidReferenceBlockNum();
 error InsufficientThreshold();
 error InsufficientThresholdPercentages();
+error InvalidQuorumParam();
 error AlreadyInAllowlist();
 error NotInAllowlist();
 

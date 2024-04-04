@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/signal"
+	"sync"
+	"syscall"
 
 	"github.com/urfave/cli"
 
@@ -35,9 +38,9 @@ func main() {
 	}
 }
 
-func aggregatorMain(ctx *cli.Context) error {
+func aggregatorMain(cliCtx *cli.Context) error {
 	log.Println("Initializing Aggregator")
-	config, err := config.NewConfig(ctx)
+	config, err := config.NewConfig(cliCtx)
 	if err != nil {
 		return err
 	}
@@ -52,10 +55,18 @@ func aggregatorMain(ctx *cli.Context) error {
 		return err
 	}
 
-	err = agg.Start(context.Background())
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	wg := &sync.WaitGroup{}
+	wg.Add(1)
+
+	err = agg.Start(ctx, wg)
 	if err != nil {
-		return err
+		log.Fatalln("Aggregator run failed", "err", err)
 	}
+
+	wg.Wait()
 
 	return nil
 }

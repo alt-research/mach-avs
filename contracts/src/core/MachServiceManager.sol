@@ -28,7 +28,8 @@ import {
     InsufficientThreshold,
     InvalidStartIndex,
     InsufficientThresholdPercentages,
-    InvalidSender
+    InvalidSender,
+    InvalidQuorumParam
 } from "../error/Errors.sol";
 import {IMachServiceManager} from "../interfaces/IMachServiceManager.sol";
 
@@ -203,11 +204,17 @@ contract MachServiceManager is
         if (tx.origin != msg.sender) {
             revert InvalidSender();
         }
+
         // make sure the stakes against which the Batch is being confirmed are not stale
         if (alertHeader.referenceBlockNumber > block.number) {
             revert InvalidReferenceBlockNum();
         }
         bytes32 hashedHeader = hashAlertHeader(alertHeader);
+
+        // check quorum parameters
+        if (alertHeader.quorumNumbers.length != alertHeader.quorumThresholdPercentages.length) {
+            revert InvalidQuorumParam();
+        }
 
         // check the signature
         (QuorumStakeTotals memory quorumStakeTotals, bytes32 signatoryRecordHash) = checkSignatures(

@@ -10,7 +10,6 @@ error InsufficientThreshold();
 error InsufficientThresholdPercentages();
 error AlreadyInAllowlist();
 error NotInAllowlist();
-error NotAllowed();
 
 // Common
 error AlreadyInitialized();

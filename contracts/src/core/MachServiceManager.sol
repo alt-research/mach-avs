@@ -28,8 +28,7 @@ import {
     InsufficientThreshold,
     InvalidStartIndex,
     InsufficientThresholdPercentages,
-    InvalidSender,
-    NotAllowed
+    InvalidSender
 } from "../error/Errors.sol";
 import {IMachServiceManager} from "../interfaces/IMachServiceManager.sol";
 

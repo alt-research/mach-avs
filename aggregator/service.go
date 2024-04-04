@@ -2,7 +2,6 @@ package aggregator
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -15,21 +14,13 @@ import (
 	blsagg "github.com/Layr-Labs/eigensdk-go/services/bls_aggregation"
 	oppubkeysserv "github.com/Layr-Labs/eigensdk-go/services/operatorpubkeys"
 	sdktypes "github.com/Layr-Labs/eigensdk-go/types"
+
 	"github.com/alt-research/avs/aggregator/rpc"
 	"github.com/alt-research/avs/aggregator/types"
 	"github.com/alt-research/avs/core/chainio"
 	"github.com/alt-research/avs/core/config"
 	"github.com/alt-research/avs/core/message"
 	"github.com/ethereum/go-ethereum/common"
-)
-
-var (
-	TaskNotFoundError400                     = errors.New("400. Task not found")
-	OperatorNotPartOfTaskQuorum400           = errors.New("400. Operator not part of quorum")
-	TaskResponseDigestNotFoundError500       = errors.New("500. Failed to get task response digest")
-	UnknownErrorWhileVerifyingSignature400   = errors.New("400. Failed to verify signature")
-	SignatureVerificationFailed400           = errors.New("400. Signature verification failed")
-	CallToGetCheckSignaturesIndicesFailed500 = errors.New("500. Failed to get check signatures indices")
 )
 
 type AggregatorService struct {

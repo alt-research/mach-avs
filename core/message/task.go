@@ -119,9 +119,6 @@ type CreateTaskResponse struct {
 	Info AlertTaskInfo
 }
 
-type ProcessSignedTaskResponseResponse struct {
-}
-
 type SignedTaskRespRequest struct {
 	Alert        AlertTaskInfo
 	BlsSignature bls.Signature

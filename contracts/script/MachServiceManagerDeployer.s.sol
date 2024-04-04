@@ -45,10 +45,20 @@ contract MachServiceManagerDeployer is Script {
         AVSDirectory avsDirectory;
         DelegationManager delegationManager;
         StrategyManager strategyManager;
-        StrategyBaseTVLLimits strategyBaseTVLLimits;
+        address stETH;
+        address rETH;
+        address LsETH;
+        address sfrxETH;
+        address ETHx;
+        address osETH;
+        address cbETH;
+        address mETH;
+        address ankrETH;
+        address WETH;
+        address beaconETH;
     }
 
-    struct AddressConfig {
+    struct DeploymentConfig {
         // from team
         address machAVSCommunityMultisig;
         address machAVSPauser;
@@ -56,15 +66,14 @@ contract MachServiceManagerDeployer is Script {
         address ejector;
         address confirmer;
         uint256 chainId;
+        uint256 numStrategies;
+        uint256 maxOperatorCount;
         // from eigenlayer contracts
         address avsDirectory;
         address delegationManager;
     }
 
     function run() external {
-        uint8 numStrategies = 1;
-        uint256 maxOperatorCount = 10;
-
         EigenLayerContracts memory eigenLayerContracts;
 
         {
@@ -75,9 +84,6 @@ contract MachServiceManagerDeployer is Script {
 
             bytes memory deployedStrategyManagerData = vm.parseJson(deployedEigenLayerAddresses, ".strategyManager");
             address deployedStrategyManager = abi.decode(deployedStrategyManagerData, (address));
-            bytes memory deployedStrategyBaseTVLLimitsData =
-                vm.parseJson(deployedEigenLayerAddresses, ".strategyBaseTVLLimits");
-            address deployedStrategyBaseTVLLimits = abi.decode(deployedStrategyBaseTVLLimitsData, (address));
             bytes memory deployedAvsDirectoryData = vm.parseJson(deployedEigenLayerAddresses, ".avsDirectory");
             address deployedAvsDirectory = abi.decode(deployedAvsDirectoryData, (address));
             bytes memory deployedDelegationManagerData = vm.parseJson(deployedEigenLayerAddresses, ".delegationManager");
@@ -86,36 +92,59 @@ contract MachServiceManagerDeployer is Script {
             eigenLayerContracts.avsDirectory = AVSDirectory(deployedAvsDirectory);
             eigenLayerContracts.strategyManager = StrategyManager(deployedStrategyManager);
             eigenLayerContracts.delegationManager = DelegationManager(deployedDelegationManager);
-            eigenLayerContracts.strategyBaseTVLLimits = StrategyBaseTVLLimits(deployedStrategyBaseTVLLimits);
+            eigenLayerContracts.stETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".stETH"), (address));
+            eigenLayerContracts.rETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".rETH"), (address));
+            eigenLayerContracts.LsETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".LsETH"), (address));
+            eigenLayerContracts.sfrxETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".sfrxETH"), (address));
+            eigenLayerContracts.ETHx = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".ETHx"), (address));
+            eigenLayerContracts.osETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".osETH"), (address));
+            eigenLayerContracts.cbETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".cbETH"), (address));
+            eigenLayerContracts.mETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".mETH"), (address));
+            eigenLayerContracts.ankrETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".ankrETH"), (address));
+            eigenLayerContracts.WETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".WETH"), (address));
+            eigenLayerContracts.beaconETH =
+                abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".beaconETH"), (address));
         }
 
+        DeploymentConfig memory deploymentConfig;
+        deploymentConfig.machAVSCommunityMultisig = msg.sender;
+        deploymentConfig.machAVSPauser = msg.sender;
+        deploymentConfig.churner = msg.sender;
+        deploymentConfig.ejector = msg.sender;
+        deploymentConfig.confirmer = msg.sender;
+        deploymentConfig.chainId = 1;
+        deploymentConfig.numStrategies = 11;
+        deploymentConfig.maxOperatorCount = 30;
+        deploymentConfig.avsDirectory = address(eigenLayerContracts.avsDirectory);
+        deploymentConfig.delegationManager = address(eigenLayerContracts.delegationManager);
+
         // strategies deployed
-        StrategyBaseTVLLimits[] memory deployedStrategyArray = new StrategyBaseTVLLimits[](1);
-        deployedStrategyArray[0] = StrategyBaseTVLLimits(address(eigenLayerContracts.strategyBaseTVLLimits));
+        address[] memory deployedStrategyArray = new address[](11);
+        deployedStrategyArray[0] = eigenLayerContracts.stETH;
+        deployedStrategyArray[1] = eigenLayerContracts.rETH;
+        deployedStrategyArray[2] = eigenLayerContracts.LsETH;
+        deployedStrategyArray[3] = eigenLayerContracts.sfrxETH;
+        deployedStrategyArray[4] = eigenLayerContracts.ETHx;
+        deployedStrategyArray[5] = eigenLayerContracts.osETH;
+        deployedStrategyArray[6] = eigenLayerContracts.cbETH;
+        deployedStrategyArray[7] = eigenLayerContracts.mETH;
+        deployedStrategyArray[8] = eigenLayerContracts.ankrETH;
+        deployedStrategyArray[9] = eigenLayerContracts.WETH;
+        deployedStrategyArray[10] = eigenLayerContracts.beaconETH;
 
         vm.startBroadcast();
         // deploy proxy admin for ability to upgrade proxy contracts
         ProxyAdmin machAVSProxyAdmin = new ProxyAdmin();
         EmptyContract emptyContract = new EmptyContract();
 
-        AddressConfig memory addressConfig;
-        addressConfig.machAVSCommunityMultisig = msg.sender;
-        addressConfig.machAVSPauser = msg.sender;
-        addressConfig.churner = msg.sender;
-        addressConfig.ejector = msg.sender;
-        addressConfig.confirmer = msg.sender;
-        addressConfig.chainId = 1;
-        addressConfig.avsDirectory = address(eigenLayerContracts.avsDirectory);
-        addressConfig.delegationManager = address(eigenLayerContracts.delegationManager);
-
         PauserRegistry pauserRegistry;
 
         // deploy pauser registry
         {
             address[] memory pausers = new address[](2);
-            pausers[0] = addressConfig.machAVSPauser;
-            pausers[1] = addressConfig.machAVSCommunityMultisig;
-            pauserRegistry = new PauserRegistry(pausers, addressConfig.machAVSCommunityMultisig);
+            pausers[0] = deploymentConfig.machAVSPauser;
+            pausers[1] = deploymentConfig.machAVSCommunityMultisig;
+            pauserRegistry = new PauserRegistry(pausers, deploymentConfig.machAVSCommunityMultisig);
         }
 
         MachServiceContract memory machServiceContract;
@@ -148,7 +177,7 @@ contract MachServiceManagerDeployer is Script {
         );
 
         machServiceContract.stakeRegistryImplementation = new StakeRegistry(
-            machServiceContract.registryCoordinator, IDelegationManager(addressConfig.delegationManager)
+            machServiceContract.registryCoordinator, IDelegationManager(deploymentConfig.delegationManager)
         );
         machAVSProxyAdmin.upgrade(
             TransparentUpgradeableProxy(payable(address(machServiceContract.stakeRegistry))),
@@ -170,33 +199,31 @@ contract MachServiceManagerDeployer is Script {
 
         {
             IRegistryCoordinator.OperatorSetParam[] memory operatorSetParams =
-                new IRegistryCoordinator.OperatorSetParam[](numStrategies);
-            for (uint256 i = 0; i < numStrategies; i++) {
+                new IRegistryCoordinator.OperatorSetParam[](deploymentConfig.numStrategies);
+            for (uint256 i = 0; i < deploymentConfig.numStrategies; i++) {
                 // hard code these for now
                 operatorSetParams[i] = IRegistryCoordinator.OperatorSetParam({
-                    maxOperatorCount: uint32(maxOperatorCount),
+                    maxOperatorCount: uint32(deploymentConfig.maxOperatorCount),
                     kickBIPsOfOperatorStake: 11000, // an operator needs to have kickBIPsOfOperatorStake / 10000 times the stake of the operator with the least stake to kick them out
                     kickBIPsOfTotalStake: 1001 // an operator needs to have less than kickBIPsOfTotalStake / 10000 of the total stake to be kicked out
                 });
             }
-            uint96[] memory minimumStakeForQuourm = new uint96[](numStrategies);
+            uint96[] memory minimumStakeForQuourm = new uint96[](deploymentConfig.numStrategies);
             IStakeRegistry.StrategyParams[][] memory strategyAndWeightingMultipliers =
-                new IStakeRegistry.StrategyParams[][](numStrategies);
-            for (uint256 i = 0; i < numStrategies; i++) {
+                new IStakeRegistry.StrategyParams[][](deploymentConfig.numStrategies);
+            for (uint256 i = 0; i < deploymentConfig.numStrategies; i++) {
                 strategyAndWeightingMultipliers[i] = new IStakeRegistry.StrategyParams[](1);
-                strategyAndWeightingMultipliers[i][0] = IStakeRegistry.StrategyParams({
-                    strategy: IStrategy(address(deployedStrategyArray[i])),
-                    multiplier: 1 ether
-                });
+                strategyAndWeightingMultipliers[i][0] =
+                    IStakeRegistry.StrategyParams({strategy: IStrategy(deployedStrategyArray[i]), multiplier: 1 ether});
             }
             machAVSProxyAdmin.upgradeAndCall(
                 TransparentUpgradeableProxy(payable(address(machServiceContract.registryCoordinator))),
                 address(machServiceContract.registryCoordinatorImplementation),
                 abi.encodeWithSelector(
                     RegistryCoordinator.initialize.selector,
-                    addressConfig.machAVSCommunityMultisig,
-                    addressConfig.churner,
-                    addressConfig.ejector,
+                    deploymentConfig.machAVSCommunityMultisig,
+                    deploymentConfig.churner,
+                    deploymentConfig.ejector,
                     IPauserRegistry(pauserRegistry),
                     0, // initial paused status is nothing paused
                     operatorSetParams,
@@ -206,10 +233,10 @@ contract MachServiceManagerDeployer is Script {
             );
         }
         machServiceContract.machServiceManagerImplementation = new MachServiceManager(
-            IAVSDirectory(addressConfig.avsDirectory),
+            IAVSDirectory(deploymentConfig.avsDirectory),
             machServiceContract.registryCoordinator,
             machServiceContract.stakeRegistry,
-            addressConfig.chainId
+            deploymentConfig.chainId
         );
         // Third, upgrade the proxy contracts to use the correct implementation contracts and initialize them.
         machAVSProxyAdmin.upgradeAndCall(
@@ -219,8 +246,8 @@ contract MachServiceManagerDeployer is Script {
                 MachServiceManager.initialize.selector,
                 IPauserRegistry(pauserRegistry),
                 0,
-                addressConfig.machAVSCommunityMultisig,
-                addressConfig.machAVSCommunityMultisig
+                deploymentConfig.machAVSCommunityMultisig,
+                deploymentConfig.machAVSCommunityMultisig
             )
         );
         vm.stopBroadcast();

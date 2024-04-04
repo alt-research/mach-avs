@@ -6,8 +6,11 @@ package aggregator;
 // The Aggregator is for collection the bls signatures from operator and
 // then commit the task to AVS.
 service Aggregator {
+	// Send Init operator to aggregator from operator, will check if the config is matching
 	rpc InitOperator(InitOperatorRequest) returns (InitOperatorResponse) {}
+	// Create a alert task
 	rpc CreateTask(CreateTaskRequest) returns (CreateTaskResponse) {}
+	// Send signed task for alert
 	rpc ProcessSignedTaskResponse(SignedTaskRespRequest) returns (SignedTaskRespResponse) {}
 }
 
@@ -63,9 +66,9 @@ message AlertTaskInfo {
 	// The hash of alert
 	bytes alert_hash = 1;
 	// QuorumNumbers of task
-	repeated uint32 quorum_numbers = 2;
+	bytes quorum_numbers = 2;
 	// QuorumThresholdPercentages of task
-	repeated uint32 quorum_threshold_percentages = 3;
+	bytes quorum_threshold_percentages = 3;
 	// TaskIndex
 	uint32 task_index = 4;
 	// ReferenceBlockNumber

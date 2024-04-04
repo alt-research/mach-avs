@@ -1,14 +1,18 @@
 package message
 
 import (
-	csservicemanager "github.com/alt-research/avs/contracts/bindings/MachServiceManager"
-	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
-	"golang.org/x/crypto/sha3"
+	"fmt"
 
 	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
 	sdktypes "github.com/Layr-Labs/eigensdk-go/types"
 	"github.com/alt-research/avs/aggregator/types"
+	"github.com/alt-research/avs/api/grpc/aggregator"
+	"github.com/alt-research/avs/core"
+
+	csservicemanager "github.com/alt-research/avs/contracts/bindings/MachServiceManager"
+	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/common"
+	"golang.org/x/crypto/sha3"
 )
 
 // The Alert task Information
@@ -18,6 +22,34 @@ type AlertTaskInfo struct {
 	QuorumThresholdPercentages sdktypes.QuorumThresholdPercentages
 	TaskIndex                  types.TaskIndex
 	ReferenceBlockNumber       uint64
+}
+
+func NewAlertTaskInfo(req *aggregator.AlertTaskInfo) (*AlertTaskInfo, error) {
+	alertHash := req.GetAlertHash()
+	if len(alertHash) != 32 {
+		return nil, fmt.Errorf("operator ID len should be 32")
+	}
+
+	res := &AlertTaskInfo{
+		QuorumNumbers:              core.ConvertQuorumNumbersFromBytes(req.GetQuorumNumbers()),
+		QuorumThresholdPercentages: core.ConvertQuorumThresholdPercentagesFromBytes(req.GetQuorumThresholdPercentages()),
+		TaskIndex:                  req.GetTaskIndex(),
+		ReferenceBlockNumber:       req.GetReferenceBlockNumber(),
+	}
+
+	copy(res.AlertHash[:], alertHash[:32])
+
+	return res, nil
+}
+
+func (r AlertTaskInfo) ToPbType() *aggregator.AlertTaskInfo {
+	return &aggregator.AlertTaskInfo{
+		AlertHash:                  r.AlertHash[:],
+		QuorumNumbers:              r.QuorumNumbers.UnderlyingType(),
+		QuorumThresholdPercentages: r.QuorumThresholdPercentages.UnderlyingType(),
+		TaskIndex:                  r.TaskIndex,
+		ReferenceBlockNumber:       r.ReferenceBlockNumber,
+	}
 }
 
 func (a *AlertTaskInfo) EncodeSigHash() ([]byte, error) {
@@ -74,21 +106,10 @@ func (a AlertTaskInfo) SignHash() ([32]byte, error) {
 }
 
 func (a AlertTaskInfo) ToIMachServiceManagerAlertHeader() csservicemanager.IMachServiceManagerAlertHeader {
-	quorumNumbers := make([]byte, len(a.QuorumNumbers))
-	quorumThresholdPercentages := make([]byte, len(a.QuorumThresholdPercentages))
-
-	for i, _ := range a.QuorumNumbers {
-		quorumNumbers[i] = byte(a.QuorumNumbers[i])
-	}
-
-	for i, _ := range a.QuorumThresholdPercentages {
-		quorumThresholdPercentages[i] = byte(a.QuorumThresholdPercentages[i])
-	}
-
 	return csservicemanager.IMachServiceManagerAlertHeader{
 		MessageHash:                a.AlertHash,
-		QuorumNumbers:              quorumNumbers,
-		QuorumThresholdPercentages: quorumThresholdPercentages,
+		QuorumNumbers:              a.QuorumNumbers.UnderlyingType(),
+		QuorumThresholdPercentages: a.QuorumThresholdPercentages.UnderlyingType(),
 		ReferenceBlockNumber:       uint32(a.ReferenceBlockNumber),
 	}
 }
@@ -103,10 +124,51 @@ type InitOperatorRequest struct {
 	RegistryCoordinatorAddr    common.Address
 }
 
+func NewInitOperatorRequest(req *aggregator.InitOperatorRequest) (*InitOperatorRequest, error) {
+	operatorId := req.GetOperatorId()
+	if len(operatorId) != 32 {
+		return nil, fmt.Errorf("operator ID len should be 32")
+	}
+
+	if !common.IsHexAddress(req.GetOperatorAddress()) {
+		return nil, fmt.Errorf("operatorAddress not a hex address")
+	}
+	operatorAddress := common.HexToAddress(req.OperatorAddress)
+
+	if !common.IsHexAddress(req.GetOperatorStateRetrieverAddr()) {
+		return nil, fmt.Errorf("operatorStateRetrieverAddr not a hex address")
+	}
+	operatorStateRetrieverAddr := common.HexToAddress(req.GetOperatorStateRetrieverAddr())
+
+	if !common.IsHexAddress(req.GetRegistryCoordinatorAddr()) {
+		return nil, fmt.Errorf("registryCoordinatorAddr not a hex address")
+	}
+	registryCoordinatorAddr := common.HexToAddress(req.GetRegistryCoordinatorAddr())
+
+	res := &InitOperatorRequest{
+		Layer1ChainId:              req.GetLayer1ChainId(),
+		ChainId:                    req.GetChainId(),
+		OperatorAddress:            operatorAddress,
+		OperatorStateRetrieverAddr: operatorStateRetrieverAddr,
+		RegistryCoordinatorAddr:    registryCoordinatorAddr,
+	}
+
+	copy(res.OperatorId[:], operatorId[:32])
+
+	return res, nil
+}
+
 // The init operator response
 type InitOperatorResponse struct {
 	Ok  bool
 	Res string
+}
+
+func (r InitOperatorResponse) ToPbType() *aggregator.InitOperatorResponse {
+	return &aggregator.InitOperatorResponse{
+		Ok:     r.Ok,
+		Reason: r.Res,
+	}
 }
 
 // The Alert task create request
@@ -114,9 +176,28 @@ type CreateTaskRequest struct {
 	AlertHash [32]byte
 }
 
+func NewCreateTaskRequest(req *aggregator.CreateTaskRequest) (*CreateTaskRequest, error) {
+	alertHash := req.GetAlertHash()
+	if len(alertHash) != 32 {
+		return nil, fmt.Errorf("operator ID len should be 32")
+	}
+
+	res := &CreateTaskRequest{}
+
+	copy(res.AlertHash[:], alertHash[:32])
+
+	return res, nil
+}
+
 // The Alert task create response
 type CreateTaskResponse struct {
 	Info AlertTaskInfo
+}
+
+func (r CreateTaskResponse) ToPbType() *aggregator.CreateTaskResponse {
+	return &aggregator.CreateTaskResponse{
+		Info: r.Info.ToPbType(),
+	}
 }
 
 type SignedTaskRespRequest struct {
@@ -125,7 +206,43 @@ type SignedTaskRespRequest struct {
 	OperatorId   sdktypes.OperatorId
 }
 
+func NewSignedTaskRespRequest(req *aggregator.SignedTaskRespRequest) (*SignedTaskRespRequest, error) {
+	operatorId := req.GetOperatorId()
+	if len(operatorId) != 32 {
+		return nil, fmt.Errorf("operator ID len should be 32")
+	}
+
+	alert, err := NewAlertTaskInfo(req.GetAlert())
+	if err != nil {
+		return nil, fmt.Errorf("new alert task info failed: %v", err.Error())
+	}
+
+	signRaw := req.GetOperatorRequestSignature()
+	if len(signRaw) != 64 {
+		return nil, fmt.Errorf("operatorRequestSignature len should be 64")
+	}
+
+	g1Point := bls.NewZeroG1Point().Deserialize(signRaw)
+	sign := bls.Signature{G1Point: g1Point}
+
+	res := &SignedTaskRespRequest{
+		Alert:        *alert,
+		BlsSignature: sign,
+	}
+
+	copy(res.OperatorId[:], operatorId[:32])
+
+	return res, nil
+}
+
 type SignedTaskRespResponse struct {
 	Reply  bool
 	TxHash [32]byte
+}
+
+func (r SignedTaskRespResponse) ToPbType() *aggregator.SignedTaskRespResponse {
+	return &aggregator.SignedTaskRespResponse{
+		Reply:  r.Reply,
+		TxHash: r.TxHash[:],
+	}
 }

@@ -4,6 +4,7 @@ import (
 	"math/big"
 
 	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
+	sdktypes "github.com/Layr-Labs/eigensdk-go/types"
 	csservicemanager "github.com/alt-research/avs/contracts/bindings/MachServiceManager"
 )
 
@@ -26,4 +27,20 @@ func ConvertToBN254G2Point(input *bls.G2Point) csservicemanager.BN254G2Point {
 		Y: [2]*big.Int{input.Y.A1.BigInt(big.NewInt(0)), input.Y.A0.BigInt(big.NewInt(0))},
 	}
 	return output
+}
+
+func ConvertQuorumNumbersFromBytes(numbers []byte) sdktypes.QuorumNums {
+	quorumNumbers := make([]sdktypes.QuorumNum, len(numbers))
+	for i, v := range numbers {
+		quorumNumbers[i] = sdktypes.QuorumNum(v)
+	}
+	return quorumNumbers
+}
+
+func ConvertQuorumThresholdPercentagesFromBytes(numbers []byte) sdktypes.QuorumThresholdPercentages {
+	quorumNumbers := make([]sdktypes.QuorumThresholdPercentage, len(numbers))
+	for i, v := range numbers {
+		quorumNumbers[i] = sdktypes.QuorumThresholdPercentage(v)
+	}
+	return quorumNumbers
 }

@@ -29,7 +29,8 @@ import {
     InvalidStartIndex,
     InsufficientThresholdPercentages,
     InvalidSender,
-    InvalidQuorumParam
+    InvalidQuorumParam,
+    AlreadyAdded
 } from "../error/Errors.sol";
 import {IMachServiceManager} from "../interfaces/IMachServiceManager.sol";
 
@@ -165,6 +166,9 @@ contract MachServiceManager is
         if (allowlistEnabled && !allowlist[operator]) {
             revert NotInAllowlist();
         }
+        // we don't check stake requirement for quorum as StakeRegistry.sol help checking this already
+        // https://github.com/Layr-Labs/eigenlayer-middleware/blob/dev/src/RegistryCoordinator.sol#L488
+        // https://github.com/Layr-Labs/eigenlayer-middleware/blob/dev/src/StakeRegistry.sol#L84
         _avsDirectory.registerOperatorToAVS(operator, operatorSignature);
         // we don't check if this operator has registered or not as AVSDirectory has such checking already
         _operators.add(operator);
@@ -243,7 +247,10 @@ contract MachServiceManager is
         }
 
         // store alert
-        _messageHashes.add(alertHeader.messageHash);
+        bool success = _messageHashes.add(alertHeader.messageHash);
+        if (!success) {
+            revert AlreadyAdded();
+        }
 
         emit AlertConfirmed(hashedHeader, alertHeader.messageHash);
     }

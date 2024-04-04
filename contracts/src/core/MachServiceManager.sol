@@ -166,7 +166,7 @@ contract MachServiceManager is
         if (allowlistEnabled && !allowlist[operator]) {
             revert NotInAllowlist();
         }
-        // we don't check stake requirement for quorum as StakeRegistry.sol help checking this already
+        // Stake requirement for quorum is checked in StakeRegistry.sol
         // https://github.com/Layr-Labs/eigenlayer-middleware/blob/dev/src/RegistryCoordinator.sol#L488
         // https://github.com/Layr-Labs/eigenlayer-middleware/blob/dev/src/StakeRegistry.sol#L84
         _avsDirectory.registerOperatorToAVS(operator, operatorSignature);

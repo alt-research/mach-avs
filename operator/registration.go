@@ -18,15 +18,13 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 
-	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
-	eigenSdkTypes "github.com/Layr-Labs/eigensdk-go/types"
 	sdktypes "github.com/Layr-Labs/eigensdk-go/types"
 
 	regcoord "github.com/Layr-Labs/eigensdk-go/contracts/bindings/RegistryCoordinator"
 )
 
 func (o *Operator) RegisterOperatorWithEigenlayer() error {
-	op := eigenSdkTypes.Operator{
+	op := sdktypes.Operator{
 		Address:                 o.operatorAddr.String(),
 		EarningsReceiverAddress: o.operatorAddr.String(),
 		MetadataUrl:             o.metadataURI,
@@ -178,11 +176,4 @@ func (o *Operator) PrintOperatorStatus() error {
 	}
 	fmt.Println(string(operatorStatusJson))
 	return nil
-}
-
-func pubKeyG1ToBN254G1Point(p *bls.G1Point) regcoord.BN254G1Point {
-	return regcoord.BN254G1Point{
-		X: p.X.BigInt(new(big.Int)),
-		Y: p.Y.BigInt(new(big.Int)),
-	}
 }

@@ -27,7 +27,6 @@ import (
 	"github.com/Layr-Labs/eigensdk-go/chainio/txmgr"
 	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
 	sdkEcdsa "github.com/Layr-Labs/eigensdk-go/crypto/ecdsa"
-	"github.com/Layr-Labs/eigensdk-go/logging"
 	sdklogging "github.com/Layr-Labs/eigensdk-go/logging"
 	sdkmetrics "github.com/Layr-Labs/eigensdk-go/metrics"
 	"github.com/Layr-Labs/eigensdk-go/metrics/collectors/economic"
@@ -42,7 +41,7 @@ const SEM_VER = "0.0.1"
 
 type Operator struct {
 	config           config.NodeConfig
-	logger           logging.Logger
+	logger           sdklogging.Logger
 	ethClient        eth.Client
 	metricsReg       *prometheus.Registry
 	metrics          metrics.Metrics
@@ -193,7 +192,7 @@ func withEnvConfig(c config.NodeConfig) config.NodeConfig {
 //
 //	take the config in core (which is shared with aggregator and challenger)
 func NewOperatorFromConfig(cfg config.NodeConfig) (*Operator, error) {
-	var logLevel logging.LogLevel
+	var logLevel sdklogging.LogLevel
 	if cfg.Production {
 		logLevel = sdklogging.Production
 	} else {
@@ -412,7 +411,12 @@ func (o *Operator) Start(ctx context.Context) error {
 		o.logger.Error("Error start Rpc server", "err", err)
 		return err
 	}
-	defer o.rpcServer.Stop()
+	defer func() {
+		err := o.rpcServer.Stop()
+		if err != nil {
+			o.logger.Error("Stop Rpc server failed", "err", err)
+		}
+	}()
 
 	for {
 		select {

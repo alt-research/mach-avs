@@ -26,7 +26,7 @@ const (
 	// this hardcoded here because it's also hardcoded in the contracts, but should
 	// ideally be fetched from the contracts
 	taskChallengeWindowBlock = 100
-	blockTimeSeconds         = 12 * time.Second
+	blockTimeDuration        = 12 * time.Second
 	avsName                  = "mach"
 )
 

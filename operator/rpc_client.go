@@ -112,7 +112,7 @@ func (c *AggregatorRpcClient) InitOperatorToAggregator() error {
 	}
 	c.logger.Errorf("Could not send init operator to aggregator. Tried 5 times.")
 
-	return fmt.Errorf("Could not send init operator to aggregator")
+	return fmt.Errorf("could not send init operator to aggregator")
 }
 
 // CreateAlertTaskToAggregator create a new alert task, if had existing, just return current alert task.
@@ -158,7 +158,7 @@ func (c *AggregatorRpcClient) CreateAlertTaskToAggregator(alertHash [32]byte) (*
 	}
 	c.logger.Errorf("Could not create task to aggregator. Tried 5 times.")
 
-	return nil, fmt.Errorf("Could not create task to aggregator")
+	return nil, fmt.Errorf("could not create task to aggregator")
 }
 
 // SendSignedTaskResponseToAggregator sends a signed task response to the aggregator.
@@ -216,6 +216,6 @@ func (c *AggregatorRpcClient) SendSignedTaskResponseToAggregator(signedTaskRespo
 	c.logger.Errorf("Could not send signed task response to aggregator. Tried 5 times.")
 
 	resChan <- alert.AlertResponse{
-		Err: fmt.Errorf("Could not send signed task response to aggregator by %v.", err),
+		Err: fmt.Errorf("could not send signed task response to aggregator by %v", err),
 	}
 }

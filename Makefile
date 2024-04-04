@@ -41,8 +41,7 @@ protoc: clean
 	$(PROTOS)/**/*.proto
 
 lint:
-	golint -set_exit_status ./...
-	go tool fix ./..
+	staticcheck ./...
 	golangci-lint run
 
 build: build-operator build-aggregator build-cli

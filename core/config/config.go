@@ -71,7 +71,10 @@ func NewConfig(ctx *cli.Context) (*Config, error) {
 	var configRaw ConfigRaw
 	configFilePath := ctx.GlobalString(ConfigFileFlag.Name)
 	if configFilePath != "" {
-		sdkutils.ReadYamlConfig(configFilePath, &configRaw)
+		err := sdkutils.ReadYamlConfig(configFilePath, &configRaw)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	ethRpcUrl, ok := os.LookupEnv("ETH_RPC_URL")
@@ -168,7 +171,7 @@ func NewConfig(ctx *cli.Context) (*Config, error) {
 
 	txSender, err := wallet.NewPrivateKeyWallet(ethRpcClient, signerV2, aggregatorAddr, logger)
 	if err != nil {
-		return nil, types.WrapError(errors.New("Failed to create transaction sender"), err)
+		return nil, types.WrapError(errors.New("failed to create transaction sender"), err)
 	}
 	txMgr := txmgr.NewSimpleTxManager(txSender, ethRpcClient, logger, aggregatorAddr)
 

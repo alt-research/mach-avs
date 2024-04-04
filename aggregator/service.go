@@ -6,7 +6,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Layr-Labs/eigensdk-go/chainio/clients"
 	sdkclients "github.com/Layr-Labs/eigensdk-go/chainio/clients"
 	"github.com/Layr-Labs/eigensdk-go/chainio/clients/eth"
 	"github.com/Layr-Labs/eigensdk-go/logging"
@@ -57,7 +56,7 @@ func NewAggregatorService(c *config.Config) (*AggregatorService, error) {
 		AvsName:                    avsName,
 		PromMetricsIpPortAddress:   ":9090",
 	}
-	clients, err := clients.BuildAll(chainioConfig, c.PrivateKey, c.Logger)
+	clients, err := sdkclients.BuildAll(chainioConfig, c.PrivateKey, c.Logger)
 	if err != nil {
 		c.Logger.Errorf("Cannot create sdk clients", "err", err)
 		return nil, err
@@ -98,14 +97,14 @@ func (agg *AggregatorService) GetTaskByIndex(taskIndex types.TaskIndex) *message
 	agg.tasksMu.RLock()
 	defer agg.tasksMu.RUnlock()
 
-	res, _ := agg.tasks[taskIndex]
+	res := agg.tasks[taskIndex]
 
 	return res
 }
 
 func (agg *AggregatorService) newIndex() types.TaskIndex {
-	agg.tasksMu.Lock()
-	defer agg.tasksMu.Unlock()
+	agg.nextTaskIndexMu.Lock()
+	defer agg.nextTaskIndexMu.Unlock()
 
 	res := agg.nextTaskIndex
 	agg.nextTaskIndex += 1
@@ -179,7 +178,7 @@ func (agg *AggregatorService) CreateTask(req *message.CreateTaskRequest) (*messa
 
 	finished := agg.GetFinishedTaskByAlertHash(req.AlertHash)
 	if finished != nil {
-		return nil, fmt.Errorf("The task 0x%x already finished: 0x%x", req.AlertHash, finished.TxHash)
+		return nil, fmt.Errorf("the task 0x%x already finished: 0x%x", req.AlertHash, finished.TxHash)
 	}
 
 	task := agg.GetTaskByAlertHash(req.AlertHash)
@@ -286,15 +285,19 @@ func (agg *AggregatorService) sendNewTask(alertHash [32]byte, taskIndex types.Ta
 
 	// TODO(samlaf): we use seconds for now, but we should ideally pass a blocknumber to the blsAggregationService
 	// and it should monitor the chain and only expire the task aggregation once the chain has reached that block number.
-	taskTimeToExpiry := taskChallengeWindowBlock * blockTimeSeconds
+	taskTimeToExpiry := taskChallengeWindowBlock * blockTimeDuration
 
 	agg.logger.Infof("InitializeNewTask %v %v", taskIndex, taskTimeToExpiry)
-	agg.blsAggregationService.InitializeNewTask(
+	err = agg.blsAggregationService.InitializeNewTask(
 		taskIndex,
 		uint32(newAlertTask.ReferenceBlockNumber),
 		newAlertTask.QuorumNumbers,
 		newAlertTask.QuorumThresholdPercentages,
 		taskTimeToExpiry,
 	)
+	if err != nil {
+		agg.logger.Error("InitializeNewTask failed", "err", err)
+		return nil, err
+	}
 	return newAlertTask, nil
 }

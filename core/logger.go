@@ -24,6 +24,10 @@ func NewZapLogger(env sdklogging.LogLevel) (sdklogging.Logger, error) {
 	config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
 	config.EncoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
 
+	if env == sdklogging.Development {
+		config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	}
+
 	logger, err := config.Build(zap.AddCallerSkip(1))
 	if err != nil {
 		panic(err)

@@ -32,7 +32,7 @@ const (
 
 type FinishedTaskStatus struct {
 	Message          *message.AlertTaskInfo
-	TxHash           [32]byte
+	TxHash           common.Hash
 	BlockHash        common.Hash `json:"blockHash,omitempty"`
 	BlockNumber      *big.Int    `json:"blockNumber,omitempty"`
 	TransactionIndex uint        `json:"transactionIndex"`
@@ -133,7 +133,7 @@ func (agg *Aggregator) Start(ctx context.Context, wg *sync.WaitGroup) error {
 
 	agg.startRpcServer(ctx)
 
-	agg.logger.Info("Aggregator set to send new task every 10 seconds...")
+	agg.logger.Info("Aggregator Rpc Server Started.")
 	for {
 		select {
 		case <-ctx.Done():
@@ -204,11 +204,15 @@ func (agg *Aggregator) sendAggregatedResponseToContract(blsAggServiceResp blsagg
 		agg.logger.Error("Aggregator failed to respond to task", "err", err)
 	}
 
-	agg.service.SetFinishedTask(task.AlertHash, &FinishedTaskStatus{
-		Message:          task,
-		TxHash:           res.TxHash,
-		BlockHash:        res.BlockHash,
-		BlockNumber:      res.BlockNumber,
-		TransactionIndex: res.TransactionIndex,
-	})
+	if res != nil {
+		agg.service.SetFinishedTask(task.AlertHash, &FinishedTaskStatus{
+			Message:          task,
+			TxHash:           res.TxHash,
+			BlockHash:        res.BlockHash,
+			BlockNumber:      res.BlockNumber,
+			TransactionIndex: res.TransactionIndex,
+		})
+	} else {
+		agg.logger.Error("the send confirm alert res is failed by nil return", "hash", task.AlertHash)
+	}
 }

@@ -210,7 +210,7 @@ contract MachServiceManager is
         }
 
         // make sure the stakes against which the Batch is being confirmed are not stale
-        if (alertHeader.referenceBlockNumber > block.number) {
+        if (alertHeader.referenceBlockNumber >= block.number) {
             revert InvalidReferenceBlockNum();
         }
         bytes32 hashedHeader = hashAlertHeader(alertHeader);

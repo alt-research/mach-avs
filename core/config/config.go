@@ -41,6 +41,7 @@ type Config struct {
 	AggregatorGRPCServerIpPortAddr string
 	Layer1ChainId                  uint32
 	Layer2ChainId                  uint32
+	QuorumNums                     types.QuorumNums
 	// json:"-" skips this field when marshaling (only used for logging to stdout), since SignerFn doesnt implement marshalJson
 	SignerFn          signerv2.SignerFn `json:"-"`
 	PrivateKey        *ecdsa.PrivateKey `json:"-"`
@@ -57,6 +58,7 @@ type ConfigRaw struct {
 	AggregatorGRPCServerIpPortAddr string              `yaml:"aggregator_grpc_server_ip_port_address"`
 	Layer1ChainId                  uint32              `yaml:"layer1_chain_id"`
 	Layer2ChainId                  uint32              `yaml:"layer2_chain_id"`
+	QuorumNums                     []uint8             `yaml:"quorum_nums"`
 }
 
 // These are read from DeploymentFileFlag
@@ -182,6 +184,22 @@ func NewConfig(ctx *cli.Context) (*Config, error) {
 	}
 	txMgr := txmgr.NewSimpleTxManager(txSender, ethRpcClient, logger, aggregatorAddr)
 
+	quorumNums := make([]types.QuorumNum, len(configRaw.QuorumNums))
+	for i, quorumNum := range configRaw.QuorumNums {
+		quorumNums[i] = types.QuorumNum(quorumNum)
+	}
+
+	if len(quorumNums) == 0 {
+		// default use zero
+		logger.Warn("not quorumNums, just use [0]")
+		quorumNums = []types.QuorumNum{types.QuorumNum(0)}
+	}
+	logger.Info(
+		"the quorumNums",
+		"quorumNums", fmt.Sprintf("%#v", quorumNums),
+		"raw", fmt.Sprintf("%#v", configRaw.QuorumNums),
+	)
+
 	config := &Config{
 		Logger:                         logger,
 		EthWsRpcUrl:                    configRaw.EthWsUrl,
@@ -198,6 +216,7 @@ func NewConfig(ctx *cli.Context) (*Config, error) {
 		AggregatorAddress:              aggregatorAddr,
 		Layer1ChainId:                  configRaw.Layer1ChainId,
 		Layer2ChainId:                  configRaw.Layer2ChainId,
+		QuorumNums:                     quorumNums,
 	}
 	config.validate()
 	return config, nil

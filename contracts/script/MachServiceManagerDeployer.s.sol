@@ -231,7 +231,10 @@ contract MachServiceManagerDeployer is Script {
                 IStakeRegistry.StrategyParams[] memory params =
                     new IStakeRegistry.StrategyParams[](deploymentConfig.numStrategies);
                 for (uint256 j = 0; j < deploymentConfig.numStrategies; j++) {
-                    IStakeRegistry.StrategyParams({strategy: IStrategy(deployedStrategyArray[i]), multiplier: 1 ether});
+                    params[j] = IStakeRegistry.StrategyParams({
+                        strategy: IStrategy(deployedStrategyArray[j]),
+                        multiplier: 1 ether
+                    });
                 }
                 strategyParams[i] = params;
             }

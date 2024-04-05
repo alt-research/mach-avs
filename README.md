@@ -7,6 +7,16 @@ AltLayer Mach AVS is a fast finality layer for Ethereum rollups. In Mach AVS , o
 1. Fast finality services for Web3 application
 2. Circuit breaker for RPC nodes
 
+## Current Deployment
+### Testnet
+
+#### AltLayer Mach AVS
+
+| Name                     | Address                                                                                                                 		|
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------	|
+| Service Manager          | [`0xae9a4497dee2540daf489beddb0706128a99ec63`](https://holesky.etherscan.io/address/0xae9a4497dee2540daf489beddb0706128a99ec63) 	|
+
+
 ## Components
 
 Mach AVS consists of the following component:

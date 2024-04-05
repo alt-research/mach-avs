@@ -288,6 +288,7 @@ contract MachServiceManagerDeployer is Script {
         vm.serializeAddress(output, "apkRegistry", address(machServiceContract.apkRegistry));
         vm.serializeAddress(output, "pauserRegistry", address(pauserRegistry));
         vm.serializeAddress(output, "machAVSProxyAdmin", address(machAVSProxyAdmin));
+        vm.serializeAddress(output, "emptyContract", address(emptyContract));
         vm.serializeAddress(output, "operatorStateRetriever", address(machServiceContract.operatorStateRetriever));
         string memory finalJson = vm.serializeString(output, "object", output);
         vm.createDir("./script/output", true);

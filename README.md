@@ -7,6 +7,23 @@ AltLayer Mach AVS is a fast finality layer for Ethereum rollups. In Mach AVS , o
 1. Fast finality services for Web3 application
 2. Circuit breaker for RPC nodes
 
+## Current Deployment
+### Testnet
+
+#### AltLayer Mach AVS
+
+| Name                     | Address                                                                                                                 		|
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------	|
+| ProxyAdmin              | [`0x2AB98471C25061C11431EA72F92215DC1d918C64`](https://holesky.etherscan.io/address/0x2AB98471C25061C11431EA72F92215DC1d918C64) 	|
+| ServiceManager          | [`0xAE9a4497dee2540DaF489BeddB0706128a99ec63`](https://holesky.etherscan.io/address/0xAE9a4497dee2540DaF489BeddB0706128a99ec63) 	|
+| RegistryCoordinator     | [`0x1eA7D160d325B289bF981e0D7aB6Bf3261a0FFf2`](https://holesky.etherscan.io/address/0x1eA7D160d325B289bF981e0D7aB6Bf3261a0FFf2) 	|
+| BLSApkRegistry          | [`0x2e9267bAbAdD516471c884D41ED1A1c1D01aeDf3`](https://holesky.etherscan.io/address/0x2e9267bAbAdD516471c884D41ED1A1c1D01aeDf3) 	|
+| IndexRegistry           | [`0x6b715bFFf9A6bbD1Eb745B55df8cEd592CbcbB50`](https://holesky.etherscan.io/address/0x6b715bFFf9A6bbD1Eb745B55df8cEd592CbcbB50) 	|
+| OperatorStateRetriever  | [`0xBE1c904525910fdB49dB33b4960DF9aC9f603dC7`](https://holesky.etherscan.io/address/0xBE1c904525910fdB49dB33b4960DF9aC9f603dC7) 	|
+| PauserRegistry          | [`0x709510e198967ff878041C56866beB43C4196862`](https://holesky.etherscan.io/address/0x709510e198967ff878041C56866beB43C4196862) 	|
+| StakeRegistry           | [`0x0b3eE1aDc2944DCcBb817f7d77915C7d38F7B858`](https://holesky.etherscan.io/address/0x0b3eE1aDc2944DCcBb817f7d77915C7d38F7B858) 	|
+
+
 ## Components
 
 Mach AVS consists of the following component:

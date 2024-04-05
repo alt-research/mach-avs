@@ -67,7 +67,9 @@ contract MachServiceManagerDeployer is Script {
         address confirmer;
         uint256 chainId;
         uint256 numStrategies;
+        uint256 numQuorum;
         uint256 maxOperatorCount;
+        uint96 minimumStake;
         // from eigenlayer contracts
         address avsDirectory;
         address delegationManager;
@@ -113,13 +115,18 @@ contract MachServiceManagerDeployer is Script {
         deploymentConfig.ejector = msg.sender;
         deploymentConfig.confirmer = msg.sender;
         deploymentConfig.chainId = 1;
-        deploymentConfig.numStrategies = 11;
+        deploymentConfig.numQuorum = 1;
         deploymentConfig.maxOperatorCount = 30;
+        deploymentConfig.minimumStake = 1;
+        deploymentConfig.numStrategies = 11;
+
         deploymentConfig.avsDirectory = address(eigenLayerContracts.avsDirectory);
         deploymentConfig.delegationManager = address(eigenLayerContracts.delegationManager);
 
         // strategies deployed
-        address[] memory deployedStrategyArray = new address[](11);
+        address[] memory deployedStrategyArray = new address[](deploymentConfig.numStrategies);
+
+        // need manually step in
         deployedStrategyArray[0] = eigenLayerContracts.stETH;
         deployedStrategyArray[1] = eigenLayerContracts.rETH;
         deployedStrategyArray[2] = eigenLayerContracts.LsETH;
@@ -199,8 +206,10 @@ contract MachServiceManagerDeployer is Script {
 
         {
             IRegistryCoordinator.OperatorSetParam[] memory operatorSetParams =
-                new IRegistryCoordinator.OperatorSetParam[](deploymentConfig.numStrategies);
-            for (uint256 i = 0; i < deploymentConfig.numStrategies; i++) {
+                new IRegistryCoordinator.OperatorSetParam[](deploymentConfig.numQuorum);
+
+            // prepare _operatorSetParams
+            for (uint256 i = 0; i < deploymentConfig.numQuorum; i++) {
                 // hard code these for now
                 operatorSetParams[i] = IRegistryCoordinator.OperatorSetParam({
                     maxOperatorCount: uint32(deploymentConfig.maxOperatorCount),
@@ -208,14 +217,26 @@ contract MachServiceManagerDeployer is Script {
                     kickBIPsOfTotalStake: 1001 // an operator needs to have less than kickBIPsOfTotalStake / 10000 of the total stake to be kicked out
                 });
             }
-            uint96[] memory minimumStakeForQuourm = new uint96[](deploymentConfig.numStrategies);
-            IStakeRegistry.StrategyParams[][] memory strategyAndWeightingMultipliers =
-                new IStakeRegistry.StrategyParams[][](deploymentConfig.numStrategies);
-            for (uint256 i = 0; i < deploymentConfig.numStrategies; i++) {
-                strategyAndWeightingMultipliers[i] = new IStakeRegistry.StrategyParams[](1);
-                strategyAndWeightingMultipliers[i][0] =
-                    IStakeRegistry.StrategyParams({strategy: IStrategy(deployedStrategyArray[i]), multiplier: 1 ether});
+
+            // prepare _minimumStakes
+            uint96[] memory minimumStakeForQuourm = new uint96[](deploymentConfig.numQuorum);
+            for (uint256 i = 0; i < deploymentConfig.numQuorum; i++) {
+                minimumStakeForQuourm[i] = deploymentConfig.minimumStake;
             }
+
+            // prepare _strategyParams
+            IStakeRegistry.StrategyParams[][] memory strategyParams =
+                new IStakeRegistry.StrategyParams[][](deploymentConfig.numQuorum);
+            for (uint256 i = 0; i < deploymentConfig.numQuorum; i++) {
+                IStakeRegistry.StrategyParams[] memory params =
+                    new IStakeRegistry.StrategyParams[](deploymentConfig.numStrategies);
+                for (uint256 j = 0; j < deploymentConfig.numStrategies; j++) {
+                    IStakeRegistry.StrategyParams({strategy: IStrategy(deployedStrategyArray[i]), multiplier: 1 ether});
+                }
+                strategyParams[i] = params;
+            }
+
+            // initialize
             machAVSProxyAdmin.upgradeAndCall(
                 TransparentUpgradeableProxy(payable(address(machServiceContract.registryCoordinator))),
                 address(machServiceContract.registryCoordinatorImplementation),
@@ -228,7 +249,7 @@ contract MachServiceManagerDeployer is Script {
                     0, // initial paused status is nothing paused
                     operatorSetParams,
                     minimumStakeForQuourm,
-                    strategyAndWeightingMultipliers
+                    strategyParams
                 )
             );
         }

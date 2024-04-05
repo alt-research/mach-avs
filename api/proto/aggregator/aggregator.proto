@@ -1,0 +1,76 @@
+syntax = "proto3";
+
+option go_package = "github.com/alt-research/avs/api/grpc/aggregator";
+package aggregator;
+
+// The Aggregator is for collection the bls signatures from operator and
+// then commit the task to AVS.
+service Aggregator {
+	// Send Init operator to aggregator from operator, will check if the config is matching
+	rpc InitOperator(InitOperatorRequest) returns (InitOperatorResponse) {}
+	// Create a alert task
+	rpc CreateTask(CreateTaskRequest) returns (CreateTaskResponse) {}
+	// Send signed task for alert
+	rpc ProcessSignedTaskResponse(SignedTaskRespRequest) returns (SignedTaskRespResponse) {}
+}
+
+message InitOperatorRequest {
+	// The layer1 chain id for operator to use
+	uint32 layer1_chain_id = 1;
+	// The layer2 chain id for operator to use
+	uint32 chain_id = 2;
+	// The operator 's id
+	bytes operator_id = 3;
+	// The operator 's ecdsa address
+	string operator_address = 4;
+	// The operator_state_retriever_addr
+	string operator_state_retriever_addr = 5;
+	// The registry_coordinator_addr
+	string registry_coordinator_addr = 6;
+}
+
+message InitOperatorResponse {
+	// If the operator 's state is ok
+	bool ok = 1;
+	// Reason
+	string reason = 2;
+}
+
+message CreateTaskRequest {
+	// The hash of alert
+	bytes alert_hash = 1;
+}
+
+message CreateTaskResponse {
+	// The info of alert
+	AlertTaskInfo info = 1;
+}
+
+message SignedTaskRespRequest {
+	// The alert
+	AlertTaskInfo alert = 1;
+	// The operator's BLS signature signed on the keccak256 hash
+	bytes operator_request_signature = 2;
+		// The operator 's id
+		bytes operator_id = 3;
+}
+
+message SignedTaskRespResponse {
+	// If need reply
+	bool reply = 1;
+	// The tx hash of send
+	bytes tx_hash = 2;
+}
+
+message AlertTaskInfo {
+	// The hash of alert
+	bytes alert_hash = 1;
+	// QuorumNumbers of task
+	bytes quorum_numbers = 2;
+	// QuorumThresholdPercentages of task
+	bytes quorum_threshold_percentages = 3;
+	// TaskIndex
+	uint32 task_index = 4;
+	// ReferenceBlockNumber
+	uint64 reference_block_number = 5;
+}

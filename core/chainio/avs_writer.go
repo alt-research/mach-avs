@@ -30,7 +30,6 @@ type AvsWriter struct {
 	AvsContractBindings *AvsManagersBindings
 	logger              logging.Logger
 	TxMgr               txmgr.TxManager
-	client              eth.Client
 }
 
 var _ AvsWriterer = (*AvsWriter)(nil)

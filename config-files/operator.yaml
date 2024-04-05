@@ -21,6 +21,9 @@ bls_private_key_store_path: ./config-files/key/test1.bls.key.json
 
 aggregator_server_ip_port_address: localhost:8090
 
+# address which the aggregator grpc listens on for operator signed messages
+aggregator_grpc_server_ip_port_address: localhost:8190
+
 # avs node spec compliance https://eigen.nethermind.io/docs/spec/intro
 eigen_metrics_ip_port_address: localhost:9090
 enable_metrics: true
@@ -34,3 +37,9 @@ avs_registry_coordinator_address: 0xa82fF9aFd8f496c3d6ac40E2a0F282E47488CFc9
 operator_state_retriever_address: 0x0E801D84Fa97b50751Dbf25036d067dCf18858bF
 
 operator_server_ip_port_addr: localhost:8091
+
+# the layer1 chain id the avs contracts in
+layer1_chain_id: 31337
+
+# the layer2 chain id
+layer2_chain_id: 0

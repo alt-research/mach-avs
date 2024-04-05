@@ -13,6 +13,9 @@ CHAINID=31337
 STRATEGY_ADDRESS=0x7a2088a1bFc9d81c55368AE168C2C02570cB814F
 DEPLOYMENT_FILES_DIR=contracts/script/output/${CHAINID}
 
+PROTOS := ./api/proto
+PROTO_GEN := ./api/grpc
+
 -----------------------------: ## 
 
 ___CONTRACTS___: ## 
@@ -24,6 +27,22 @@ bindings: ## generates contract bindings
 	cd contracts && bash generate-go-bindings.sh
 
 __CLI__: ## 
+
+clean:
+	find $(PROTO_GEN) -name "*.pb.go" -type f | xargs rm -rf
+	mkdir -p $(PROTO_GEN)
+
+protoc: clean
+	protoc -I $(PROTOS) \
+	--go_out=$(PROTO_GEN) \
+	--go_opt=paths=source_relative \
+	--go-grpc_out=$(PROTO_GEN) \
+	--go-grpc_opt=paths=source_relative \
+	$(PROTOS)/**/*.proto
+
+lint:
+	staticcheck ./...
+	golangci-lint run
 
 build: build-operator build-aggregator build-cli
 
@@ -40,3 +59,4 @@ _____HELPER_____: ##
 mocks: ## generates mocks for tests
 	go install go.uber.org/mock/mockgen@v0.3.0
 	go generate ./...
+

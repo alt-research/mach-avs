@@ -26,7 +26,7 @@ const (
 	// this hardcoded here because it's also hardcoded in the contracts, but should
 	// ideally be fetched from the contracts
 	taskChallengeWindowBlock = 100
-	blockTimeSeconds         = 12 * time.Second
+	blockTimeDuration        = 12 * time.Second
 	avsName                  = "mach"
 )
 
@@ -79,11 +79,14 @@ type OperatorStatus struct {
 type Aggregator struct {
 	logger logging.Logger
 
-	serverIpPortAddr string
-	avsWriter        chainio.AvsWriterer
+	serverIpPortAddr     string
+	grpcServerIpPortAddr string
+
+	avsWriter chainio.AvsWriterer
 
 	service   *AggregatorService
 	legacyRpc *rpc.LegacyRpcHandler
+	gRpc      *rpc.GRpcHandler
 }
 
 // NewAggregator creates a new Aggregator with the provided config.
@@ -102,12 +105,20 @@ func NewAggregator(c *config.Config) (*Aggregator, error) {
 
 	legacyRpc := rpc.NewLegacyRpcHandler(c.Logger, service)
 
+	var grpc_server *rpc.GRpcHandler
+	if c.AggregatorGRPCServerIpPortAddr != "" {
+		c.Logger.Infof("Create grpc server in %s", c.AggregatorGRPCServerIpPortAddr)
+		grpc_server = rpc.NewGRpcHandler(c.Logger, service)
+	}
+
 	return &Aggregator{
-		logger:           c.Logger,
-		serverIpPortAddr: c.AggregatorServerIpPortAddr,
-		avsWriter:        avsWriter,
-		service:          service,
-		legacyRpc:        legacyRpc,
+		logger:               c.Logger,
+		serverIpPortAddr:     c.AggregatorServerIpPortAddr,
+		grpcServerIpPortAddr: c.AggregatorGRPCServerIpPortAddr,
+		avsWriter:            avsWriter,
+		service:              service,
+		legacyRpc:            legacyRpc,
+		gRpc:                 grpc_server,
 	}, nil
 }
 
@@ -136,6 +147,10 @@ func (agg *Aggregator) Start(ctx context.Context, wg *sync.WaitGroup) error {
 
 func (agg *Aggregator) startRpcServer(ctx context.Context) {
 	go agg.legacyRpc.StartServer(ctx, 1*time.Second, agg.serverIpPortAddr)
+
+	if agg.gRpc != nil {
+		go agg.gRpc.StartServer(ctx, agg.grpcServerIpPortAddr)
+	}
 }
 
 func (agg *Aggregator) wait() {
@@ -143,6 +158,10 @@ func (agg *Aggregator) wait() {
 
 	if agg.legacyRpc != nil {
 		agg.legacyRpc.Wait()
+	}
+
+	if agg.gRpc != nil {
+		agg.gRpc.Wait()
 	}
 
 	agg.logger.Info("The aggregator is exited")

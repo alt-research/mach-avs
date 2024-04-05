@@ -27,7 +27,6 @@ import (
 	"github.com/Layr-Labs/eigensdk-go/chainio/txmgr"
 	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
 	sdkEcdsa "github.com/Layr-Labs/eigensdk-go/crypto/ecdsa"
-	"github.com/Layr-Labs/eigensdk-go/logging"
 	sdklogging "github.com/Layr-Labs/eigensdk-go/logging"
 	sdkmetrics "github.com/Layr-Labs/eigensdk-go/metrics"
 	"github.com/Layr-Labs/eigensdk-go/metrics/collectors/economic"
@@ -42,7 +41,7 @@ const SEM_VER = "0.0.1"
 
 type Operator struct {
 	config           config.NodeConfig
-	logger           logging.Logger
+	logger           sdklogging.Logger
 	ethClient        eth.Client
 	metricsReg       *prometheus.Registry
 	metrics          metrics.Metrics
@@ -112,6 +111,11 @@ func withEnvConfig(c config.NodeConfig) config.NodeConfig {
 	aggregatorServerIpPortAddress, ok := os.LookupEnv("AGGREGATOR_SERVER_URL")
 	if ok && aggregatorServerIpPortAddress != "" {
 		c.AggregatorServerIpPortAddress = aggregatorServerIpPortAddress
+	}
+
+	grpcAggregatorServerIpPortAddress, ok := os.LookupEnv("AGGREGATOR_GRPC_SERVER_URL")
+	if ok && grpcAggregatorServerIpPortAddress != "" {
+		c.AggregatorGRPCServerIpPortAddress = grpcAggregatorServerIpPortAddress
 	}
 
 	eigenMetricsIpPortAddress, ok := os.LookupEnv("EIGEN_METRICS_URL")
@@ -193,7 +197,7 @@ func withEnvConfig(c config.NodeConfig) config.NodeConfig {
 //
 //	take the config in core (which is shared with aggregator and challenger)
 func NewOperatorFromConfig(cfg config.NodeConfig) (*Operator, error) {
-	var logLevel logging.LogLevel
+	var logLevel sdklogging.LogLevel
 	if cfg.Production {
 		logLevel = sdklogging.Production
 	} else {
@@ -328,10 +332,28 @@ func NewOperatorFromConfig(cfg config.NodeConfig) (*Operator, error) {
 		return nil, err
 	}
 
-	aggregatorRpcClient, err := NewAggregatorRpcClient(c, operatorId, operatorAddress, logger, avsAndEigenMetrics)
-	if err != nil {
-		logger.Error("Cannot create AggregatorRpcClient. Is aggregator running?", "err", err)
-		return nil, err
+	var aggregatorRpcClient AggregatorRpcClienter
+
+	if c.AggregatorGRPCServerIpPortAddress != "" {
+		logger.Info("Use grpc server to connect to the aggregator", "address", c.AggregatorGRPCServerIpPortAddress)
+
+		cli, err := NewAggregatorGRpcClient(c, operatorId, operatorAddress, logger, avsAndEigenMetrics)
+		if err != nil {
+			logger.Error("Cannot create AggregatorGRpcClient. Is aggregator running?", "err", err)
+			return nil, err
+		}
+
+		aggregatorRpcClient = cli
+	} else {
+		logger.Info("Use legacy rpc server to connect to the aggregator", "address", c.AggregatorServerIpPortAddress)
+
+		cli, err := NewAggregatorRpcClient(c, operatorId, operatorAddress, logger, avsAndEigenMetrics)
+		if err != nil {
+			logger.Error("Cannot create AggregatorRpcClient. Is aggregator running?", "err", err)
+			return nil, err
+		}
+
+		aggregatorRpcClient = cli
 	}
 
 	newTaskCreatedChan := make(chan alert.AlertRequest, 32)
@@ -412,7 +434,12 @@ func (o *Operator) Start(ctx context.Context) error {
 		o.logger.Error("Error start Rpc server", "err", err)
 		return err
 	}
-	defer o.rpcServer.Stop()
+	defer func() {
+		err := o.rpcServer.Stop()
+		if err != nil {
+			o.logger.Error("Stop Rpc server failed", "err", err)
+		}
+	}()
 
 	for {
 		select {

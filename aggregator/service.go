@@ -261,6 +261,15 @@ func (agg *AggregatorService) sendNewTask(alertHash message.Bytes32, taskIndex t
 		agg.logger.Error("GetQuorumCountByBlockNumber failed", "err", err)
 		return nil, err
 	}
+	agg.logger.Info("get quorumNumbers from layer1", "quorumNumbers", fmt.Sprintf("%v", quorumNumbers))
+
+	if len(quorumNumbers) < len(agg.cfg.QuorumNums) {
+		agg.logger.Error("the cfg quorum numbers is larger to the layer1, it will commit failed")
+		return nil, fmt.Errorf("the quorum numbers is larger to the layer1 %v, expected %v", agg.cfg.QuorumNums, quorumNumbers)
+	}
+
+	// just use config value
+	quorumNumbers = agg.cfg.QuorumNums
 
 	quorumThresholdPercentages, err := agg.avsReader.GetQuorumThresholdPercentages(context.Background(), uint32(referenceBlockNumber), quorumNumbers)
 	if err != nil {

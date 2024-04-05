@@ -23,6 +23,18 @@ AltLayer Mach AVS is a fast finality layer for Ethereum rollups. In Mach AVS , o
 | PauserRegistry          | [`0x709510e198967ff878041C56866beB43C4196862`](https://holesky.etherscan.io/address/0x709510e198967ff878041C56866beB43C4196862) 	|
 | StakeRegistry           | [`0x0b3eE1aDc2944DCcBb817f7d77915C7d38F7B858`](https://holesky.etherscan.io/address/0x0b3eE1aDc2944DCcBb817f7d77915C7d38F7B858) 	|
 
+#### Xterio Mach AVS
+
+| Name                     | Address                                                                                                                 		|
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------	|
+| ProxyAdmin              | [`0xeBaE2a37884e7aeC83c0e69A146e4920c6aAE6Dc`](https://holesky.etherscan.io/address/0xeBaE2a37884e7aeC83c0e69A146e4920c6aAE6Dc) 	|
+| ServiceManager          | [`0x648e5012D7B30755963755F7dd7Ff03e2F61bF8B`](https://holesky.etherscan.io/address/0x648e5012D7B30755963755F7dd7Ff03e2F61bF8B) 	|
+| RegistryCoordinator     | [`0xC452d0BcEE841EEd2AEe687495558e7a3C6010BE`](https://holesky.etherscan.io/address/0xC452d0BcEE841EEd2AEe687495558e7a3C6010BE) 	|
+| BLSApkRegistry          | [`0xE0268135fC9202a71810a631CC90266c97AFC156`](https://holesky.etherscan.io/address/0xE0268135fC9202a71810a631CC90266c97AFC156) 	|
+| IndexRegistry           | [`0xe6437C48B45f4333871C2D99ecaB6751f465F1b6`](https://holesky.etherscan.io/address/0xe6437C48B45f4333871C2D99ecaB6751f465F1b6) 	|
+| OperatorStateRetriever  | [`0x222B52694Ab22AFc155B573baF52C1ed9a26b3f1`](https://holesky.etherscan.io/address/0x222B52694Ab22AFc155B573baF52C1ed9a26b3f1) 	|
+| PauserRegistry          | [`0x4eFbD4288119436F91aF2BA199809e82444A4966`](https://holesky.etherscan.io/address/0x4eFbD4288119436F91aF2BA199809e82444A4966) 	|
+| StakeRegistry           | [`0x6628b0Cc07a6fdB84d660DeF0E74F3C21D78C290`](https://holesky.etherscan.io/address/0x6628b0Cc07a6fdB84d660DeF0E74F3C21D78C290) 	|
 
 ## Components
 

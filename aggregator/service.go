@@ -2,6 +2,7 @@ package aggregator
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 	"sync"
 	"time"
@@ -12,7 +13,6 @@ import (
 	"github.com/Layr-Labs/eigensdk-go/services/avsregistry"
 	blsagg "github.com/Layr-Labs/eigensdk-go/services/bls_aggregation"
 	oppubkeysserv "github.com/Layr-Labs/eigensdk-go/services/operatorpubkeys"
-	sdktypes "github.com/Layr-Labs/eigensdk-go/types"
 
 	"github.com/alt-research/avs/aggregator/rpc"
 	"github.com/alt-research/avs/aggregator/types"
@@ -174,7 +174,7 @@ func (agg *AggregatorService) InitOperator(req *message.InitOperatorRequest) (*m
 // will try to init the task, if currently had a same task for the alert,
 // it will return the existing task.
 func (agg *AggregatorService) CreateTask(req *message.CreateTaskRequest) (*message.CreateTaskResponse, error) {
-	agg.logger.Infof("Received CreateTask: %#v", req)
+	agg.logger.Info("Received CreateTask", "alertHash", req.AlertHash)
 
 	finished := agg.GetFinishedTaskByAlertHash(req.AlertHash)
 	if finished != nil {
@@ -202,14 +202,17 @@ func (agg *AggregatorService) CreateTask(req *message.CreateTaskRequest) (*messa
 // reply doesn't need to be checked. If there are no errors, the task response is accepted
 // rpc framework forces a reply type to exist, so we put bool as a placeholder
 func (agg *AggregatorService) ProcessSignedTaskResponse(signedTaskResponse *message.SignedTaskRespRequest) (*message.SignedTaskRespResponse, error) {
-	agg.logger.Infof("Received signed task response: %#v", signedTaskResponse)
+	agg.logger.Info(
+		"Received signed task response",
+		"alert", signedTaskResponse.Alert,
+		"operatorId", hex.EncodeToString(signedTaskResponse.OperatorId[:]),
+	)
+
 	taskIndex := signedTaskResponse.Alert.TaskIndex
 	taskResponseDigest, err := signedTaskResponse.Alert.SignHash()
 	if err != nil {
 		return nil, err
 	}
-
-	agg.logger.Infof("ProcessNewSignature11: %#v", signedTaskResponse.Alert.TaskIndex)
 
 	if task := agg.GetTaskByIndex(taskIndex); task == nil {
 		agg.logger.Error("ProcessNewSignature error by no task exist", "taskIndex", taskIndex)
@@ -238,12 +241,8 @@ func (agg *AggregatorService) GetResponseChannel() <-chan blsagg.BlsAggregationS
 
 // sendNewTask sends a new task to the task manager contract, and updates the Task dict struct
 // with the information of operators opted into quorum 0 at the block of task creation.
-func (agg *AggregatorService) sendNewTask(alertHash [32]byte, taskIndex types.TaskIndex) (*message.AlertTaskInfo, error) {
+func (agg *AggregatorService) sendNewTask(alertHash message.Bytes32, taskIndex types.TaskIndex) (*message.AlertTaskInfo, error) {
 	agg.logger.Info("Aggregator sending new task", "alert", alertHash, "task", taskIndex)
-
-	// TODO: use cfg
-	quorumNumbersValue := []sdktypes.QuorumNum{0}
-	quorumThresholdPercentagesValue := []sdktypes.QuorumThresholdPercentage{100}
 
 	var err error
 
@@ -269,12 +268,16 @@ func (agg *AggregatorService) sendNewTask(alertHash [32]byte, taskIndex types.Ta
 		return nil, err
 	}
 
-	agg.logger.Infof("quorum %v %v", quorumNumbers, quorumThresholdPercentages)
+	agg.logger.Info(
+		"quorum datas",
+		"numbers", fmt.Sprintf("%v", quorumNumbers.UnderlyingType()),
+		"thresholdPercentages", fmt.Sprintf("%v", quorumThresholdPercentages.UnderlyingType()),
+	)
 
 	newAlertTask := &message.AlertTaskInfo{
 		AlertHash:                  alertHash,
-		QuorumNumbers:              quorumNumbersValue,
-		QuorumThresholdPercentages: quorumThresholdPercentagesValue,
+		QuorumNumbers:              quorumNumbers,
+		QuorumThresholdPercentages: quorumThresholdPercentages,
 		TaskIndex:                  taskIndex,
 		ReferenceBlockNumber:       referenceBlockNumber,
 	}

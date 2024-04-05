@@ -26,10 +26,10 @@ type AvsReaderer interface {
 	IsAlertContains(ctx context.Context, messageHash [32]byte) (bool, error)
 
 	// GetQuorumsByBlockNumber
-	GetQuorumsByBlockNumber(ctx context.Context, blockNumber uint32) ([]sdktypes.QuorumNum, error)
+	GetQuorumsByBlockNumber(ctx context.Context, blockNumber uint32) (sdktypes.QuorumNums, error)
 
 	// GetQuorumThresholdPercentages
-	GetQuorumThresholdPercentages(ctx context.Context, blockNumber uint32, quorums []sdktypes.QuorumNum) ([]sdktypes.QuorumThresholdPercentage, error)
+	GetQuorumThresholdPercentages(ctx context.Context, blockNumber uint32, quorums sdktypes.QuorumNums) (sdktypes.QuorumThresholdPercentages, error)
 }
 
 type AvsReader struct {
@@ -85,7 +85,7 @@ func (r *AvsReader) IsAlertContains(ctx context.Context, messageHash [32]byte) (
 	return isContain, nil
 }
 
-func (r *AvsReader) GetQuorumsByBlockNumber(ctx context.Context, blockNumber uint32) ([]sdktypes.QuorumNum, error) {
+func (r *AvsReader) GetQuorumsByBlockNumber(ctx context.Context, blockNumber uint32) (sdktypes.QuorumNums, error) {
 	quorumCount, err := r.AvsRegistryReader.GetQuorumCount(&bind.CallOpts{
 		Context:     ctx,
 		BlockNumber: big.NewInt(int64(blockNumber)),
@@ -102,7 +102,7 @@ func (r *AvsReader) GetQuorumsByBlockNumber(ctx context.Context, blockNumber uin
 	return res, nil
 }
 
-func (r *AvsReader) GetQuorumThresholdPercentages(ctx context.Context, blockNumber uint32, quorums []sdktypes.QuorumNum) ([]sdktypes.QuorumThresholdPercentage, error) {
+func (r *AvsReader) GetQuorumThresholdPercentages(ctx context.Context, blockNumber uint32, quorums sdktypes.QuorumNums) (sdktypes.QuorumThresholdPercentages, error) {
 	quorumThresholdPercentage, err := r.AvsServiceBindings.ServiceManager.QuorumThresholdPercentage(&bind.CallOpts{
 		Context:     ctx,
 		BlockNumber: big.NewInt(int64(blockNumber)),

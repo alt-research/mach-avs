@@ -1,7 +1,9 @@
 package message
 
 import (
+	"encoding/hex"
 	"fmt"
+	"log/slog"
 
 	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
 	sdktypes "github.com/Layr-Labs/eigensdk-go/types"
@@ -15,9 +17,24 @@ import (
 	"golang.org/x/crypto/sha3"
 )
 
+// make TaskResponseDigests print as hex encoded strings instead of a sequence of bytes
+type Bytes32 [32]byte
+
+func (m Bytes32) LogValue() slog.Value {
+	return slog.StringValue(m.String())
+}
+
+func (m Bytes32) String() string {
+	return hex.EncodeToString(m[:])
+}
+
+func (m *Bytes32) UnderlyingType() [32]byte {
+	return *m
+}
+
 // The Alert task Information
 type AlertTaskInfo struct {
-	AlertHash                  [32]byte
+	AlertHash                  Bytes32
 	QuorumNumbers              sdktypes.QuorumNums
 	QuorumThresholdPercentages sdktypes.QuorumThresholdPercentages
 	TaskIndex                  types.TaskIndex
@@ -173,7 +190,7 @@ func (r InitOperatorResponse) ToPbType() *aggregator.InitOperatorResponse {
 
 // The Alert task create request
 type CreateTaskRequest struct {
-	AlertHash [32]byte
+	AlertHash Bytes32
 }
 
 func NewCreateTaskRequest(req *aggregator.CreateTaskRequest) (*CreateTaskRequest, error) {

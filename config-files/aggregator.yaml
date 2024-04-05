@@ -14,3 +14,6 @@ layer1_chain_id: 31337
 
 # the layer2 chain id
 layer2_chain_id: 0
+
+# the QuorumNums we use, just no change
+quorum_nums: [0]

@@ -14,6 +14,8 @@ error AlreadyInAllowlist();
 error NotInAllowlist();
 error AlreadyAdded();
 error ResolvedAlert();
+error AlreadyEnabled();
+error AlreadyDisabled();
 
 // Common
 error AlreadyInitialized();

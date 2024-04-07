@@ -32,7 +32,9 @@ import {
     InvalidQuorumParam,
     InvalidQuorumThresholdPercentage,
     AlreadyAdded,
-    ResolvedAlert
+    ResolvedAlert,
+    AlreadyEnabled,
+    AlreadyDisabled
 } from "../error/Errors.sol";
 import {IMachServiceManager} from "../interfaces/IMachServiceManager.sol";
 
@@ -122,16 +124,24 @@ contract MachServiceManager is
      * @notice Enable the allowlist.
      */
     function enableAllowlist() external onlyOwner {
-        allowlistEnabled = true;
-        emit AllowlistEnabled();
+        if (allowlistEnabled) {
+            revert AlreadyEnabled();
+        } else {
+            allowlistEnabled = true;
+            emit AllowlistEnabled();
+        }
     }
 
     /**
      * @notice Disable the allowlist.
      */
     function disableAllowlist() external onlyOwner {
-        allowlistEnabled = false;
-        emit AllowlistDisabled();
+        if (!allowlistEnabled) {
+            revert AlreadyDisabled();
+        } else {
+            allowlistEnabled = false;
+            emit AllowlistDisabled();
+        }
     }
 
     /**

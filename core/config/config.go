@@ -31,17 +31,18 @@ type Config struct {
 	EigenMetricsIpPortAddress string
 	// we need the url for the eigensdk currently... eventually standardize api so as to
 	// only take an ethclient or an rpcUrl (and build the ethclient at each constructor site)
-	EthHttpRpcUrl                  string
-	EthWsRpcUrl                    string
-	EthHttpClient                  eth.Client
-	EthWsClient                    eth.Client
-	OperatorStateRetrieverAddr     common.Address
-	RegistryCoordinatorAddr        common.Address
-	AggregatorServerIpPortAddr     string
-	AggregatorGRPCServerIpPortAddr string
-	Layer1ChainId                  uint32
-	Layer2ChainId                  uint32
-	QuorumNums                     types.QuorumNums
+	EthHttpRpcUrl                     string
+	EthWsRpcUrl                       string
+	EthHttpClient                     eth.Client
+	EthWsClient                       eth.Client
+	OperatorStateRetrieverAddr        common.Address
+	RegistryCoordinatorAddr           common.Address
+	AggregatorServerIpPortAddr        string
+	AggregatorGRPCServerIpPortAddr    string
+	AggregatorJSONRPCServerIpPortAddr string
+	Layer1ChainId                     uint32
+	Layer2ChainId                     uint32
+	QuorumNums                        types.QuorumNums
 	// json:"-" skips this field when marshaling (only used for logging to stdout), since SignerFn doesnt implement marshalJson
 	SignerFn          signerv2.SignerFn `json:"-"`
 	PrivateKey        *ecdsa.PrivateKey `json:"-"`
@@ -51,14 +52,15 @@ type Config struct {
 
 // These are read from ConfigFileFlag
 type ConfigRaw struct {
-	Environment                    sdklogging.LogLevel `yaml:"environment"`
-	EthRpcUrl                      string              `yaml:"eth_rpc_url"`
-	EthWsUrl                       string              `yaml:"eth_ws_url"`
-	AggregatorServerIpPortAddr     string              `yaml:"aggregator_server_ip_port_address"`
-	AggregatorGRPCServerIpPortAddr string              `yaml:"aggregator_grpc_server_ip_port_address"`
-	Layer1ChainId                  uint32              `yaml:"layer1_chain_id"`
-	Layer2ChainId                  uint32              `yaml:"layer2_chain_id"`
-	QuorumNums                     []uint8             `yaml:"quorum_nums"`
+	Environment                       sdklogging.LogLevel `yaml:"environment"`
+	EthRpcUrl                         string              `yaml:"eth_rpc_url"`
+	EthWsUrl                          string              `yaml:"eth_ws_url"`
+	AggregatorServerIpPortAddr        string              `yaml:"aggregator_server_ip_port_address"`
+	AggregatorGRPCServerIpPortAddr    string              `yaml:"aggregator_grpc_server_ip_port_address"`
+	AggregatorJSONRPCServerIpPortAddr string              `yaml:"aggregator_jsonrpc_server_ip_port_address"`
+	Layer1ChainId                     uint32              `yaml:"layer1_chain_id"`
+	Layer2ChainId                     uint32              `yaml:"layer2_chain_id"`
+	QuorumNums                        []uint8             `yaml:"quorum_nums"`
 }
 
 // These are read from DeploymentFileFlag
@@ -99,6 +101,11 @@ func NewConfig(ctx *cli.Context) (*Config, error) {
 	aggregatorGRPCServerIpPortAddress, ok := os.LookupEnv("AGGREGATOR_GRPC_SERVER_URL")
 	if ok && aggregatorGRPCServerIpPortAddress != "" {
 		configRaw.AggregatorGRPCServerIpPortAddr = aggregatorGRPCServerIpPortAddress
+	}
+
+	aggregatorJSONRPCServerIpPortAddr, ok := os.LookupEnv("AGGREGATOR_JSONRPC_SERVER_URL")
+	if ok && aggregatorJSONRPCServerIpPortAddr != "" {
+		configRaw.AggregatorJSONRPCServerIpPortAddr = aggregatorJSONRPCServerIpPortAddr
 	}
 
 	var deploymentRaw MachAvsDeploymentRaw
@@ -201,22 +208,23 @@ func NewConfig(ctx *cli.Context) (*Config, error) {
 	)
 
 	config := &Config{
-		Logger:                         logger,
-		EthWsRpcUrl:                    configRaw.EthWsUrl,
-		EthHttpRpcUrl:                  configRaw.EthRpcUrl,
-		EthHttpClient:                  ethRpcClient,
-		EthWsClient:                    ethWsClient,
-		OperatorStateRetrieverAddr:     common.HexToAddress(deploymentRaw.OperatorStateRetrieverAddr),
-		RegistryCoordinatorAddr:        common.HexToAddress(deploymentRaw.RegistryCoordinatorAddr),
-		AggregatorServerIpPortAddr:     configRaw.AggregatorServerIpPortAddr,
-		AggregatorGRPCServerIpPortAddr: configRaw.AggregatorGRPCServerIpPortAddr,
-		SignerFn:                       signerV2,
-		PrivateKey:                     ecdsaPrivateKey,
-		TxMgr:                          txMgr,
-		AggregatorAddress:              aggregatorAddr,
-		Layer1ChainId:                  configRaw.Layer1ChainId,
-		Layer2ChainId:                  configRaw.Layer2ChainId,
-		QuorumNums:                     quorumNums,
+		Logger:                            logger,
+		EthWsRpcUrl:                       configRaw.EthWsUrl,
+		EthHttpRpcUrl:                     configRaw.EthRpcUrl,
+		EthHttpClient:                     ethRpcClient,
+		EthWsClient:                       ethWsClient,
+		OperatorStateRetrieverAddr:        common.HexToAddress(deploymentRaw.OperatorStateRetrieverAddr),
+		RegistryCoordinatorAddr:           common.HexToAddress(deploymentRaw.RegistryCoordinatorAddr),
+		AggregatorServerIpPortAddr:        configRaw.AggregatorServerIpPortAddr,
+		AggregatorGRPCServerIpPortAddr:    configRaw.AggregatorGRPCServerIpPortAddr,
+		AggregatorJSONRPCServerIpPortAddr: configRaw.AggregatorJSONRPCServerIpPortAddr,
+		SignerFn:                          signerV2,
+		PrivateKey:                        ecdsaPrivateKey,
+		TxMgr:                             txMgr,
+		AggregatorAddress:                 aggregatorAddr,
+		Layer1ChainId:                     configRaw.Layer1ChainId,
+		Layer2ChainId:                     configRaw.Layer2ChainId,
+		QuorumNums:                        quorumNums,
 	}
 	config.validate()
 	return config, nil

@@ -79,14 +79,16 @@ type OperatorStatus struct {
 type Aggregator struct {
 	logger logging.Logger
 
-	serverIpPortAddr     string
-	grpcServerIpPortAddr string
+	serverIpPortAddr        string
+	grpcServerIpPortAddr    string
+	jsonRpcServerIpPortAddr string
 
 	avsWriter chainio.AvsWriterer
 
-	service   *AggregatorService
-	legacyRpc *rpc.LegacyRpcHandler
-	gRpc      *rpc.GRpcHandler
+	service       *AggregatorService
+	legacyRpc     *rpc.LegacyRpcHandler
+	gRpc          *rpc.GRpcHandler
+	jsonrpcServer *rpc.JsonRpcServer
 }
 
 // NewAggregator creates a new Aggregator with the provided config.
@@ -105,20 +107,28 @@ func NewAggregator(c *config.Config) (*Aggregator, error) {
 
 	legacyRpc := rpc.NewLegacyRpcHandler(c.Logger, service)
 
-	var grpc_server *rpc.GRpcHandler
+	var grpcServer *rpc.GRpcHandler
 	if c.AggregatorGRPCServerIpPortAddr != "" {
 		c.Logger.Infof("Create grpc server in %s", c.AggregatorGRPCServerIpPortAddr)
-		grpc_server = rpc.NewGRpcHandler(c.Logger, service)
+		grpcServer = rpc.NewGRpcHandler(c.Logger, service)
+	}
+
+	var jsonrpcServer *rpc.JsonRpcServer
+	if c.AggregatorJSONRPCServerIpPortAddr != "" {
+		c.Logger.Infof("Create json rpc server in %s", c.AggregatorJSONRPCServerIpPortAddr)
+		jsonrpcServer = rpc.NewJsonRpcServer(c.Logger, service)
 	}
 
 	return &Aggregator{
-		logger:               c.Logger,
-		serverIpPortAddr:     c.AggregatorServerIpPortAddr,
-		grpcServerIpPortAddr: c.AggregatorGRPCServerIpPortAddr,
-		avsWriter:            avsWriter,
-		service:              service,
-		legacyRpc:            legacyRpc,
-		gRpc:                 grpc_server,
+		logger:                  c.Logger,
+		serverIpPortAddr:        c.AggregatorServerIpPortAddr,
+		grpcServerIpPortAddr:    c.AggregatorGRPCServerIpPortAddr,
+		jsonRpcServerIpPortAddr: c.AggregatorJSONRPCServerIpPortAddr,
+		avsWriter:               avsWriter,
+		service:                 service,
+		legacyRpc:               legacyRpc,
+		gRpc:                    grpcServer,
+		jsonrpcServer:           jsonrpcServer,
 	}, nil
 }
 
@@ -151,6 +161,10 @@ func (agg *Aggregator) startRpcServer(ctx context.Context) {
 	if agg.gRpc != nil {
 		go agg.gRpc.StartServer(ctx, agg.grpcServerIpPortAddr)
 	}
+
+	if agg.jsonrpcServer != nil {
+		go agg.jsonrpcServer.StartServer(ctx, agg.jsonRpcServerIpPortAddr)
+	}
 }
 
 func (agg *Aggregator) wait() {
@@ -162,6 +176,10 @@ func (agg *Aggregator) wait() {
 
 	if agg.gRpc != nil {
 		agg.gRpc.Wait()
+	}
+
+	if agg.jsonrpcServer != nil {
+		agg.jsonrpcServer.Wait()
 	}
 
 	agg.logger.Info("The aggregator is exited")

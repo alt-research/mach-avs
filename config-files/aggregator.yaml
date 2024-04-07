@@ -9,6 +9,9 @@ aggregator_server_ip_port_address: localhost:8090
 # address which the aggregator grpc listens on for operator signed messages
 aggregator_grpc_server_ip_port_address: localhost:8190
 
+# address which the aggregator json rpc listens on for operator signed messages
+aggregator_jsonrpc_server_ip_port_address: localhost:8290
+
 # the layer1 chain id the avs contracts in
 layer1_chain_id: 31337
 

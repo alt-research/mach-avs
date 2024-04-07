@@ -259,6 +259,38 @@ contract MachServiceManager is
     //                               View Functions                             //
     //////////////////////////////////////////////////////////////////////////////
 
+    /// @notice Returns the length of total operators
+    function totalOperators() external view returns (uint256) {
+        return _operators.length();
+    }
+
+    /// @notice Checks if operator exists
+    function contains(address operator) external view returns (bool) {
+        return _operators.contains(operator);
+    }
+
+    /// @notice Returns an array of operator
+    function queryOperators(uint256 start, uint256 querySize) external view returns (address[] memory) {
+        uint256 length = _operators.length();
+
+        if (start >= length) {
+            revert InvalidStartIndex();
+        }
+
+        uint256 end = start + querySize;
+
+        if (end > length) {
+            end = length;
+        }
+
+        address[] memory output = new address[](end - start);
+        for (uint256 i = start; i < end; ++i) {
+            output[i - start] = _operators.at(i);
+        }
+
+        return output;
+    }
+
     /// @notice Returns the length of total alerts
     function totalAlerts() external view returns (uint256) {
         return _messageHashes.length();

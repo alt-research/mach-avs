@@ -13,6 +13,7 @@ error InvalidQuorumThresholdPercentage();
 error AlreadyInAllowlist();
 error NotInAllowlist();
 error AlreadyAdded();
+error ResolvedAlert();
 
 // Common
 error AlreadyInitialized();

@@ -34,9 +34,12 @@ abstract contract MachServiceManagerStorage {
     /// @notice Minimal quorum threshold percentage
     uint8 public quorumThresholdPercentage;
 
+    /// @notice Resolved message hashes, prevent aggregator from replay any resolved alert
+    EnumerableSet.Bytes32Set internal _resolvedMessageHashes;
+
     // storage gap for upgradeability
     // slither-disable-next-line shadowing-state
-    uint256[46] private __GAP;
+    uint256[45] private __GAP;
 
     constructor(uint256 _rollupChainId) {
         rollupChainId = _rollupChainId;

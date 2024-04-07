@@ -6,7 +6,7 @@
 // Research's licensors) own all legal rights, titles and interests in and to the
 // work, software, application, source code, documentation and any other documents
 
-pragma solidity ^0.8.12;
+pragma solidity =0.8.12;
 
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {Pausable} from "eigenlayer-core/contracts/permissions/Pausable.sol";
@@ -30,7 +30,11 @@ import {
     InsufficientThresholdPercentages,
     InvalidSender,
     InvalidQuorumParam,
-    AlreadyAdded
+    InvalidQuorumThresholdPercentage,
+    AlreadyAdded,
+    ResolvedAlert,
+    AlreadyEnabled,
+    AlreadyDisabled
 } from "../error/Errors.sol";
 import {IMachServiceManager} from "../interfaces/IMachServiceManager.sol";
 
@@ -120,16 +124,31 @@ contract MachServiceManager is
      * @notice Enable the allowlist.
      */
     function enableAllowlist() external onlyOwner {
-        allowlistEnabled = true;
-        emit AllowlistEnabled();
+        if (allowlistEnabled) {
+            revert AlreadyEnabled();
+        } else {
+            allowlistEnabled = true;
+            emit AllowlistEnabled();
+        }
     }
 
     /**
      * @notice Disable the allowlist.
      */
     function disableAllowlist() external onlyOwner {
-        allowlistEnabled = false;
-        emit AllowlistDisabled();
+        if (!allowlistEnabled) {
+            revert AlreadyDisabled();
+        } else {
+            allowlistEnabled = false;
+            emit AllowlistDisabled();
+        }
+    }
+
+    /**
+     * @notice Set confirmer address.
+     */
+    function setConfirmer(address confirmer) external onlyOwner {
+        _setAlertConfirmer(confirmer);
     }
 
     /**
@@ -137,8 +156,11 @@ contract MachServiceManager is
      * @param messageHash The message hash of the alert
      */
     function removeAlert(bytes32 messageHash) external onlyOwner {
-        _messageHashes.remove(messageHash);
-        emit AlertRemoved(messageHash, _msgSender());
+        bool ret = _messageHashes.remove(messageHash);
+        if (ret) {
+            _resolvedMessageHashes.add(messageHash);
+            emit AlertRemoved(messageHash, _msgSender());
+        }
     }
 
     /**
@@ -146,6 +168,9 @@ contract MachServiceManager is
      * @param thresholdPercentage The new quorum threshold percentage
      */
     function updateQuorumThresholdPercentage(uint8 thresholdPercentage) external onlyOwner {
+        if (thresholdPercentage > 100) {
+            revert InvalidQuorumThresholdPercentage();
+        }
         quorumThresholdPercentage = thresholdPercentage;
         emit QuorumThresholdPercentageChanged(thresholdPercentage);
     }
@@ -166,12 +191,12 @@ contract MachServiceManager is
         if (allowlistEnabled && !allowlist[operator]) {
             revert NotInAllowlist();
         }
+        // we don't check if this operator has registered or not as AVSDirectory has such checking already
+        _operators.add(operator);
         // Stake requirement for quorum is checked in StakeRegistry.sol
         // https://github.com/Layr-Labs/eigenlayer-middleware/blob/dev/src/RegistryCoordinator.sol#L488
         // https://github.com/Layr-Labs/eigenlayer-middleware/blob/dev/src/StakeRegistry.sol#L84
         _avsDirectory.registerOperatorToAVS(operator, operatorSignature);
-        // we don't check if this operator has registered or not as AVSDirectory has such checking already
-        _operators.add(operator);
         emit OperatorAdded(operator);
     }
 
@@ -209,11 +234,16 @@ contract MachServiceManager is
             revert InvalidSender();
         }
 
+        // check is it is the resolved alert before
+        if (_resolvedMessageHashes.contains(alertHeader.messageHash)) {
+            revert ResolvedAlert();
+        }
+
         // make sure the stakes against which the Batch is being confirmed are not stale
         if (alertHeader.referenceBlockNumber >= block.number) {
             revert InvalidReferenceBlockNum();
         }
-        bytes32 hashedHeader = hashAlertHeader(alertHeader);
+        bytes32 hashedHeader = _hashAlertHeader(alertHeader);
 
         // check quorum parameters
         if (alertHeader.quorumNumbers.length != alertHeader.quorumThresholdPercentages.length) {
@@ -230,11 +260,13 @@ contract MachServiceManager is
 
         // check that signatories own at least a threshold percentage of each quourm
         for (uint256 i = 0; i < alertHeader.quorumThresholdPercentages.length; i++) {
-            // we don't check that the quorumThresholdPercentages are not >100 because a greater value would trivially fail the check, implying
             // signed stake > total stake
             // signedStakeForQuorum[i] / totalStakeForQuorum[i] * THRESHOLD_DENOMINATOR >= quorumThresholdPercentages[i]
             // => signedStakeForQuorum[i] * THRESHOLD_DENOMINATOR >= totalStakeForQuorum[i] * quorumThresholdPercentages[i]
             uint8 currentQuorumThresholdPercentages = uint8(alertHeader.quorumThresholdPercentages[i]);
+            if (currentQuorumThresholdPercentages > 100) {
+                revert InvalidQuorumThresholdPercentage();
+            }
             if (currentQuorumThresholdPercentages < quorumThresholdPercentage) {
                 revert InsufficientThresholdPercentages();
             }
@@ -296,8 +328,8 @@ contract MachServiceManager is
     //////////////////////////////////////////////////////////////////////////////
 
     /// @notice hash the alert header
-    function hashAlertHeader(AlertHeader memory alertHeader) internal pure returns (bytes32) {
-        return keccak256(abi.encode(convertAlertHeaderToReducedAlertHeader(alertHeader)));
+    function _hashAlertHeader(AlertHeader calldata alertHeader) internal pure returns (bytes32) {
+        return keccak256(abi.encode(_convertAlertHeaderToReducedAlertHeader(alertHeader)));
     }
 
     /// @notice changes the alert confirmer
@@ -311,7 +343,7 @@ contract MachServiceManager is
      * @notice converts a alert header to a reduced alert header
      * @param alertHeader the alert header to convert
      */
-    function convertAlertHeaderToReducedAlertHeader(AlertHeader memory alertHeader)
+    function _convertAlertHeaderToReducedAlertHeader(AlertHeader calldata alertHeader)
         internal
         pure
         returns (ReducedAlertHeader memory)

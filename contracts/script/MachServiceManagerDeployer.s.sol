@@ -282,10 +282,19 @@ contract MachServiceManagerDeployer is Script {
 
         string memory output = "machAVS deployment output";
         vm.serializeAddress(output, "machServiceManager", address(machServiceContract.machServiceManager));
+        vm.serializeAddress(
+            output, "machServiceManagerImpl", address(machServiceContract.machServiceManagerImplementation)
+        );
         vm.serializeAddress(output, "registryCoordinator", address(machServiceContract.registryCoordinator));
+        vm.serializeAddress(
+            output, "registryCoordinatorImpl", address(machServiceContract.registryCoordinatorImplementation)
+        );
         vm.serializeAddress(output, "indexRegistry", address(machServiceContract.indexRegistry));
+        vm.serializeAddress(output, "indexRegistryImpl", address(machServiceContract.indexRegistryImplementation));
         vm.serializeAddress(output, "stakeRegistry", address(machServiceContract.stakeRegistry));
+        vm.serializeAddress(output, "stakeRegistryImpl", address(machServiceContract.stakeRegistryImplementation));
         vm.serializeAddress(output, "apkRegistry", address(machServiceContract.apkRegistry));
+        vm.serializeAddress(output, "apkRegistryImpl", address(machServiceContract.apkRegistryImplementation));
         vm.serializeAddress(output, "pauserRegistry", address(pauserRegistry));
         vm.serializeAddress(output, "machAVSProxyAdmin", address(machAVSProxyAdmin));
         vm.serializeAddress(output, "emptyContract", address(emptyContract));

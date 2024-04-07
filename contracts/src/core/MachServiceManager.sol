@@ -30,6 +30,7 @@ import {
     InsufficientThresholdPercentages,
     InvalidSender,
     InvalidQuorumParam,
+    InvalidQuorumThresholdPercentage,
     AlreadyAdded
 } from "../error/Errors.sol";
 import {IMachServiceManager} from "../interfaces/IMachServiceManager.sol";
@@ -146,6 +147,9 @@ contract MachServiceManager is
      * @param thresholdPercentage The new quorum threshold percentage
      */
     function updateQuorumThresholdPercentage(uint8 thresholdPercentage) external onlyOwner {
+        if (thresholdPercentage > 100) {
+            revert InvalidQuorumThresholdPercentage();
+        }
         quorumThresholdPercentage = thresholdPercentage;
         emit QuorumThresholdPercentageChanged(thresholdPercentage);
     }
@@ -230,11 +234,13 @@ contract MachServiceManager is
 
         // check that signatories own at least a threshold percentage of each quourm
         for (uint256 i = 0; i < alertHeader.quorumThresholdPercentages.length; i++) {
-            // we don't check that the quorumThresholdPercentages are not >100 because a greater value would trivially fail the check, implying
             // signed stake > total stake
             // signedStakeForQuorum[i] / totalStakeForQuorum[i] * THRESHOLD_DENOMINATOR >= quorumThresholdPercentages[i]
             // => signedStakeForQuorum[i] * THRESHOLD_DENOMINATOR >= totalStakeForQuorum[i] * quorumThresholdPercentages[i]
             uint8 currentQuorumThresholdPercentages = uint8(alertHeader.quorumThresholdPercentages[i]);
+            if (currentQuorumThresholdPercentages > 100) {
+                revert InvalidQuorumThresholdPercentage();
+            }
             if (currentQuorumThresholdPercentages < quorumThresholdPercentage) {
                 revert InsufficientThresholdPercentages();
             }

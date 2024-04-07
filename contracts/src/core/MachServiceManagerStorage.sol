@@ -6,7 +6,7 @@
 // Research's licensors) own all legal rights, titles and interests in and to the
 // work, software, application, source code, documentation and any other documents
 
-pragma solidity ^0.8.12;
+pragma solidity =0.8.12;
 
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 

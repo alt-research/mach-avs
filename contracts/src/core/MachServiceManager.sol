@@ -31,7 +31,8 @@ import {
     InvalidSender,
     InvalidQuorumParam,
     InvalidQuorumThresholdPercentage,
-    AlreadyAdded
+    AlreadyAdded,
+    ResolvedAlert
 } from "../error/Errors.sol";
 import {IMachServiceManager} from "../interfaces/IMachServiceManager.sol";
 
@@ -145,8 +146,11 @@ contract MachServiceManager is
      * @param messageHash The message hash of the alert
      */
     function removeAlert(bytes32 messageHash) external onlyOwner {
-        _messageHashes.remove(messageHash);
-        emit AlertRemoved(messageHash, _msgSender());
+        bool ret = _messageHashes.remove(messageHash);
+        if (ret) {
+            _resolvedMessageHashes.add(messageHash);
+            emit AlertRemoved(messageHash, _msgSender());
+        }
     }
 
     /**
@@ -218,6 +222,11 @@ contract MachServiceManager is
         // make sure the information needed to derive the non-signers and batch is in calldata to avoid emitting events
         if (tx.origin != msg.sender) {
             revert InvalidSender();
+        }
+
+        // check is it is the resolved alert before
+        if (_resolvedMessageHashes.contains(alertHeader.messageHash)) {
+            revert ResolvedAlert();
         }
 
         // make sure the stakes against which the Batch is being confirmed are not stale

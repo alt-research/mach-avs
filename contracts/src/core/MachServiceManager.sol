@@ -134,6 +134,13 @@ contract MachServiceManager is
     }
 
     /**
+     * @notice Set confirmer address.
+     */
+    function setConfirmer(address confirmer) external onlyOwner {
+        _setAlertConfirmer(confirmer);
+    }
+
+    /**
      * @notice Remove an Alert.
      * @param messageHash The message hash of the alert
      */

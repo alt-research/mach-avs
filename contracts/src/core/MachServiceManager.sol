@@ -309,7 +309,7 @@ contract MachServiceManager is
     //////////////////////////////////////////////////////////////////////////////
 
     /// @notice hash the alert header
-    function hashAlertHeader(AlertHeader memory alertHeader) internal pure returns (bytes32) {
+    function hashAlertHeader(AlertHeader calldata alertHeader) internal pure returns (bytes32) {
         return keccak256(abi.encode(convertAlertHeaderToReducedAlertHeader(alertHeader)));
     }
 
@@ -324,7 +324,7 @@ contract MachServiceManager is
      * @notice converts a alert header to a reduced alert header
      * @param alertHeader the alert header to convert
      */
-    function convertAlertHeaderToReducedAlertHeader(AlertHeader memory alertHeader)
+    function convertAlertHeaderToReducedAlertHeader(AlertHeader calldata alertHeader)
         internal
         pure
         returns (ReducedAlertHeader memory)

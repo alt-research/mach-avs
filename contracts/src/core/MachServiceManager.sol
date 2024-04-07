@@ -224,7 +224,7 @@ contract MachServiceManager is
         if (alertHeader.referenceBlockNumber >= block.number) {
             revert InvalidReferenceBlockNum();
         }
-        bytes32 hashedHeader = hashAlertHeader(alertHeader);
+        bytes32 hashedHeader = _hashAlertHeader(alertHeader);
 
         // check quorum parameters
         if (alertHeader.quorumNumbers.length != alertHeader.quorumThresholdPercentages.length) {
@@ -309,8 +309,8 @@ contract MachServiceManager is
     //////////////////////////////////////////////////////////////////////////////
 
     /// @notice hash the alert header
-    function hashAlertHeader(AlertHeader calldata alertHeader) internal pure returns (bytes32) {
-        return keccak256(abi.encode(convertAlertHeaderToReducedAlertHeader(alertHeader)));
+    function _hashAlertHeader(AlertHeader memory alertHeader) internal pure returns (bytes32) {
+        return keccak256(abi.encode(_convertAlertHeaderToReducedAlertHeader(alertHeader)));
     }
 
     /// @notice changes the alert confirmer
@@ -324,7 +324,7 @@ contract MachServiceManager is
      * @notice converts a alert header to a reduced alert header
      * @param alertHeader the alert header to convert
      */
-    function convertAlertHeaderToReducedAlertHeader(AlertHeader calldata alertHeader)
+    function _convertAlertHeaderToReducedAlertHeader(AlertHeader memory alertHeader)
         internal
         pure
         returns (ReducedAlertHeader memory)

@@ -9,6 +9,7 @@ error InvalidReferenceBlockNum();
 error InsufficientThreshold();
 error InsufficientThresholdPercentages();
 error InvalidQuorumParam();
+error InvalidQuorumThresholdPercentage();
 error AlreadyInAllowlist();
 error NotInAllowlist();
 error AlreadyAdded();

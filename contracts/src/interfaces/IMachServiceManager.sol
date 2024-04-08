@@ -44,6 +44,13 @@ interface IMachServiceManager is IServiceManager {
     event AlertConfirmerChanged(address previousAddress, address newAddress);
 
     /**
+     * @notice Emitted when the whitelister is changed.
+     * @param previousAddress The address of the previous whitelister
+     * @param newAddress The address of the new whitelister
+     */
+    event WhitelisterChanged(address previousAddress, address newAddress);
+
+    /**
      * @notice Emitted when the quorum threshold percentage is changed.
      * @param thresholdPercentages The new quorum threshold percentage
      */

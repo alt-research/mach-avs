@@ -21,6 +21,7 @@ import {ServiceManagerBase} from "eigenlayer-middleware/ServiceManagerBase.sol";
 import {MachServiceManagerStorage} from "./MachServiceManagerStorage.sol";
 import {
     InvalidConfirmer,
+    InvalidWhitelister,
     ZeroAddress,
     AlreadyInAllowlist,
     NotInAllowlist,
@@ -61,6 +62,14 @@ contract MachServiceManager is
         _;
     }
 
+    /// @notice when applied to a function, ensures that the function is only callable by the `whitelister`.
+    modifier onlyWhitelister() {
+        if (_msgSender() != whitelister) {
+            revert InvalidWhitelister();
+        }
+        _;
+    }
+
     constructor(
         IAVSDirectory __avsDirectory,
         IRegistryCoordinator __registryCoordinator,
@@ -78,7 +87,8 @@ contract MachServiceManager is
         IPauserRegistry _pauserRegistry,
         uint256 _initialPausedStatus,
         address _initialOwner,
-        address _alertConfirmer
+        address _alertConfirmer,
+        address _whitelister
     ) public initializer {
         _initializePauser(_pauserRegistry, _initialPausedStatus);
         __ServiceManagerBase_init(_initialOwner);
@@ -95,7 +105,7 @@ contract MachServiceManager is
      * @notice Add an operator to the allowlist.
      * @param operator The operator to add
      */
-    function addToAllowlist(address operator) external onlyOwner {
+    function addToAllowlist(address operator) external onlyWhitelister {
         if (operator == address(0)) {
             revert ZeroAddress();
         }
@@ -110,7 +120,7 @@ contract MachServiceManager is
      * @notice Remove an operator from the allowlist.
      * @param operator The operator to remove
      */
-    function removeFromAllowlist(address operator) external onlyOwner {
+    function removeFromAllowlist(address operator) external onlyWhitelister {
         if (!allowlist[operator]) {
             revert NotInAllowlist();
         }
@@ -139,6 +149,13 @@ contract MachServiceManager is
      */
     function setConfirmer(address confirmer) external onlyOwner {
         _setAlertConfirmer(confirmer);
+    }
+
+    /**
+     * @notice Set whitelister address.
+     */
+    function setWhitelister(address whitelister) external onlyOwner {
+        _setWhitelister(whitelister);
     }
 
     /**
@@ -329,10 +346,17 @@ contract MachServiceManager is
         emit AlertConfirmerChanged(previousBatchConfirmer, alertConfirmer);
     }
 
+    /// @notice changes the whitelister
+    function _setWhitelister(address _whitelister) internal {
+        address previousWhitelister = whitelister;
+        whitelister = _whitelister;
+        emit WhitelisterChanged(previousWhitelister, _whitelister);
+    }
     /**
      * @notice converts a alert header to a reduced alert header
      * @param alertHeader the alert header to convert
      */
+
     function _convertAlertHeaderToReducedAlertHeader(AlertHeader calldata alertHeader)
         internal
         pure

@@ -37,9 +37,12 @@ abstract contract MachServiceManagerStorage {
     /// @notice Resolved message hashes, prevent aggregator from replay any resolved alert
     EnumerableSet.Bytes32Set internal _resolvedMessageHashes;
 
+    /// @notice Role for whitelisting operators
+    address public whitelister;
+
     // storage gap for upgradeability
     // slither-disable-next-line shadowing-state
-    uint256[45] private __GAP;
+    uint256[44] private __GAP;
 
     constructor(uint256 _rollupChainId) {
         rollupChainId = _rollupChainId;

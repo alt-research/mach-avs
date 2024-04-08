@@ -42,6 +42,8 @@ type Config struct {
 	AggregatorJSONRPCServerIpPortAddr string
 	Layer1ChainId                     uint32
 	Layer2ChainId                     uint32
+	RpcVhosts                         []string
+	RpcCors                           []string
 	QuorumNums                        types.QuorumNums
 	// json:"-" skips this field when marshaling (only used for logging to stdout), since SignerFn doesnt implement marshalJson
 	SignerFn          signerv2.SignerFn `json:"-"`
@@ -61,6 +63,8 @@ type ConfigRaw struct {
 	Layer1ChainId                     uint32              `yaml:"layer1_chain_id"`
 	Layer2ChainId                     uint32              `yaml:"layer2_chain_id"`
 	QuorumNums                        []uint8             `yaml:"quorum_nums"`
+	RpcVhosts                         []string            `yaml:"rpc_vhosts"`
+	RpcCors                           []string            `yaml:"rpc_cors"`
 }
 
 // These are read from DeploymentFileFlag
@@ -225,6 +229,8 @@ func NewConfig(ctx *cli.Context) (*Config, error) {
 		Layer1ChainId:                     configRaw.Layer1ChainId,
 		Layer2ChainId:                     configRaw.Layer2ChainId,
 		QuorumNums:                        quorumNums,
+		RpcVhosts:                         configRaw.RpcVhosts,
+		RpcCors:                           configRaw.RpcCors,
 	}
 	config.validate()
 	return config, nil

@@ -116,7 +116,7 @@ func NewAggregator(c *config.Config) (*Aggregator, error) {
 	var jsonrpcServer *rpc.JsonRpcServer
 	if c.AggregatorJSONRPCServerIpPortAddr != "" {
 		c.Logger.Infof("Create json rpc server in %s", c.AggregatorJSONRPCServerIpPortAddr)
-		jsonrpcServer = rpc.NewJsonRpcServer(c.Logger, service)
+		jsonrpcServer = rpc.NewJsonRpcServer(c.Logger, service, c.RpcVhosts, c.RpcCors)
 	}
 
 	return &Aggregator{

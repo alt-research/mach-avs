@@ -21,14 +21,16 @@ type JsonRpcServer struct {
 	wg      *sync.WaitGroup
 }
 
-func NewJsonRpcServer(logger logging.Logger, aggreagtor AggregatorRpcHandler) *JsonRpcServer {
+func NewJsonRpcServer(logger logging.Logger, aggreagtor AggregatorRpcHandler, vhosts []string, cors []string) *JsonRpcServer {
 	return &JsonRpcServer{
 		logger: logger,
 		handler: JsonRpcHandler{
 			logger:     logger,
 			aggreagtor: aggreagtor,
 		},
-		wg: &sync.WaitGroup{},
+		vhosts: vhosts,
+		cors:   cors,
+		wg:     &sync.WaitGroup{},
 	}
 }
 

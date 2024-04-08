@@ -93,6 +93,7 @@ contract MachServiceManager is
         _initializePauser(_pauserRegistry, _initialPausedStatus);
         __ServiceManagerBase_init(_initialOwner);
         _setAlertConfirmer(_alertConfirmer);
+        _setWhitelister(_whitelister);
         allowlistEnabled = true;
         quorumThresholdPercentage = 66;
     }

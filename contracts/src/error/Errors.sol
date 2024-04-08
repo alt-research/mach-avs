@@ -4,7 +4,7 @@ pragma solidity ^0.8.12;
 error ZeroAddress();
 error InvalidStartIndex();
 error InvalidConfirmer();
-error InvalidWhitelister();
+error NotWhitelister();
 error InvalidSender();
 error InvalidReferenceBlockNum();
 error InsufficientThreshold();

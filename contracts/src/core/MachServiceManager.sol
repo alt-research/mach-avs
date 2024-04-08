@@ -21,7 +21,7 @@ import {ServiceManagerBase} from "eigenlayer-middleware/ServiceManagerBase.sol";
 import {MachServiceManagerStorage} from "./MachServiceManagerStorage.sol";
 import {
     InvalidConfirmer,
-    InvalidWhitelister,
+    NotWhitelister,
     ZeroAddress,
     AlreadyInAllowlist,
     NotInAllowlist,

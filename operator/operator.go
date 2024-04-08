@@ -118,6 +118,11 @@ func withEnvConfig(c config.NodeConfig) config.NodeConfig {
 		c.AggregatorGRPCServerIpPortAddress = grpcAggregatorServerIpPortAddress
 	}
 
+	jsonRPCAggregatorServerIpPortAddress, ok := os.LookupEnv("AGGREGATOR_JSONRPC_SERVER_URL")
+	if ok && jsonRPCAggregatorServerIpPortAddress != "" {
+		c.AggregatorJSONRPCServerIpPortAddr = jsonRPCAggregatorServerIpPortAddress
+	}
+
 	eigenMetricsIpPortAddress, ok := os.LookupEnv("EIGEN_METRICS_URL")
 	if ok && eigenMetricsIpPortAddress != "" {
 		c.EigenMetricsIpPortAddress = eigenMetricsIpPortAddress
@@ -332,28 +337,10 @@ func NewOperatorFromConfig(cfg config.NodeConfig) (*Operator, error) {
 		return nil, err
 	}
 
-	var aggregatorRpcClient AggregatorRpcClienter
-
-	if c.AggregatorGRPCServerIpPortAddress != "" {
-		logger.Info("Use grpc server to connect to the aggregator", "address", c.AggregatorGRPCServerIpPortAddress)
-
-		cli, err := NewAggregatorGRpcClient(c, operatorId, operatorAddress, logger, avsAndEigenMetrics)
-		if err != nil {
-			logger.Error("Cannot create AggregatorGRpcClient. Is aggregator running?", "err", err)
-			return nil, err
-		}
-
-		aggregatorRpcClient = cli
-	} else {
-		logger.Info("Use legacy rpc server to connect to the aggregator", "address", c.AggregatorServerIpPortAddress)
-
-		cli, err := NewAggregatorRpcClient(c, operatorId, operatorAddress, logger, avsAndEigenMetrics)
-		if err != nil {
-			logger.Error("Cannot create AggregatorRpcClient. Is aggregator running?", "err", err)
-			return nil, err
-		}
-
-		aggregatorRpcClient = cli
+	aggregatorRpcClient, err := buildAggregatorClient(c, operatorId, operatorAddress, logger, avsAndEigenMetrics)
+	if err != nil {
+		logger.Error("buildAggregatorClient falied", "err", err)
+		return nil, err
 	}
 
 	newTaskCreatedChan := make(chan alert.AlertRequest, 32)
@@ -394,6 +381,41 @@ func NewOperatorFromConfig(cfg config.NodeConfig) (*Operator, error) {
 
 	return operator, nil
 
+}
+
+func buildAggregatorClient(c config.NodeConfig, operatorId sdktypes.OperatorId, operatorAddr common.Address, logger sdklogging.Logger, metrics metrics.Metrics) (AggregatorRpcClienter, error) {
+	if c.AggregatorJSONRPCServerIpPortAddr != "" {
+		logger.Info("Use json rpc server to connect to the aggregator", "address", c.AggregatorJSONRPCServerIpPortAddr)
+		cli, err := NewAggregatorJsonRpcClient(c, operatorId, operatorAddr, logger, metrics)
+		if err != nil {
+			logger.Error("Cannot create AggregatorGRpcClient. Is aggregator running?", "err", err)
+			return nil, err
+		}
+
+		return cli, nil
+	}
+
+	if c.AggregatorGRPCServerIpPortAddress != "" {
+		logger.Info("Use grpc server to connect to the aggregator", "address", c.AggregatorGRPCServerIpPortAddress)
+
+		cli, err := NewAggregatorGRpcClient(c, operatorId, operatorAddr, logger, metrics)
+		if err != nil {
+			logger.Error("Cannot create AggregatorGRpcClient. Is aggregator running?", "err", err)
+			return nil, err
+		}
+
+		return cli, nil
+	} else {
+		logger.Info("Use legacy rpc server to connect to the aggregator", "address", c.AggregatorServerIpPortAddress)
+
+		cli, err := NewAggregatorRpcClient(c, operatorId, operatorAddr, logger, metrics)
+		if err != nil {
+			logger.Error("Cannot create AggregatorRpcClient. Is aggregator running?", "err", err)
+			return nil, err
+		}
+
+		return cli, nil
+	}
 }
 
 func (o *Operator) Start(ctx context.Context) error {

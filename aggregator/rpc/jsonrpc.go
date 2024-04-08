@@ -67,7 +67,10 @@ func (s *JsonRpcServer) StartServer(ctx context.Context, serverIpPortAddr string
 	select {
 	case <-ctx.Done():
 		s.logger.Info("Stop JSON RPC Server by Done")
-		httpServer.Shutdown(context.Background())
+		err := httpServer.Shutdown(context.Background())
+		if err != nil {
+			s.logger.Errorf("Stop JSON RPC Server by error: %v", err.Error())
+		}
 	case err = <-serverErr:
 	}
 
@@ -189,6 +192,8 @@ func (h *JsonRpcHandler) ProcessSignedTaskResponse(
 			TaskIndex:                  alertInfo.TaskIndex,
 			ReferenceBlockNumber:       alertInfo.ReferenceBlockNumber,
 		},
+		OperatorRequestSignature: operatorRequestSignature,
+		OperatorId:               operatorId,
 	})
 	if err != nil {
 		return SignedTaskRespResponse{}, fmt.Errorf("processSignedTaskResponse parse request falied: %v", err)

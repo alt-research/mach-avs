@@ -11,6 +11,7 @@ type NodeConfig struct {
 	EcdsaPrivateKeyStorePath          string `yaml:"ecdsa_private_key_store_path"`
 	AggregatorServerIpPortAddress     string `yaml:"aggregator_server_ip_port_address"`
 	AggregatorGRPCServerIpPortAddress string `yaml:"aggregator_grpc_server_ip_port_address"`
+	AggregatorJSONRPCServerIpPortAddr string `yaml:"aggregator_jsonrpc_server_ip_port_address"`
 	EigenMetricsIpPortAddress         string `yaml:"eigen_metrics_ip_port_address"`
 	EnableMetrics                     bool   `yaml:"enable_metrics"`
 	NodeApiIpPortAddress              string `yaml:"node_api_ip_port_address"`

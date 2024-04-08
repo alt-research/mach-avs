@@ -44,7 +44,7 @@ type AlertTaskInfo struct {
 func NewAlertTaskInfo(req *aggregator.AlertTaskInfo) (*AlertTaskInfo, error) {
 	alertHash := req.GetAlertHash()
 	if len(alertHash) != 32 {
-		return nil, fmt.Errorf("operator ID len should be 32")
+		return nil, fmt.Errorf("alertHash len should be 32")
 	}
 
 	res := &AlertTaskInfo{
@@ -144,7 +144,7 @@ type InitOperatorRequest struct {
 func NewInitOperatorRequest(req *aggregator.InitOperatorRequest) (*InitOperatorRequest, error) {
 	operatorId := req.GetOperatorId()
 	if len(operatorId) != 32 {
-		return nil, fmt.Errorf("operator ID len should be 32")
+		return nil, fmt.Errorf("operator ID len should be 32, got %d", len(operatorId))
 	}
 
 	if !common.IsHexAddress(req.GetOperatorAddress()) {
@@ -196,7 +196,7 @@ type CreateTaskRequest struct {
 func NewCreateTaskRequest(req *aggregator.CreateTaskRequest) (*CreateTaskRequest, error) {
 	alertHash := req.GetAlertHash()
 	if len(alertHash) != 32 {
-		return nil, fmt.Errorf("operator ID len should be 32")
+		return nil, fmt.Errorf("alertHash len should be 32")
 	}
 
 	res := &CreateTaskRequest{}
@@ -226,7 +226,7 @@ type SignedTaskRespRequest struct {
 func NewSignedTaskRespRequest(req *aggregator.SignedTaskRespRequest) (*SignedTaskRespRequest, error) {
 	operatorId := req.GetOperatorId()
 	if len(operatorId) != 32 {
-		return nil, fmt.Errorf("operator ID len should be 32")
+		return nil, fmt.Errorf("operator ID len should be 32, got %d", len(operatorId))
 	}
 
 	alert, err := NewAlertTaskInfo(req.GetAlert())

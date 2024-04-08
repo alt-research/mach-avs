@@ -65,7 +65,7 @@ contract MachServiceManager is
     /// @notice when applied to a function, ensures that the function is only callable by the `whitelister`.
     modifier onlyWhitelister() {
         if (_msgSender() != whitelister) {
-            revert InvalidWhitelister();
+            revert NotWhitelister();
         }
         _;
     }

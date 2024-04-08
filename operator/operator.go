@@ -433,6 +433,32 @@ func (o *Operator) Start(ctx context.Context) error {
 
 	o.logger.Infof("Starting operator.")
 
+	if o.config.EnableNodeApi {
+		o.nodeApi.RegisterNewService(
+			ServiceOperator,
+			ServiceOperator,
+			"operator to commit alert to aggregator",
+			nodeapi.ServiceStatusInitializing,
+		)
+
+		o.nodeApi.RegisterNewService(
+			ServiceOperatorAggregator,
+			ServiceOperatorAggregator,
+			"operator aggregator work",
+			nodeapi.ServiceStatusInitializing,
+		)
+
+		o.nodeApi.RegisterNewService(
+			ServiceOperatorVerifier,
+			ServiceOperatorVerifier,
+			"operator verifier work",
+			nodeapi.ServiceStatusInitializing,
+		)
+
+		o.nodeApi.UpdateHealth(nodeapi.Healthy)
+		o.nodeApi.Start()
+	}
+
 	o.logger.Infof("Init operator to aggregator.")
 	err = o.aggregatorRpcClient.InitOperatorToAggregator()
 	if err != nil {
@@ -442,8 +468,23 @@ func (o *Operator) Start(ctx context.Context) error {
 	o.logger.Infof("Init operator to aggregator succeeded.")
 
 	if o.config.EnableNodeApi {
-		o.nodeApi.Start()
+		o.nodeApi.UpdateServiceStatus(
+			ServiceOperator,
+			nodeapi.ServiceStatusUp,
+		)
+
+		o.nodeApi.UpdateServiceStatus(
+			ServiceOperatorAggregator,
+			nodeapi.ServiceStatusUp,
+		)
+
+		// TODO: check the verifier working
+		o.nodeApi.UpdateServiceStatus(
+			ServiceOperatorVerifier,
+			nodeapi.ServiceStatusUp,
+		)
 	}
+
 	var metricsErrChan <-chan error
 	if o.config.EnableMetrics {
 		metricsErrChan = o.metrics.Start(ctx, o.metricsReg)

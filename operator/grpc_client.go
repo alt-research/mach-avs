@@ -152,7 +152,7 @@ func (c *AggregatorGRpcClient) SendSignedTaskResponseToAggregator(signedTaskResp
 	if err != nil {
 		resChan <- alert.AlertResponse{
 			Err: err,
-			Msg: "call CreateAlertTask failed",
+			Msg: fmt.Sprintf("call CreateAlertTask failed by %v", err),
 		}
 		return
 	}

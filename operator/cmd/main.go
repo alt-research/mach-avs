@@ -47,7 +47,7 @@ func operatorMain(ctx *cli.Context) error {
 	}
 
 	log.Println("initializing operator")
-	operator, err := operator.NewOperatorFromConfig(nodeConfig)
+	operator, err := operator.NewOperatorFromConfig(nodeConfig, false)
 	if err != nil {
 		return err
 	}

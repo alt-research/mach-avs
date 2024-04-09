@@ -28,7 +28,7 @@ func RegisterOperatorWithEigenlayer(ctx *cli.Context) error {
 		log.Println("Config:", string(configJson))
 	}
 
-	operator, err := operator.NewOperatorFromConfig(nodeConfig)
+	operator, err := operator.NewOperatorFromConfig(nodeConfig, true)
 	if err != nil {
 		return err
 	}

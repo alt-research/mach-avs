@@ -53,8 +53,8 @@ AltLayer Mach AVS is a fast finality layer for Ethereum rollups. In Mach AVS , o
 | StakeRegistry           | [`0x6628b0Cc07a6fdB84d660DeF0E74F3C21D78C290`](https://holesky.etherscan.io/address/0x6628b0Cc07a6fdB84d660DeF0E74F3C21D78C290) 	|
 
 ## Audits
-- [PeckShield-Audit-Report-AltLayer-MACH-AVS-v1.0.pdf](audit/PeckShield-Audit-Report-AltLayer-MACH-AVS-v1.0.pdf)
-- [AltLayer Mach AVS (M2) - Final_by_n-var.pdf](AltLayer Mach AVS (M2) - Final_by_n-var.pdf)
+- [PeckShield-Audit-Report-AltLayer-MACH-AVS-v1.0.pdf](audits/PeckShield-Audit-Report-AltLayer-MACH-AVS-v1.0.pdf)
+- [AltLayer Mach AVS (M2) - Final_by_n-var.pdf](AltLayer Mach AVS (M2) - Final_by_n-var.pdf)(audits/AltLayer Mach AVS (M2) - Final_by_n-var.pdf)
 
 ## Components
 

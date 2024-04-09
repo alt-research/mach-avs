@@ -11,6 +11,8 @@ AltLayer Mach AVS is a fast finality layer for Ethereum rollups. In Mach AVS , o
 
 ### Mainnet
 
+#### AltLayer Mach AVS
+
 | Name                     | Address                                                                                                                 		|
 | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------	|
 | ProxyAdmin              | [`0xba9aC2c9d1Fc2Ba22f3709EC073757777447bb5B`](https://etherscan.io/address/0xba9aC2c9d1Fc2Ba22f3709EC073757777447bb5B) 	|

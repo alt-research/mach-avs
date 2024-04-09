@@ -193,6 +193,8 @@ func (agg *AggregatorService) CreateTask(req *message.CreateTaskRequest) (*messa
 			agg.logger.Error("send new task failed", "err", err)
 			return nil, err
 		}
+	} else {
+		agg.logger.Info("the task had created", "task", task)
 	}
 
 	return &message.CreateTaskResponse{Info: *task}, nil

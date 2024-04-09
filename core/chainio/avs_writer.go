@@ -2,7 +2,9 @@ package chainio
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	gethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 
@@ -23,6 +25,11 @@ type AvsWriterer interface {
 		alertHeader *message.AlertTaskInfo,
 		nonSignerStakesAndSignature csservicemanager.IBLSSignatureCheckerNonSignerStakesAndSignature,
 	) (*types.Receipt, error)
+
+	SendGenericConfirm(ctx context.Context,
+		task *message.GenericTaskData,
+		nonSignerStakesAndSignature csservicemanager.IBLSSignatureCheckerNonSignerStakesAndSignature,
+	) (*types.Receipt, error)
 }
 
 type AvsWriter struct {
@@ -30,15 +37,23 @@ type AvsWriter struct {
 	AvsContractBindings *AvsManagersBindings
 	logger              logging.Logger
 	TxMgr               txmgr.TxManager
+	ethHttpClient       eth.Client
+
+	avsCfg *message.GenericAVSConfig
 }
 
 var _ AvsWriterer = (*AvsWriter)(nil)
 
-func BuildAvsWriterFromConfig(c *config.Config) (*AvsWriter, error) {
-	return BuildAvsWriter(c.TxMgr, c.RegistryCoordinatorAddr, c.OperatorStateRetrieverAddr, c.EthHttpClient, c.Logger)
+func BuildAvsWriterFromConfig(c *config.Config, avsCfg *message.GenericAVSConfig) (*AvsWriter, error) {
+	return BuildAvsWriter(c.TxMgr, c.RegistryCoordinatorAddr, c.OperatorStateRetrieverAddr, c.EthHttpClient, c.Logger, avsCfg)
 }
 
-func BuildAvsWriter(txMgr txmgr.TxManager, registryCoordinatorAddr, operatorStateRetrieverAddr gethcommon.Address, ethHttpClient eth.Client, logger logging.Logger) (*AvsWriter, error) {
+func BuildAvsWriter(
+	txMgr txmgr.TxManager,
+	registryCoordinatorAddr, operatorStateRetrieverAddr gethcommon.Address,
+	ethHttpClient eth.Client,
+	logger logging.Logger,
+	avsCfg *message.GenericAVSConfig) (*AvsWriter, error) {
 	avsServiceBindings, err := NewAvsManagersBindings(registryCoordinatorAddr, operatorStateRetrieverAddr, ethHttpClient, logger)
 	if err != nil {
 		logger.Error("Failed to create contract bindings", "err", err)
@@ -51,14 +66,23 @@ func BuildAvsWriter(txMgr txmgr.TxManager, registryCoordinatorAddr, operatorStat
 	if err != nil {
 		return nil, err
 	}
-	return NewAvsWriter(avsRegistryWriter, avsServiceBindings, logger, txMgr), nil
+	return NewAvsWriter(avsRegistryWriter, avsServiceBindings, logger, txMgr, ethHttpClient, avsCfg), nil
 }
-func NewAvsWriter(avsRegistryWriter avsregistry.AvsRegistryWriter, avsServiceBindings *AvsManagersBindings, logger logging.Logger, txMgr txmgr.TxManager) *AvsWriter {
+func NewAvsWriter(
+	avsRegistryWriter avsregistry.AvsRegistryWriter,
+	avsServiceBindings *AvsManagersBindings,
+	logger logging.Logger,
+	txMgr txmgr.TxManager,
+	ethHttpClient eth.Client,
+	avsCfg *message.GenericAVSConfig) *AvsWriter {
 	return &AvsWriter{
 		AvsRegistryWriter:   avsRegistryWriter,
 		AvsContractBindings: avsServiceBindings,
 		logger:              logger,
 		TxMgr:               txMgr,
+		ethHttpClient:       ethHttpClient,
+
+		avsCfg: avsCfg,
 	}
 }
 
@@ -72,6 +96,44 @@ func (w *AvsWriter) SendConfirmAlert(ctx context.Context,
 		return nil, err
 	}
 	tx, err := w.AvsContractBindings.ServiceManager.ConfirmAlert(txOpts, alertHeader.ToIMachServiceManagerAlertHeader(), nonSignerStakesAndSignature)
+	if err != nil {
+		w.logger.Error("Error submitting SubmitTaskResponse tx while calling respondToTask", "err", err)
+		return nil, err
+	}
+	receipt, err := w.TxMgr.Send(ctx, tx)
+	if err != nil {
+		w.logger.Errorf("Error submitting CreateNewTask tx")
+		return nil, err
+	}
+	return receipt, nil
+}
+
+func (w *AvsWriter) SendGenericConfirm(ctx context.Context,
+	task *message.GenericTaskData,
+	nonSignerStakesAndSignature csservicemanager.IBLSSignatureCheckerNonSignerStakesAndSignature,
+) (*types.Receipt, error) {
+	if w.avsCfg == nil {
+		return nil, fmt.Errorf("not use avs config, so cannot send generic confirm")
+	}
+
+	txOpts, err := w.TxMgr.GetNoSendTxOpts()
+	if err != nil {
+		w.logger.Errorf("Error getting tx opts")
+		return nil, err
+	}
+
+	params := make([]interface{}, 0, len(task.CallParams)+1)
+	params = append(params, task.CallParams...)
+	params = append(params, nonSignerStakesAndSignature)
+
+	input, err := w.avsCfg.Abi.Pack(task.CallMethod, params...)
+	if err != nil {
+		return nil, err
+	}
+
+	boundContract := bind.NewBoundContract(w.avsCfg.AVSContractAddress, w.avsCfg.Abi, w.ethHttpClient, w.ethHttpClient, w.ethHttpClient)
+
+	tx, err := boundContract.RawTransact(txOpts, input)
 	if err != nil {
 		w.logger.Error("Error submitting SubmitTaskResponse tx while calling respondToTask", "err", err)
 		return nil, err

@@ -93,7 +93,7 @@ type Aggregator struct {
 
 // NewAggregator creates a new Aggregator with the provided config.
 func NewAggregator(c *config.Config) (*Aggregator, error) {
-	avsWriter, err := chainio.BuildAvsWriterFromConfig(c)
+	avsWriter, err := chainio.BuildAvsWriterFromConfig(c, nil)
 	if err != nil {
 		c.Logger.Errorf("Cannot create avsWriter", "err", err)
 		return nil, err

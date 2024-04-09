@@ -305,6 +305,7 @@ func NewOperatorFromConfig(cfg config.NodeConfig) (*Operator, error) {
 	avsWriter, err := chainio.BuildAvsWriter(
 		txMgr, common.HexToAddress(c.AVSRegistryCoordinatorAddress),
 		common.HexToAddress(c.OperatorStateRetrieverAddress), ethRpcClient, logger,
+		nil,
 	)
 	if err != nil {
 		logger.Error("Cannot create AvsWriter", "err", err)

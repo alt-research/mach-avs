@@ -24,6 +24,19 @@ AltLayer Mach AVS is a fast finality layer for Ethereum rollups. In Mach AVS , o
 | PauserRegistry          | [`0xcCC62915256c7137aaD62d5E4385fc737264D2B1`](https://etherscan.io/address/0xcCC62915256c7137aaD62d5E4385fc737264D2B1) 	|
 | StakeRegistry           | [`0x49296A7D4a76888370CB377CD909Cc73a2f71289`](https://etherscan.io/address/0x49296A7D4a76888370CB377CD909Cc73a2f71289) 	|
 
+#### Xterio Mach AVS
+
+| Name                     | Address                                                                                                                 		|
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------	|
+| ProxyAdmin              | [`0x185416d7B186d2D9474c9877eaf1C28dD0d7FB43`](https://etherscan.io/address/0x185416d7B186d2D9474c9877eaf1C28dD0d7FB43) 	|
+| ServiceManager          | [`0x6026b61bDD2252160691CB3F6005B6B72E0Ec044`](https://etherscan.io/address/0x6026b61bDD2252160691CB3F6005B6B72E0Ec044) 	|
+| RegistryCoordinator     | [`0x6e32dD4169825337B54236b9355910b83E51e5a8`](https://etherscan.io/address/0x6e32dD4169825337B54236b9355910b83E51e5a8) 	|
+| BLSApkRegistry          | [`0xF8388C2D74fAde1C8367Cb9E419e395dB4c5FA75`](https://etherscan.io/address/0xF8388C2D74fAde1C8367Cb9E419e395dB4c5FA75) 	|
+| IndexRegistry           | [`0x15637782bdcdf9FC282EE592d333c63C1d6D2536`](https://etherscan.io/address/0x15637782bdcdf9FC282EE592d333c63C1d6D2536) 	|
+| OperatorStateRetriever  | [`0x342D475f3ae36e0CFBF19c222f203048446955b6`](https://etherscan.io/address/0x342D475f3ae36e0CFBF19c222f203048446955b6) 	|
+| PauserRegistry          | [`0x895Dd27289096722c389Cb3fd99aF2750190a48a`](https://etherscan.io/address/0x895Dd27289096722c389Cb3fd99aF2750190a48a) 	|
+| StakeRegistry           | [`0x681b76916fdecc07705b91e032D435f03B678C76`](https://etherscan.io/address/0x681b76916fdecc07705b91e032D435f03B678C76) 	|
+
 ### Testnet
 
 #### AltLayer Mach AVS

@@ -9,6 +9,7 @@ type NodeConfig struct {
 	EthWsUrl                          string `yaml:"eth_ws_url"`
 	BlsPrivateKeyStorePath            string `yaml:"bls_private_key_store_path"`
 	EcdsaPrivateKeyStorePath          string `yaml:"ecdsa_private_key_store_path"`
+	OperatorEcdsaAddress              string `yaml:"operator_ecdsa_address"`
 	AggregatorServerIpPortAddress     string `yaml:"aggregator_server_ip_port_address"`
 	AggregatorGRPCServerIpPortAddress string `yaml:"aggregator_grpc_server_ip_port_address"`
 	AggregatorJSONRPCServerIpPortAddr string `yaml:"aggregator_jsonrpc_server_ip_port_address"`

@@ -190,6 +190,11 @@ func withEnvConfig(c config.NodeConfig) config.NodeConfig {
 		c.Layer2ChainId = uint32(layer2ChainId)
 	}
 
+	operatorEcdsaAddress, ok := os.LookupEnv("OPERATOR_ECDSA_ADDRESS")
+	if ok && operatorEcdsaAddress != "" {
+		c.OperatorEcdsaAddress = operatorEcdsaAddress
+	}
+
 	configJson, err := json.MarshalIndent(c, "", "  ")
 	if err != nil {
 		panic(err)
@@ -258,14 +263,16 @@ func NewOperatorFromConfig(cfg config.NodeConfig, isUseEcdsaKey bool) (*Operator
 		return nil, err
 	}
 
-	operatorAddress, err := sdkEcdsa.GetAddressFromKeyStoreFile(c.EcdsaPrivateKeyStorePath)
-	if err != nil {
-		panic(err)
-	}
-
+	var operatorAddress common.Address
 	var avsWriter *chainio.AvsWriter
 	var privateKey *ecdsa.PrivateKey
 	if isUseEcdsaKey {
+		var err error
+		operatorAddress, err = sdkEcdsa.GetAddressFromKeyStoreFile(c.EcdsaPrivateKeyStorePath)
+		if err != nil {
+			panic(err)
+		}
+
 		ecdsaKeyPassword, ok := os.LookupEnv("OPERATOR_ECDSA_KEY_PASSWORD")
 		if !ok {
 			logger.Warnf("OPERATOR_ECDSA_KEY_PASSWORD env var not set. using empty string")
@@ -307,6 +314,23 @@ func NewOperatorFromConfig(cfg config.NodeConfig, isUseEcdsaKey bool) (*Operator
 			panic(err)
 		}
 		privateKey = ecdsaPrivateKey
+
+		if c.EcdsaPrivateKeyStorePath != "" {
+			operatorAddress, err = sdkEcdsa.GetAddressFromKeyStoreFile(c.EcdsaPrivateKeyStorePath)
+			if err != nil {
+				panic(err)
+			}
+		} else {
+			if c.OperatorEcdsaAddress == "" {
+				return nil, fmt.Errorf("If not use EcdsaPrivateKeyStorePath, must use operator_ecdsa_address or `OPERATOR_ECDSA_ADDRESS` env to select ecdsa address!")
+			}
+
+			if !common.IsHexAddress(c.OperatorEcdsaAddress) {
+				return nil, fmt.Errorf("the operator_ecdsa_address format is not hex address!")
+			}
+
+			operatorAddress = common.HexToAddress(c.OperatorEcdsaAddress)
+		}
 	}
 
 	chainioConfig := clients.BuildAllConfig{

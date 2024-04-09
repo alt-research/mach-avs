@@ -45,17 +45,37 @@ contract MachServiceManagerDeployer is Script {
         AVSDirectory avsDirectory;
         DelegationManager delegationManager;
         StrategyManager strategyManager;
-        address stETH;
-        address rETH;
-        address LsETH;
-        address sfrxETH;
-        address ETHx;
-        address osETH;
-        address cbETH;
-        address mETH;
-        address ankrETH;
-        address WETH;
         address beaconETH;
+        address oETH;
+        address ETHx;
+        address mETH;
+        address sfrxETH;
+        address lsETH;
+        address cbETH;
+        address ankrETH;
+        address stETH;
+        address osETH;
+        address wBETH;
+        address swETH;
+        address rETH;
+        uint96 beaconETH_Multiplier;
+        uint96 oETH_Multiplier;
+        uint96 ETHx_Multiplier;
+        uint96 mETH_Multiplier;
+        uint96 sfrxETH_Multiplier;
+        uint96 lsETH_Multiplier;
+        uint96 cbETH_Multiplier;
+        uint96 ankrETH_Multiplier;
+        uint96 stETH_Multiplier;
+        uint96 osETH_Multiplier;
+        uint96 wBETH_Multiplier;
+        uint96 swETH_Multiplier;
+        uint96 rETH_Multiplier;
+    }
+
+    struct TokenAndWeight {
+        address token;
+        uint96 weight;
     }
 
     struct DeploymentConfig {
@@ -64,6 +84,7 @@ contract MachServiceManagerDeployer is Script {
         address machAVSPauser;
         address churner;
         address ejector;
+        address whitelister;
         address confirmer;
         uint256 chainId;
         uint256 numStrategies;
@@ -77,10 +98,11 @@ contract MachServiceManagerDeployer is Script {
 
     function run() external {
         EigenLayerContracts memory eigenLayerContracts;
+        DeploymentConfig memory deploymentConfig;
 
         {
             string memory EIGENLAYER = "EIGENLAYER_ADDRESSES_OUTPUT_PATH";
-            string memory defaultPath = "./script/output/eigenlayer_deploy_output.json";
+            string memory defaultPath = "./script/input/parameters.json";
             string memory deployedPath = vm.envOr(EIGENLAYER, defaultPath);
             string memory deployedEigenLayerAddresses = vm.readFile(deployedPath);
 
@@ -94,50 +116,108 @@ contract MachServiceManagerDeployer is Script {
             eigenLayerContracts.avsDirectory = AVSDirectory(deployedAvsDirectory);
             eigenLayerContracts.strategyManager = StrategyManager(deployedStrategyManager);
             eigenLayerContracts.delegationManager = DelegationManager(deployedDelegationManager);
-            eigenLayerContracts.stETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".stETH"), (address));
-            eigenLayerContracts.rETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".rETH"), (address));
-            eigenLayerContracts.LsETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".LsETH"), (address));
-            eigenLayerContracts.sfrxETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".sfrxETH"), (address));
-            eigenLayerContracts.ETHx = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".ETHx"), (address));
-            eigenLayerContracts.osETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".osETH"), (address));
-            eigenLayerContracts.cbETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".cbETH"), (address));
-            eigenLayerContracts.mETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".mETH"), (address));
-            eigenLayerContracts.ankrETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".ankrETH"), (address));
-            eigenLayerContracts.WETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".WETH"), (address));
             eigenLayerContracts.beaconETH =
                 abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".beaconETH"), (address));
+            eigenLayerContracts.oETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".oETH"), (address));
+            eigenLayerContracts.ETHx = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".ETHx"), (address));
+            eigenLayerContracts.mETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".mETH"), (address));
+            eigenLayerContracts.sfrxETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".sfrxETH"), (address));
+            eigenLayerContracts.lsETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".lsETH"), (address));
+            eigenLayerContracts.cbETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".cbETH"), (address));
+            eigenLayerContracts.ankrETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".ankrETH"), (address));
+            eigenLayerContracts.stETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".stETH"), (address));
+            eigenLayerContracts.osETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".osETH"), (address));
+            eigenLayerContracts.wBETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".wBETH"), (address));
+            eigenLayerContracts.swETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".swETH"), (address));
+            eigenLayerContracts.rETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".rETH"), (address));
+            eigenLayerContracts.beaconETH_Multiplier =
+                abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".beaconETH_Multiplier"), (uint96));
+            eigenLayerContracts.oETH_Multiplier =
+                abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".oETH_Multiplier"), (uint96));
+            eigenLayerContracts.ETHx_Multiplier =
+                abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".ETHx_Multiplier"), (uint96));
+            eigenLayerContracts.mETH_Multiplier =
+                abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".mETH_Multiplier"), (uint96));
+            eigenLayerContracts.sfrxETH_Multiplier =
+                abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".sfrxETH_Multiplier"), (uint96));
+            eigenLayerContracts.lsETH_Multiplier =
+                abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".lsETH_Multiplier"), (uint96));
+            eigenLayerContracts.cbETH_Multiplier =
+                abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".cbETH_Multiplier"), (uint96));
+            eigenLayerContracts.ankrETH_Multiplier =
+                abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".ankrETH_Multiplier"), (uint96));
+            eigenLayerContracts.stETH_Multiplier =
+                abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".stETH_Multiplier"), (uint96));
+            eigenLayerContracts.osETH_Multiplier =
+                abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".osETH_Multiplier"), (uint96));
+            eigenLayerContracts.wBETH_Multiplier =
+                abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".wBETH_Multiplier"), (uint96));
+            eigenLayerContracts.swETH_Multiplier =
+                abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".swETH_Multiplier"), (uint96));
+            eigenLayerContracts.rETH_Multiplier =
+                abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".rETH_Multiplier"), (uint96));
+
+            {
+                deploymentConfig.machAVSCommunityMultisig =
+                    abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".owner"), (address));
+
+                deploymentConfig.churner = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".churner"), (address));
+
+                deploymentConfig.ejector = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".ejector"), (address));
+
+                deploymentConfig.confirmer =
+                    abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".confirmer"), (address));
+
+                deploymentConfig.whitelister =
+                    abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".whitelister"), (address));
+            }
         }
 
-        DeploymentConfig memory deploymentConfig;
-        deploymentConfig.machAVSCommunityMultisig = msg.sender;
-        deploymentConfig.machAVSPauser = msg.sender;
-        deploymentConfig.churner = msg.sender;
-        deploymentConfig.ejector = msg.sender;
-        deploymentConfig.confirmer = msg.sender;
-        deploymentConfig.chainId = 1;
+        deploymentConfig.chainId = 10;
         deploymentConfig.numQuorum = 1;
-        deploymentConfig.maxOperatorCount = 30;
-        deploymentConfig.minimumStake = 1;
-        deploymentConfig.numStrategies = 11;
+        deploymentConfig.maxOperatorCount = 50;
+        deploymentConfig.minimumStake = 0;
+        deploymentConfig.numStrategies = 13;
 
         deploymentConfig.avsDirectory = address(eigenLayerContracts.avsDirectory);
         deploymentConfig.delegationManager = address(eigenLayerContracts.delegationManager);
 
         // strategies deployed
-        address[] memory deployedStrategyArray = new address[](deploymentConfig.numStrategies);
+        TokenAndWeight[] memory deployedStrategyArray = new TokenAndWeight[](deploymentConfig.numStrategies);
 
-        // need manually step in
-        deployedStrategyArray[0] = eigenLayerContracts.stETH;
-        deployedStrategyArray[1] = eigenLayerContracts.rETH;
-        deployedStrategyArray[2] = eigenLayerContracts.LsETH;
-        deployedStrategyArray[3] = eigenLayerContracts.sfrxETH;
-        deployedStrategyArray[4] = eigenLayerContracts.ETHx;
-        deployedStrategyArray[5] = eigenLayerContracts.osETH;
-        deployedStrategyArray[6] = eigenLayerContracts.cbETH;
-        deployedStrategyArray[7] = eigenLayerContracts.mETH;
-        deployedStrategyArray[8] = eigenLayerContracts.ankrETH;
-        deployedStrategyArray[9] = eigenLayerContracts.WETH;
-        deployedStrategyArray[10] = eigenLayerContracts.beaconETH;
+        {
+            // need manually step in
+            deployedStrategyArray[0].token = eigenLayerContracts.beaconETH;
+            deployedStrategyArray[1].token = eigenLayerContracts.oETH;
+            deployedStrategyArray[2].token = eigenLayerContracts.ETHx;
+            deployedStrategyArray[3].token = eigenLayerContracts.mETH;
+            deployedStrategyArray[4].token = eigenLayerContracts.sfrxETH;
+            deployedStrategyArray[5].token = eigenLayerContracts.lsETH;
+            deployedStrategyArray[6].token = eigenLayerContracts.cbETH;
+            deployedStrategyArray[7].token = eigenLayerContracts.ankrETH;
+            deployedStrategyArray[8].token = eigenLayerContracts.stETH;
+            deployedStrategyArray[9].token = eigenLayerContracts.osETH;
+            deployedStrategyArray[10].token = eigenLayerContracts.wBETH;
+            deployedStrategyArray[11].token = eigenLayerContracts.swETH;
+            deployedStrategyArray[12].token = eigenLayerContracts.rETH;
+        }
+
+        {
+            // need manually step in
+            deployedStrategyArray[0].weight = eigenLayerContracts.beaconETH_Multiplier;
+            deployedStrategyArray[1].weight = eigenLayerContracts.oETH_Multiplier;
+            deployedStrategyArray[2].weight = eigenLayerContracts.ETHx_Multiplier;
+            deployedStrategyArray[3].weight = eigenLayerContracts.mETH_Multiplier;
+            deployedStrategyArray[4].weight = eigenLayerContracts.sfrxETH_Multiplier;
+            deployedStrategyArray[5].weight = eigenLayerContracts.lsETH_Multiplier;
+            deployedStrategyArray[6].weight = eigenLayerContracts.cbETH_Multiplier;
+            deployedStrategyArray[7].weight = eigenLayerContracts.ankrETH_Multiplier;
+            deployedStrategyArray[8].weight = eigenLayerContracts.stETH_Multiplier;
+            deployedStrategyArray[9].weight = eigenLayerContracts.osETH_Multiplier;
+            deployedStrategyArray[10].weight = eigenLayerContracts.wBETH_Multiplier;
+            deployedStrategyArray[11].weight = eigenLayerContracts.swETH_Multiplier;
+            deployedStrategyArray[12].weight = eigenLayerContracts.rETH_Multiplier;
+        }
 
         vm.startBroadcast();
         // deploy proxy admin for ability to upgrade proxy contracts
@@ -148,9 +228,8 @@ contract MachServiceManagerDeployer is Script {
 
         // deploy pauser registry
         {
-            address[] memory pausers = new address[](2);
-            pausers[0] = deploymentConfig.machAVSPauser;
-            pausers[1] = deploymentConfig.machAVSCommunityMultisig;
+            address[] memory pausers = new address[](1);
+            pausers[0] = deploymentConfig.machAVSCommunityMultisig;
             pauserRegistry = new PauserRegistry(pausers, deploymentConfig.machAVSCommunityMultisig);
         }
 
@@ -232,8 +311,8 @@ contract MachServiceManagerDeployer is Script {
                     new IStakeRegistry.StrategyParams[](deploymentConfig.numStrategies);
                 for (uint256 j = 0; j < deploymentConfig.numStrategies; j++) {
                     params[j] = IStakeRegistry.StrategyParams({
-                        strategy: IStrategy(deployedStrategyArray[j]),
-                        multiplier: 1 ether
+                        strategy: IStrategy(deployedStrategyArray[j].token),
+                        multiplier: deployedStrategyArray[j].weight
                     });
                 }
                 strategyParams[i] = params;
@@ -271,7 +350,8 @@ contract MachServiceManagerDeployer is Script {
                 IPauserRegistry(pauserRegistry),
                 0,
                 deploymentConfig.machAVSCommunityMultisig,
-                deploymentConfig.machAVSCommunityMultisig
+                deploymentConfig.confirmer,
+                deploymentConfig.whitelister
             )
         );
         vm.stopBroadcast();

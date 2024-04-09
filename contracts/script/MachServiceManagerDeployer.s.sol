@@ -102,7 +102,7 @@ contract MachServiceManagerDeployer is Script {
 
         {
             string memory EIGENLAYER = "EIGENLAYER_ADDRESSES_OUTPUT_PATH";
-            string memory defaultPath = "./script/output/deployment_input.json";
+            string memory defaultPath = "./script/input/parameters.json";
             string memory deployedPath = vm.envOr(EIGENLAYER, defaultPath);
             string memory deployedEigenLayerAddresses = vm.readFile(deployedPath);
 

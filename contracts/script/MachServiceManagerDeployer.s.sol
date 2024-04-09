@@ -45,17 +45,19 @@ contract MachServiceManagerDeployer is Script {
         AVSDirectory avsDirectory;
         DelegationManager delegationManager;
         StrategyManager strategyManager;
-        address stETH;
-        address rETH;
-        address LsETH;
-        address sfrxETH;
+        address nativeETH;
+        address oETH;
         address ETHx;
-        address osETH;
-        address cbETH;
         address mETH;
+        address sfrxETH;
+        address lsETH;
+        address cbETH;
         address ankrETH;
-        address WETH;
-        address beaconETH;
+        address stETH;
+        address osETH;
+        address wBETH;
+        address swETH;
+        address rETH;
     }
 
     struct DeploymentConfig {
@@ -94,18 +96,20 @@ contract MachServiceManagerDeployer is Script {
             eigenLayerContracts.avsDirectory = AVSDirectory(deployedAvsDirectory);
             eigenLayerContracts.strategyManager = StrategyManager(deployedStrategyManager);
             eigenLayerContracts.delegationManager = DelegationManager(deployedDelegationManager);
-            eigenLayerContracts.stETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".stETH"), (address));
-            eigenLayerContracts.rETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".rETH"), (address));
-            eigenLayerContracts.LsETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".LsETH"), (address));
-            eigenLayerContracts.sfrxETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".sfrxETH"), (address));
+            eigenLayerContracts.nativeETH =
+                abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".nativeETH"), (address));
+            eigenLayerContracts.oETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".oETH"), (address));
             eigenLayerContracts.ETHx = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".ETHx"), (address));
-            eigenLayerContracts.osETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".osETH"), (address));
-            eigenLayerContracts.cbETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".cbETH"), (address));
             eigenLayerContracts.mETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".mETH"), (address));
+            eigenLayerContracts.sfrxETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".sfrxETH"), (address));
+            eigenLayerContracts.lsETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".lsETH"), (address));
+            eigenLayerContracts.cbETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".cbETH"), (address));
             eigenLayerContracts.ankrETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".ankrETH"), (address));
-            eigenLayerContracts.WETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".WETH"), (address));
-            eigenLayerContracts.beaconETH =
-                abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".beaconETH"), (address));
+            eigenLayerContracts.stETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".stETH"), (address));
+            eigenLayerContracts.osETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".osETH"), (address));
+            eigenLayerContracts.wBETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".wBETH"), (address));
+            eigenLayerContracts.swETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".swETH"), (address));
+            eigenLayerContracts.rETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".rETH"), (address));
         }
 
         DeploymentConfig memory deploymentConfig;
@@ -116,9 +120,9 @@ contract MachServiceManagerDeployer is Script {
         deploymentConfig.confirmer = msg.sender;
         deploymentConfig.chainId = 1;
         deploymentConfig.numQuorum = 1;
-        deploymentConfig.maxOperatorCount = 30;
-        deploymentConfig.minimumStake = 1;
-        deploymentConfig.numStrategies = 11;
+        deploymentConfig.maxOperatorCount = 50;
+        deploymentConfig.minimumStake = 0;
+        deploymentConfig.numStrategies = 13;
 
         deploymentConfig.avsDirectory = address(eigenLayerContracts.avsDirectory);
         deploymentConfig.delegationManager = address(eigenLayerContracts.delegationManager);
@@ -127,17 +131,19 @@ contract MachServiceManagerDeployer is Script {
         address[] memory deployedStrategyArray = new address[](deploymentConfig.numStrategies);
 
         // need manually step in
-        deployedStrategyArray[0] = eigenLayerContracts.stETH;
-        deployedStrategyArray[1] = eigenLayerContracts.rETH;
-        deployedStrategyArray[2] = eigenLayerContracts.LsETH;
-        deployedStrategyArray[3] = eigenLayerContracts.sfrxETH;
-        deployedStrategyArray[4] = eigenLayerContracts.ETHx;
-        deployedStrategyArray[5] = eigenLayerContracts.osETH;
+        deployedStrategyArray[0] = eigenLayerContracts.nativeETH;
+        deployedStrategyArray[1] = eigenLayerContracts.oETH;
+        deployedStrategyArray[2] = eigenLayerContracts.ETHx;
+        deployedStrategyArray[3] = eigenLayerContracts.mETH;
+        deployedStrategyArray[4] = eigenLayerContracts.sfrxETH;
+        deployedStrategyArray[5] = eigenLayerContracts.lsETH;
         deployedStrategyArray[6] = eigenLayerContracts.cbETH;
-        deployedStrategyArray[7] = eigenLayerContracts.mETH;
-        deployedStrategyArray[8] = eigenLayerContracts.ankrETH;
-        deployedStrategyArray[9] = eigenLayerContracts.WETH;
-        deployedStrategyArray[10] = eigenLayerContracts.beaconETH;
+        deployedStrategyArray[7] = eigenLayerContracts.ankrETH;
+        deployedStrategyArray[8] = eigenLayerContracts.stETH;
+        deployedStrategyArray[9] = eigenLayerContracts.osETH;
+        deployedStrategyArray[10] = eigenLayerContracts.wBETH;
+        deployedStrategyArray[11] = eigenLayerContracts.swETH;
+        deployedStrategyArray[12] = eigenLayerContracts.rETH;
 
         vm.startBroadcast();
         // deploy proxy admin for ability to upgrade proxy contracts

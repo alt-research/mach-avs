@@ -172,8 +172,7 @@ contract MachServiceManagerDeployer is Script {
                     abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".whitelister"), (address));
             }
         }
-
-        deploymentConfig.chainId = 10;
+        deploymentConfig.chainId = 112358;
         deploymentConfig.numQuorum = 1;
         deploymentConfig.maxOperatorCount = 50;
         deploymentConfig.minimumStake = 0;

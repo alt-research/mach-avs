@@ -1,6 +1,7 @@
 package message
 
 import (
+	sdktypes "github.com/Layr-Labs/eigensdk-go/types"
 	"github.com/alt-research/avs/aggregator/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
@@ -34,16 +35,11 @@ type GenericAVSConfig struct {
 
 // Register a generic task
 type GenericTaskData struct {
-	TaskName                   string
+	TaskIndex                  types.TaskIndex
 	TaskSigHash                Bytes32
-	QuorumNumbers              []uint8
-	QuorumThresholdPercentages []uint8
+	QuorumNumbers              sdktypes.QuorumNums
+	QuorumThresholdPercentages sdktypes.QuorumThresholdPercentages
 	CallMethod                 string
 	CallParams                 []interface{}
 	ReferenceBlockNumber       uint64
-}
-
-type GenericTaskInfo struct {
-	TaskData  GenericTaskData
-	TaskIndex types.TaskIndex
 }

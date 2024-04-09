@@ -44,6 +44,13 @@ func (agg *AVSGenericTasks) GetTaskByHash(sigHash [32]byte) *message.GenericTask
 	return nil
 }
 
+func (agg *AVSGenericTasks) SetNewTask(task *message.GenericTaskData) {
+	agg.tasksMu.Lock()
+	defer agg.tasksMu.Unlock()
+
+	agg.tasks[task.TaskIndex] = task
+}
+
 func (agg *AVSGenericTasks) GetTaskByIndex(taskIndex types.TaskIndex) *message.GenericTaskData {
 	agg.tasksMu.RLock()
 	defer agg.tasksMu.RUnlock()

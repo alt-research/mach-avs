@@ -10,13 +10,13 @@ import (
 
 	sdkclients "github.com/Layr-Labs/eigensdk-go/chainio/clients"
 	"github.com/Layr-Labs/eigensdk-go/chainio/clients/eth"
+	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
 	"github.com/Layr-Labs/eigensdk-go/logging"
 	"github.com/Layr-Labs/eigensdk-go/services/avsregistry"
 	blsagg "github.com/Layr-Labs/eigensdk-go/services/bls_aggregation"
 	oppubkeysserv "github.com/Layr-Labs/eigensdk-go/services/operatorpubkeys"
 	sdktypes "github.com/Layr-Labs/eigensdk-go/types"
 
-	"github.com/alt-research/avs/aggregator/rpc"
 	"github.com/alt-research/avs/aggregator/types"
 	"github.com/alt-research/avs/core"
 	"github.com/alt-research/avs/core/chainio"
@@ -26,6 +26,14 @@ import (
 
 	// TODO: use a generic bind for dependencies contracts from eigenlayer
 	csservicemanager "github.com/alt-research/avs/contracts/bindings/MachServiceManager"
+)
+
+const (
+	// number of blocks after which a task is considered expired
+	// this hardcoded here because it's also hardcoded in the contracts, but should
+	// ideally be fetched from the contracts
+	taskChallengeWindowBlock = 100
+	blockTimeDuration        = 12 * time.Second
 )
 
 type OperatorStatus struct {
@@ -56,8 +64,8 @@ type AVSGenericService struct {
 	wg sync.WaitGroup
 }
 
-func NewAVSGenericTasksAggregatorService(c *config.Config, avsConfig message.GenericAVSConfig) (*AVSGenericService, error) {
-	avsWriter, err := chainio.BuildAvsWriterFromConfig(c)
+func NewAVSGenericTasksAggregatorService(c *config.Config, avsConfig *message.GenericAVSConfig) (*AVSGenericService, error) {
+	avsWriter, err := chainio.BuildAvsWriterFromConfig(c, avsConfig)
 	if err != nil {
 		c.Logger.Errorf("Cannot create avsWriter", "err", err)
 		return nil, err
@@ -95,7 +103,7 @@ func NewAVSGenericTasksAggregatorService(c *config.Config, avsConfig message.Gen
 		avsWriter: avsWriter,
 		ethClient: clients.EthHttpClient,
 
-		avsConfig:             avsConfig,
+		avsConfig:             *avsConfig,
 		tasks:                 NewAVSGenericTasks(c.Logger),
 		blsAggregationService: blsAggregationService,
 	}, nil
@@ -105,6 +113,7 @@ func NewAVSGenericTasksAggregatorService(c *config.Config, avsConfig message.Gen
 func (t *AVSGenericService) Start(ctx context.Context) error {
 	t.wg.Add(1)
 	defer func() {
+		t.logger.Info("Stop AVSGenericTasks aggregator service", "name", t.avsConfig.AVSName)
 		t.wg.Done()
 	}()
 
@@ -196,29 +205,9 @@ func (t *AVSGenericService) sendToContract(
 	return err
 }
 
-type GenericAggregatorService struct {
-	logger logging.Logger
-	cfg    *config.Config
-
-	avsReader chainio.AvsReaderer
-	ethClient eth.Client
-
-	blsAggregationService blsagg.BlsAggregationService
-	tasks                 map[types.TaskIndex]*message.AlertTaskInfo
-	tasksMu               sync.RWMutex
-	finishedTasks         map[[32]byte]*GenericFinishedTaskStatus
-	finishedTasksMu       sync.RWMutex
-	nextTaskIndex         types.TaskIndex
-	nextTaskIndexMu       sync.RWMutex
-	operatorStatus        map[common.Address]*OperatorStatus
-	operatorStatusMu      sync.RWMutex
-}
-
-var _ rpc.AggregatorRpcHandler = (*GenericAggregatorService)(nil)
-
 // rpc endpoint which is called by operator
 // will init operator, just for keep config valid
-func (agg *GenericAggregatorService) InitOperator(req *message.InitOperatorRequest) (*message.InitOperatorResponse, error) {
+func (agg *AVSGenericService) InitOperator(req *message.InitOperatorRequest) (*message.InitOperatorResponse, error) {
 	agg.logger.Infof("Received InitOperator: %#v", req)
 
 	reply := &message.InitOperatorResponse{
@@ -245,10 +234,10 @@ func (agg *GenericAggregatorService) InitOperator(req *message.InitOperatorReque
 		return reply, nil
 	}
 
-	agg.operatorStatusMu.Lock()
-	defer agg.operatorStatusMu.Unlock()
+	agg.tasks.operatorStatusMu.Lock()
+	defer agg.tasks.operatorStatusMu.Unlock()
 
-	agg.operatorStatus[req.OperatorAddress] = &OperatorStatus{
+	agg.tasks.operatorStatus[req.OperatorAddress] = &OperatorStatus{
 		LastTime:   time.Now().Unix(),
 		OperatorId: req.OperatorId,
 	}
@@ -263,21 +252,21 @@ func (agg *GenericAggregatorService) InitOperator(req *message.InitOperatorReque
 // rpc endpoint which is called by operator
 // will try to init the task, if currently had a same task for the alert,
 // it will return the existing task.
-func (agg *GenericAggregatorService) CreateTask(req *message.CreateTaskRequest) (*message.CreateTaskResponse, error) {
-	agg.logger.Info("Received CreateTask", "alertHash", req.AlertHash)
+func (agg *AVSGenericService) CreateTask(hash message.Bytes32, method string, params []interface{}) (*message.GenericTaskData, error) {
+	agg.logger.Info("Received CreateTask", "sigHash", hash)
 
-	finished := agg.GetFinishedTaskByAlertHash(req.AlertHash)
+	finished := agg.tasks.GetFinishedTaskByAlertHash(hash)
 	if finished != nil {
-		return nil, fmt.Errorf("the task 0x%x already finished: 0x%x", req.AlertHash, finished.TxHash)
+		return nil, fmt.Errorf("the task 0x%x already finished: 0x%x", hash, finished.TxHash)
 	}
 
-	task := agg.GetTaskByAlertHash(req.AlertHash)
+	task := agg.tasks.GetTaskByHash(hash)
 	if task == nil {
-		agg.logger.Info("create new task", "alert", req.AlertHash)
-		taskIndex := agg.newIndex()
+		agg.logger.Info("create new task", "alert", hash)
+		taskIndex := agg.tasks.newIndex()
 
 		var err error
-		task, err = agg.sendNewTask(req.AlertHash, taskIndex)
+		task, err = agg.sendNewTask(hash, taskIndex, method, params)
 
 		if err != nil {
 			agg.logger.Error("send new task failed", "err", err)
@@ -285,47 +274,43 @@ func (agg *GenericAggregatorService) CreateTask(req *message.CreateTaskRequest) 
 		}
 	}
 
-	return &message.CreateTaskResponse{Info: *task}, nil
+	return task, nil
 }
 
 // rpc endpoint which is called by operator
 // reply doesn't need to be checked. If there are no errors, the task response is accepted
 // rpc framework forces a reply type to exist, so we put bool as a placeholder
-func (agg *GenericAggregatorService) ProcessSignedTaskResponse(signedTaskResponse *message.SignedTaskRespRequest) (*message.SignedTaskRespResponse, error) {
+func (agg *AVSGenericService) ProcessSignedTaskResponse(taskData *message.GenericTaskData, blsSignature bls.Signature, operatorId sdktypes.OperatorId) (*message.Bytes32, error) {
 	agg.logger.Info(
 		"Received signed task response",
-		"alert", signedTaskResponse.Alert,
-		"operatorId", hex.EncodeToString(signedTaskResponse.OperatorId[:]),
+		"task", fmt.Sprintf("%#v", taskData),
+		"operatorId", hex.EncodeToString(operatorId[:]),
 	)
 
-	taskIndex := signedTaskResponse.Alert.TaskIndex
-	taskResponseDigest, err := signedTaskResponse.Alert.SignHash()
-	if err != nil {
-		return nil, err
-	}
+	taskIndex := taskData.TaskIndex
 
-	if task := agg.GetTaskByIndex(taskIndex); task == nil {
+	if task := agg.tasks.GetTaskByIndex(taskIndex); task == nil {
 		agg.logger.Error("ProcessNewSignature error by no task exist", "taskIndex", taskIndex)
 		return nil, fmt.Errorf("task not found")
 	}
 
-	agg.logger.Infof("ProcessNewSignature: %#v", signedTaskResponse.Alert.TaskIndex)
-	err = agg.blsAggregationService.ProcessNewSignature(
-		context.Background(), taskIndex, taskResponseDigest,
-		&signedTaskResponse.BlsSignature, signedTaskResponse.OperatorId,
+	agg.logger.Info("ProcessNewSignature", "index", taskData.TaskIndex, "hash", taskData.TaskSigHash, "method", taskData.CallMethod)
+	err := agg.blsAggregationService.ProcessNewSignature(
+		context.Background(), taskIndex, taskData.TaskSigHash.UnderlyingType(),
+		&blsSignature, operatorId,
 	)
 
 	if err != nil {
 		agg.logger.Error("ProcessNewSignature error", "err", err)
 	}
 
-	return &message.SignedTaskRespResponse{}, err
+	return &message.Bytes32{}, err
 }
 
 // sendNewTask sends a new task to the task manager contract, and updates the Task dict struct
 // with the information of operators opted into quorum 0 at the block of task creation.
-func (agg *GenericAggregatorService) sendNewTask(alertHash message.Bytes32, taskIndex types.TaskIndex) (*message.AlertTaskInfo, error) {
-	agg.logger.Info("Aggregator sending new task", "alert", alertHash, "task", taskIndex)
+func (agg *AVSGenericService) sendNewTask(hash message.Bytes32, taskIndex types.TaskIndex, method string, params []interface{}) (*message.GenericTaskData, error) {
+	agg.logger.Info("Aggregator sending new task", "hash", hash, "task", taskIndex)
 
 	var err error
 
@@ -366,17 +351,17 @@ func (agg *GenericAggregatorService) sendNewTask(alertHash message.Bytes32, task
 		"thresholdPercentages", fmt.Sprintf("%v", quorumThresholdPercentages.UnderlyingType()),
 	)
 
-	newAlertTask := &message.AlertTaskInfo{
-		AlertHash:                  alertHash,
+	newAlertTask := &message.GenericTaskData{
+		TaskIndex:                  taskIndex,
+		TaskSigHash:                hash,
 		QuorumNumbers:              quorumNumbers,
 		QuorumThresholdPercentages: quorumThresholdPercentages,
-		TaskIndex:                  taskIndex,
+		CallMethod:                 method,
+		CallParams:                 params,
 		ReferenceBlockNumber:       referenceBlockNumber,
 	}
 
-	agg.tasksMu.Lock()
-	agg.tasks[taskIndex] = newAlertTask
-	agg.tasksMu.Unlock()
+	agg.tasks.SetNewTask(newAlertTask)
 
 	// TODO(samlaf): we use seconds for now, but we should ideally pass a blocknumber to the blsAggregationService
 	// and it should monitor the chain and only expire the task aggregation once the chain has reached that block number.

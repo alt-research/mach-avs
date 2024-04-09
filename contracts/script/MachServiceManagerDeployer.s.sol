@@ -98,6 +98,7 @@ contract MachServiceManagerDeployer is Script {
 
     function run() external {
         EigenLayerContracts memory eigenLayerContracts;
+        DeploymentConfig memory deploymentConfig;
 
         {
             string memory EIGENLAYER = "EIGENLAYER_ADDRESSES_OUTPUT_PATH";
@@ -155,15 +156,23 @@ contract MachServiceManagerDeployer is Script {
                 abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".swETH_Multiplier"), (uint96));
             eigenLayerContracts.rETH_Multiplier =
                 abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".rETH_Multiplier"), (uint96));
+
+            {
+                deploymentConfig.machAVSCommunityMultisig =
+                    abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".owner"), (address));
+
+                deploymentConfig.churner = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".churner"), (address));
+
+                deploymentConfig.ejector = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".ejector"), (address));
+
+                deploymentConfig.confirmer =
+                    abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".confirmer"), (address));
+
+                deploymentConfig.whitelister =
+                    abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".whitelister"), (address));
+            }
         }
 
-        DeploymentConfig memory deploymentConfig;
-        deploymentConfig.machAVSCommunityMultisig = msg.sender;
-        //deploymentConfig.machAVSPauser = msg.sender;
-        deploymentConfig.churner = msg.sender;
-        deploymentConfig.ejector = msg.sender;
-        deploymentConfig.confirmer = msg.sender;
-        deploymentConfig.whitelister = msg.sender;
         deploymentConfig.chainId = 10;
         deploymentConfig.numQuorum = 1;
         deploymentConfig.maxOperatorCount = 50;

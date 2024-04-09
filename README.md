@@ -54,7 +54,7 @@ AltLayer Mach AVS is a fast finality layer for Ethereum rollups. In Mach AVS , o
 
 ## Audits
 - [PeckShield-Audit-Report-AltLayer-MACH-AVS-v1.0.pdf](audits/PeckShield-Audit-Report-AltLayer-MACH-AVS-v1.0.pdf)
-- [AltLayer-Mach-AVS-M2-Final-by-n-var.pdf](audits/AltLayer-Mach-AVS-M2- Final-by-n-var.pdf)
+- [AltLayer-Mach-AVS-M2-Final-by-n-var.pdf](audits/AltLayer-Mach-AVS-M2-Final-by-n-var.pdf)
 
 ## Components
 

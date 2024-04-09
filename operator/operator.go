@@ -2,6 +2,7 @@ package operator
 
 import (
 	"context"
+	"crypto/ecdsa"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/alt-research/avs/core"
@@ -188,6 +190,11 @@ func withEnvConfig(c config.NodeConfig) config.NodeConfig {
 		c.Layer2ChainId = uint32(layer2ChainId)
 	}
 
+	operatorEcdsaAddress, ok := os.LookupEnv("OPERATOR_ECDSA_ADDRESS")
+	if ok && operatorEcdsaAddress != "" {
+		c.OperatorEcdsaAddress = operatorEcdsaAddress
+	}
+
 	configJson, err := json.MarshalIndent(c, "", "  ")
 	if err != nil {
 		panic(err)
@@ -201,7 +208,7 @@ func withEnvConfig(c config.NodeConfig) config.NodeConfig {
 // TODO(samlaf): config is a mess right now, since the chainio client constructors
 //
 //	take the config in core (which is shared with aggregator and challenger)
-func NewOperatorFromConfig(cfg config.NodeConfig) (*Operator, error) {
+func NewOperatorFromConfig(cfg config.NodeConfig, isUseEcdsaKey bool) (*Operator, error) {
 	var logLevel sdklogging.LogLevel
 	if cfg.Production {
 		logLevel = sdklogging.Production
@@ -256,24 +263,75 @@ func NewOperatorFromConfig(cfg config.NodeConfig) (*Operator, error) {
 		return nil, err
 	}
 
-	ecdsaKeyPassword, ok := os.LookupEnv("OPERATOR_ECDSA_KEY_PASSWORD")
-	if !ok {
-		logger.Warnf("OPERATOR_ECDSA_KEY_PASSWORD env var not set. using empty string")
-	}
+	var operatorAddress common.Address
+	var avsWriter *chainio.AvsWriter
+	var privateKey *ecdsa.PrivateKey
+	if isUseEcdsaKey {
+		var err error
+		operatorAddress, err = sdkEcdsa.GetAddressFromKeyStoreFile(c.EcdsaPrivateKeyStorePath)
+		if err != nil {
+			panic(err)
+		}
 
-	signerConfig := signerv2.Config{
-		KeystorePath: c.EcdsaPrivateKeyStorePath,
-		Password:     ecdsaKeyPassword,
-	}
+		ecdsaKeyPassword, ok := os.LookupEnv("OPERATOR_ECDSA_KEY_PASSWORD")
+		if !ok {
+			logger.Warnf("OPERATOR_ECDSA_KEY_PASSWORD env var not set. using empty string")
+		}
 
-	signerV2, _, err := signerv2.SignerFromConfig(signerConfig, chainId)
-	if err != nil {
-		panic(err)
-	}
+		signerConfig := signerv2.Config{
+			KeystorePath: c.EcdsaPrivateKeyStorePath,
+			Password:     ecdsaKeyPassword,
+		}
+		signerV2, _, err := signerv2.SignerFromConfig(signerConfig, chainId)
+		if err != nil {
+			panic(err)
+		}
 
-	privateKey, err := sdkEcdsa.ReadKey(signerConfig.KeystorePath, signerConfig.Password)
-	if err != nil {
-		return nil, err
+		privateKey, err = sdkEcdsa.ReadKey(signerConfig.KeystorePath, signerConfig.Password)
+		if err != nil {
+			return nil, err
+		}
+
+		txSender, err := wallet.NewPrivateKeyWallet(ethRpcClient, signerV2, operatorAddress, logger)
+		if err != nil {
+			return nil, err
+		}
+		txMgr := txmgr.NewSimpleTxManager(txSender, ethRpcClient, logger, operatorAddress)
+
+		avsWriter, err = chainio.BuildAvsWriter(
+			txMgr, common.HexToAddress(c.AVSRegistryCoordinatorAddress),
+			common.HexToAddress(c.OperatorStateRetrieverAddress), ethRpcClient, logger,
+			nil,
+		)
+		if err != nil {
+			logger.Error("Cannot create AvsWriter", "err", err)
+			return nil, err
+		}
+	} else {
+		// just use a default value, it just to avoid build client panic
+		// will never use this value to generate tx.
+		ecdsaPrivateKey, err := crypto.HexToECDSA("ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80")
+		if err != nil {
+			panic(err)
+		}
+		privateKey = ecdsaPrivateKey
+
+		if c.EcdsaPrivateKeyStorePath != "" {
+			operatorAddress, err = sdkEcdsa.GetAddressFromKeyStoreFile(c.EcdsaPrivateKeyStorePath)
+			if err != nil {
+				panic(err)
+			}
+		} else {
+			if c.OperatorEcdsaAddress == "" {
+				return nil, fmt.Errorf("If not use EcdsaPrivateKeyStorePath, must use operator_ecdsa_address or `OPERATOR_ECDSA_ADDRESS` env to select ecdsa address!")
+			}
+
+			if !common.IsHexAddress(c.OperatorEcdsaAddress) {
+				return nil, fmt.Errorf("the operator_ecdsa_address format is not hex address!")
+			}
+
+			operatorAddress = common.HexToAddress(c.OperatorEcdsaAddress)
+		}
 	}
 
 	chainioConfig := clients.BuildAllConfig{
@@ -287,29 +345,6 @@ func NewOperatorFromConfig(cfg config.NodeConfig) (*Operator, error) {
 	sdkClients, err := clients.BuildAll(chainioConfig, privateKey, logger)
 	if err != nil {
 		panic(err)
-	}
-
-	operatorAddress, err := sdkEcdsa.GetAddressFromKeyStoreFile(signerConfig.KeystorePath)
-	if err != nil {
-		panic(err)
-	}
-
-	addr := operatorAddress
-
-	txSender, err := wallet.NewPrivateKeyWallet(ethRpcClient, signerV2, addr, logger)
-	if err != nil {
-		return nil, err
-	}
-	txMgr := txmgr.NewSimpleTxManager(txSender, ethRpcClient, logger, addr)
-
-	avsWriter, err := chainio.BuildAvsWriter(
-		txMgr, common.HexToAddress(c.AVSRegistryCoordinatorAddress),
-		common.HexToAddress(c.OperatorStateRetrieverAddress), ethRpcClient, logger,
-		nil,
-	)
-	if err != nil {
-		logger.Error("Cannot create AvsWriter", "err", err)
-		return nil, err
 	}
 
 	avsReader, err := chainio.BuildAvsReader(
@@ -514,7 +549,7 @@ func (o *Operator) Start(ctx context.Context) error {
 			// https://eigen.nethermind.io/docs/spec/api/
 			o.logger.Fatal("Error in metrics server", "err", err)
 		case newTaskCreatedLog := <-o.newTaskCreatedChan:
-			o.logger.Info("newTaskCreatedLog", "new", newTaskCreatedLog)
+			o.logger.Info("newTaskCreatedLog", "new", newTaskCreatedLog.Alert)
 			o.metrics.IncNumTasksReceived()
 			taskResponse, err := o.ProcessNewTaskCreatedLog(newTaskCreatedLog.Alert)
 			if err != nil {

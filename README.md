@@ -8,6 +8,22 @@ AltLayer Mach AVS is a fast finality layer for Ethereum rollups. In Mach AVS , o
 2. Circuit breaker for RPC nodes
 
 ## Current Deployment
+
+### Mainnet
+
+#### AltLayer Mach AVS
+
+| Name                     | Address                                                                                                                 		|
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------	|
+| ProxyAdmin              | [`0xba9aC2c9d1Fc2Ba22f3709EC073757777447bb5B`](https://etherscan.io/address/0xba9aC2c9d1Fc2Ba22f3709EC073757777447bb5B) 	|
+| ServiceManager          | [`0x71a77037870169d47aad6c2C9360861A4C0df2bF`](https://etherscan.io/address/0x71a77037870169d47aad6c2C9360861A4C0df2bF) 	|
+| RegistryCoordinator     | [`0x561be1AB42170a19f31645F774e6e3862B2139AA`](https://etherscan.io/address/0x561be1AB42170a19f31645F774e6e3862B2139AA) 	|
+| BLSApkRegistry          | [`0xF9f34Bc6309A52c266881066e8c58fbF562D442c`](https://etherscan.io/address/0xF9f34Bc6309A52c266881066e8c58fbF562D442c) 	|
+| IndexRegistry           | [`0x1BE83d6CE83bC516630afE535F36652A1511779B`](https://etherscan.io/address/0x1BE83d6CE83bC516630afE535F36652A1511779B) 	|
+| OperatorStateRetriever  | [`0x8Ad765474f86FFb0A742041427383b524192b71f`](https://etherscan.io/address/0x8Ad765474f86FFb0A742041427383b524192b71f) 	|
+| PauserRegistry          | [`0xcCC62915256c7137aaD62d5E4385fc737264D2B1`](https://etherscan.io/address/0xcCC62915256c7137aaD62d5E4385fc737264D2B1) 	|
+| StakeRegistry           | [`0x49296A7D4a76888370CB377CD909Cc73a2f71289`](https://etherscan.io/address/0x49296A7D4a76888370CB377CD909Cc73a2f71289) 	|
+
 ### Testnet
 
 #### AltLayer Mach AVS
@@ -38,6 +54,7 @@ AltLayer Mach AVS is a fast finality layer for Ethereum rollups. In Mach AVS , o
 
 ## Audits
 - [PeckShield-Audit-Report-AltLayer-MACH-AVS-v1.0.pdf](audit/PeckShield-Audit-Report-AltLayer-MACH-AVS-v1.0.pdf)
+- [AltLayer Mach AVS (M2) - Final_by_n-var.pdf](AltLayer Mach AVS (M2) - Final_by_n-var.pdf)
 
 ## Components
 

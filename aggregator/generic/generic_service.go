@@ -131,6 +131,10 @@ func (t *AVSGenericService) Start(ctx context.Context) error {
 	}
 }
 
+func (t *AVSGenericService) Wait() {
+	t.wg.Wait()
+}
+
 func (t *AVSGenericService) sendAggregatedResponseToContract(blsAggServiceResp blsagg.BlsAggregationServiceResponse) {
 	// TODO: check if blsAggServiceResp contains an err
 	if blsAggServiceResp.Err != nil {

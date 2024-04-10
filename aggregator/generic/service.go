@@ -64,8 +64,8 @@ type AVSGenericService struct {
 	wg sync.WaitGroup
 }
 
-func NewAVSGenericTasksAggregatorService(c *config.Config, avsConfig *message.GenericAVSConfig) (*AVSGenericService, error) {
-	avsWriter, err := chainio.BuildAvsWriterFromConfig(c, avsConfig)
+func NewAVSGenericTasksAggregatorService(c *config.Config, avsConfig message.GenericAVSConfig) (*AVSGenericService, error) {
+	avsWriter, err := chainio.BuildAvsWriterFromConfig(c, &avsConfig)
 	if err != nil {
 		c.Logger.Errorf("Cannot create avsWriter", "err", err)
 		return nil, err
@@ -103,7 +103,7 @@ func NewAVSGenericTasksAggregatorService(c *config.Config, avsConfig *message.Ge
 		avsWriter: avsWriter,
 		ethClient: clients.EthHttpClient,
 
-		avsConfig:             *avsConfig,
+		avsConfig:             avsConfig,
 		tasks:                 NewAVSGenericTasks(c.Logger),
 		blsAggregationService: blsAggregationService,
 	}, nil
@@ -211,7 +211,7 @@ func (t *AVSGenericService) sendToContract(
 
 // rpc endpoint which is called by operator
 // will init operator, just for keep config valid
-func (agg *AVSGenericService) InitOperator(req *message.InitOperatorRequest) (*message.InitOperatorResponse, error) {
+func (agg *AVSGenericService) InitOperator(req *message.InitOperatorDatas) (*message.InitOperatorResponse, error) {
 	agg.logger.Infof("Received InitOperator: %#v", req)
 
 	reply := &message.InitOperatorResponse{
@@ -230,11 +230,6 @@ func (agg *AVSGenericService) InitOperator(req *message.InitOperatorRequest) (*m
 
 	if agg.cfg.Layer1ChainId != req.Layer1ChainId {
 		reply.Res = fmt.Sprintf("Layer1ChainId invaild, expect %d", agg.cfg.Layer1ChainId)
-		return reply, nil
-	}
-
-	if agg.cfg.Layer2ChainId != req.ChainId {
-		reply.Res = fmt.Sprintf("Layer2ChainId invaild, expect %d", agg.cfg.Layer2ChainId)
 		return reply, nil
 	}
 

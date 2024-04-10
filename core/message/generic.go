@@ -43,3 +43,12 @@ type GenericTaskData struct {
 	CallParams                 []interface{}
 	ReferenceBlockNumber       uint64
 }
+
+type InitOperatorDatas struct {
+	AVSName                    string              `json:"avs_name"`
+	Layer1ChainId              uint32              `json:"layer1_chain_id"`
+	OperatorId                 sdktypes.OperatorId `json:"operator_id"`
+	OperatorAddress            common.Address      `json:"operator_address"`
+	OperatorStateRetrieverAddr common.Address      `json:"operator_state_retriever_addr"`
+	RegistryCoordinatorAddr    common.Address      `json:"registry_coordinator_addr"`
+}

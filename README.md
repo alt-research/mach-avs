@@ -227,3 +227,11 @@ docker compose up
 ```
 
 it will boot anvil as layer1, a aggregator and a operator for test.
+
+## Build and Run
+
+If want to run Mach AVS by binary, can see the documentations:
+
+- [build operator and aggregator](./docs/Build.md)
+- [run operator](./docs/RunOperator.md)
+- [run aggregator](./docs/RunAggregator.md)

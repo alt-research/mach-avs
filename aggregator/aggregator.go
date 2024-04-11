@@ -2,6 +2,7 @@ package aggregator
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 	"sync"
 	"time"
@@ -93,7 +94,13 @@ type Aggregator struct {
 
 // NewAggregator creates a new Aggregator with the provided config.
 func NewAggregator(c *config.Config) (*Aggregator, error) {
-	avsWriter, err := chainio.BuildAvsWriterFromConfig(c, nil)
+	if c.MachAVSCfg == nil {
+		return nil, fmt.Errorf(
+			"If not use env `AVS_REGISTRY_COORDINATOR_ADDRESS` and `OPERATOR_STATE_RETRIEVER_ADDRESS`, should use --avs-deployment to use config for avs contract addresses!",
+		)
+	}
+
+	avsWriter, err := chainio.BuildAvsWriter(c.TxMgr, c.MachAVSCfg.RegistryCoordinatorAddr, c.MachAVSCfg.OperatorStateRetrieverAddr, c.EthHttpClient, c.Logger, nil)
 	if err != nil {
 		c.Logger.Errorf("Cannot create avsWriter", "err", err)
 		return nil, err

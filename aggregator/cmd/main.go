@@ -13,6 +13,7 @@ import (
 	"github.com/urfave/cli"
 
 	"github.com/alt-research/avs/aggregator"
+	"github.com/alt-research/avs/aggregator/generic"
 	"github.com/alt-research/avs/core/config"
 )
 
@@ -50,23 +51,31 @@ func aggregatorMain(cliCtx *cli.Context) error {
 	}
 	fmt.Println("Config:", string(configJson))
 
-	agg, err := aggregator.NewAggregator(config)
-	if err != nil {
-		return err
-	}
-
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	wg := &sync.WaitGroup{}
-	wg.Add(1)
-
-	err = agg.Start(ctx, wg)
+	genericAggregator, err := generic.GenericAggregatorMain(cliCtx, ctx, config)
 	if err != nil {
-		log.Fatalln("Aggregator run failed", "err", err)
+		log.Fatalln("GenericAggregator run failed", "err", err.Error())
 	}
 
-	wg.Wait()
+	if genericAggregator != nil {
+		genericAggregator.Wait()
+	} else {
+		wg := &sync.WaitGroup{}
+		wg.Add(1)
+
+		agg, err := aggregator.NewAggregator(config)
+		if err != nil {
+			return err
+		}
+
+		err = agg.Start(ctx, wg)
+		if err != nil {
+			log.Fatalln("Aggregator run failed", "err", err)
+		}
+		wg.Wait()
+	}
 
 	return nil
 }

@@ -9,7 +9,6 @@ import (
 	sdklogging "github.com/Layr-Labs/eigensdk-go/logging"
 
 	csservicemanager "github.com/alt-research/avs/contracts/bindings/MachServiceManager"
-	"github.com/alt-research/avs/core/config"
 )
 
 type AvsSubscriberer interface {
@@ -23,15 +22,6 @@ type AvsSubscriberer interface {
 type AvsSubscriber struct {
 	AvsContractBindings *AvsManagersBindings
 	logger              sdklogging.Logger
-}
-
-func BuildAvsSubscriberFromConfig(config *config.Config) (*AvsSubscriber, error) {
-	return BuildAvsSubscriber(
-		config.RegistryCoordinatorAddr,
-		config.OperatorStateRetrieverAddr,
-		config.EthWsClient,
-		config.Logger,
-	)
 }
 
 func BuildAvsSubscriber(registryCoordinatorAddr, blsOperatorStateRetrieverAddr gethcommon.Address, ethclient eth.Client, logger sdklogging.Logger) (*AvsSubscriber, error) {

@@ -65,13 +65,23 @@ type AVSGenericService struct {
 }
 
 func NewAVSGenericTasksAggregatorService(c *config.Config, avsConfig message.GenericAVSConfig) (*AVSGenericService, error) {
-	avsWriter, err := chainio.BuildAvsWriterFromConfig(c, &avsConfig)
+	avsWriter, err := chainio.BuildAvsWriter(
+		c.TxMgr,
+		avsConfig.AVSRegistryCoordinatorAddress,
+		avsConfig.OperatorStateRetrieverAddress,
+		c.EthHttpClient, c.Logger, &avsConfig,
+	)
 	if err != nil {
 		c.Logger.Errorf("Cannot create avsWriter", "err", err)
 		return nil, err
 	}
 
-	avsReader, err := chainio.BuildAvsReaderFromConfig(c)
+	avsReader, err := chainio.BuildAvsReader(
+		avsConfig.AVSRegistryCoordinatorAddress,
+		avsConfig.OperatorStateRetrieverAddress,
+		c.EthHttpClient,
+		c.Logger,
+	)
 	if err != nil {
 		c.Logger.Error("Cannot create avsReader", "err", err)
 		return nil, err
@@ -80,8 +90,8 @@ func NewAVSGenericTasksAggregatorService(c *config.Config, avsConfig message.Gen
 	chainioConfig := sdkclients.BuildAllConfig{
 		EthHttpUrl:                 c.EthHttpRpcUrl,
 		EthWsUrl:                   c.EthWsRpcUrl,
-		RegistryCoordinatorAddr:    avsConfig.AVSRegistryCoordinatorAddress,
-		OperatorStateRetrieverAddr: avsConfig.OperatorStateRetrieverAddress,
+		RegistryCoordinatorAddr:    avsConfig.AVSRegistryCoordinatorAddress.Hex(),
+		OperatorStateRetrieverAddr: avsConfig.OperatorStateRetrieverAddress.Hex(),
 		AvsName:                    avsConfig.AVSName,
 		// TODO: split metrics from chainio config, for multiple avs in one aggregator, we should use one metrics
 		PromMetricsIpPortAddress: ":9090",
@@ -118,7 +128,7 @@ func (t *AVSGenericService) Start(ctx context.Context) error {
 	}()
 
 	t.logger.Info("Starting AVSGenericTasks aggregator service", "name", t.avsConfig.AVSName)
-	t.logger.Debug("AVSGenericTasks aggregator details", "config", fmt.Sprintf("%#v", t.avsConfig))
+	// t.logger.Debug("AVSGenericTasks aggregator details", "config", fmt.Sprintf("%#v", t.avsConfig))
 
 	for {
 		select {
@@ -218,13 +228,13 @@ func (agg *AVSGenericService) InitOperator(req *message.InitOperatorDatas) (*mes
 		Ok: false,
 	}
 
-	if agg.cfg.OperatorStateRetrieverAddr != req.OperatorStateRetrieverAddr {
-		reply.Res = fmt.Sprintf("OperatorStateRetrieverAddr invaild, expect %s", agg.cfg.OperatorStateRetrieverAddr.Hex())
+	if agg.avsConfig.OperatorStateRetrieverAddress != req.OperatorStateRetrieverAddr {
+		reply.Res = fmt.Sprintf("OperatorStateRetrieverAddr invaild, expect %s", agg.avsConfig.OperatorStateRetrieverAddress.Hex())
 		return reply, nil
 	}
 
-	if agg.cfg.RegistryCoordinatorAddr != req.RegistryCoordinatorAddr {
-		reply.Res = fmt.Sprintf("RegistryCoordinatorAddr invaild, expect %s", agg.cfg.RegistryCoordinatorAddr.Hex())
+	if agg.avsConfig.AVSRegistryCoordinatorAddress != req.RegistryCoordinatorAddr {
+		reply.Res = fmt.Sprintf("RegistryCoordinatorAddr invaild, expect %s", agg.avsConfig.OperatorStateRetrieverAddress.Hex())
 		return reply, nil
 	}
 
@@ -330,13 +340,13 @@ func (agg *AVSGenericService) sendNewTask(hash message.Bytes32, taskIndex types.
 	}
 	agg.logger.Info("get quorumNumbers from layer1", "quorumNumbers", fmt.Sprintf("%v", quorumNumbers))
 
-	if len(quorumNumbers) < len(agg.cfg.QuorumNums) {
+	if len(quorumNumbers) < len(agg.avsConfig.QuorumNumbers) {
 		agg.logger.Error("the cfg quorum numbers is larger to the layer1, it will commit failed")
-		return nil, fmt.Errorf("the quorum numbers is larger to the layer1 %v, expected %v", agg.cfg.QuorumNums, quorumNumbers)
+		return nil, fmt.Errorf("the quorum numbers is larger to the layer1 %v, expected %v", agg.avsConfig.QuorumNumbers, quorumNumbers)
 	}
 
 	// just use config value
-	quorumNumbers = agg.cfg.QuorumNums
+	quorumNumbers = core.ConvertQuorumNumbersFromBytes(agg.avsConfig.QuorumNumbers)
 
 	quorumThresholdPercentages, err := agg.avsReader.GetQuorumThresholdPercentages(context.Background(), uint32(referenceBlockNumber), quorumNumbers)
 	if err != nil {

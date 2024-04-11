@@ -42,7 +42,13 @@ type AggregatorService struct {
 
 // NewAggregator creates a new Aggregator with the provided config.
 func NewAggregatorService(c *config.Config) (*AggregatorService, error) {
-	avsReader, err := chainio.BuildAvsReaderFromConfig(c)
+	if c.MachAVSCfg == nil {
+		return nil, fmt.Errorf(
+			"If not use env `AVS_REGISTRY_COORDINATOR_ADDRESS` and `OPERATOR_STATE_RETRIEVER_ADDRESS`, should use --avs-deployment to use config for avs contract addresses",
+		)
+	}
+
+	avsReader, err := chainio.BuildAvsReader(c.MachAVSCfg.RegistryCoordinatorAddr, c.MachAVSCfg.OperatorStateRetrieverAddr, c.EthHttpClient, c.Logger)
 	if err != nil {
 		c.Logger.Error("Cannot create avsReader", "err", err)
 		return nil, err
@@ -51,8 +57,8 @@ func NewAggregatorService(c *config.Config) (*AggregatorService, error) {
 	chainioConfig := sdkclients.BuildAllConfig{
 		EthHttpUrl:                 c.EthHttpRpcUrl,
 		EthWsUrl:                   c.EthWsRpcUrl,
-		RegistryCoordinatorAddr:    c.RegistryCoordinatorAddr.String(),
-		OperatorStateRetrieverAddr: c.OperatorStateRetrieverAddr.String(),
+		RegistryCoordinatorAddr:    c.MachAVSCfg.RegistryCoordinatorAddr.String(),
+		OperatorStateRetrieverAddr: c.MachAVSCfg.OperatorStateRetrieverAddr.String(),
 		AvsName:                    avsName,
 		PromMetricsIpPortAddress:   ":9090",
 	}
@@ -135,13 +141,13 @@ func (agg *AggregatorService) InitOperator(req *message.InitOperatorRequest) (*m
 		Ok: false,
 	}
 
-	if agg.cfg.OperatorStateRetrieverAddr != req.OperatorStateRetrieverAddr {
-		reply.Res = fmt.Sprintf("OperatorStateRetrieverAddr invaild, expect %s", agg.cfg.OperatorStateRetrieverAddr.Hex())
+	if agg.cfg.MachAVSCfg.OperatorStateRetrieverAddr != req.OperatorStateRetrieverAddr {
+		reply.Res = fmt.Sprintf("OperatorStateRetrieverAddr invaild, expect %s", agg.cfg.MachAVSCfg.OperatorStateRetrieverAddr.Hex())
 		return reply, nil
 	}
 
-	if agg.cfg.RegistryCoordinatorAddr != req.RegistryCoordinatorAddr {
-		reply.Res = fmt.Sprintf("RegistryCoordinatorAddr invaild, expect %s", agg.cfg.RegistryCoordinatorAddr.Hex())
+	if agg.cfg.MachAVSCfg.RegistryCoordinatorAddr != req.RegistryCoordinatorAddr {
+		reply.Res = fmt.Sprintf("RegistryCoordinatorAddr invaild, expect %s", agg.cfg.MachAVSCfg.RegistryCoordinatorAddr.Hex())
 		return reply, nil
 	}
 
@@ -150,8 +156,8 @@ func (agg *AggregatorService) InitOperator(req *message.InitOperatorRequest) (*m
 		return reply, nil
 	}
 
-	if agg.cfg.Layer2ChainId != req.ChainId {
-		reply.Res = fmt.Sprintf("Layer2ChainId invaild, expect %d", agg.cfg.Layer2ChainId)
+	if agg.cfg.MachAVSCfg.Layer2ChainId != req.ChainId {
+		reply.Res = fmt.Sprintf("Layer2ChainId invaild, expect %d", agg.cfg.MachAVSCfg.Layer2ChainId)
 		return reply, nil
 	}
 
@@ -265,13 +271,13 @@ func (agg *AggregatorService) sendNewTask(alertHash message.Bytes32, taskIndex t
 	}
 	agg.logger.Info("get quorumNumbers from layer1", "quorumNumbers", fmt.Sprintf("%v", quorumNumbers))
 
-	if len(quorumNumbers) < len(agg.cfg.QuorumNums) {
+	if len(quorumNumbers) < len(agg.cfg.MachAVSCfg.QuorumNums) {
 		agg.logger.Error("the cfg quorum numbers is larger to the layer1, it will commit failed")
-		return nil, fmt.Errorf("the quorum numbers is larger to the layer1 %v, expected %v", agg.cfg.QuorumNums, quorumNumbers)
+		return nil, fmt.Errorf("the quorum numbers is larger to the layer1 %v, expected %v", agg.cfg.MachAVSCfg.QuorumNums, quorumNumbers)
 	}
 
 	// just use config value
-	quorumNumbers = agg.cfg.QuorumNums
+	quorumNumbers = agg.cfg.MachAVSCfg.QuorumNums
 
 	quorumThresholdPercentages, err := agg.avsReader.GetQuorumThresholdPercentages(context.Background(), uint32(referenceBlockNumber), quorumNumbers)
 	if err != nil {

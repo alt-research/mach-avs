@@ -26,9 +26,8 @@ type RegisterGenericTaskData struct {
 type GenericAVSConfig struct {
 	AVSName                       string
 	QuorumNumbers                 []uint8
-	QuorumThresholdPercentages    []uint8
-	AVSRegistryCoordinatorAddress string
-	OperatorStateRetrieverAddress string
+	AVSRegistryCoordinatorAddress common.Address
+	OperatorStateRetrieverAddress common.Address
 	AVSContractAddress            common.Address
 	Abi                           abi.ABI
 }

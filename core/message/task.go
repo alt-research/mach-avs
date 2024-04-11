@@ -32,6 +32,17 @@ func (m *Bytes32) UnderlyingType() [32]byte {
 	return *m
 }
 
+func NewBytes32(raw []byte) (Bytes32, error) {
+	var res Bytes32
+	if len(raw) != 32 {
+		return Bytes32{}, fmt.Errorf("len should be 32")
+	}
+
+	copy(res[:], raw[:32])
+
+	return res, nil
+}
+
 // The Alert task Information
 type AlertTaskInfo struct {
 	AlertHash                  Bytes32

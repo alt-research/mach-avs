@@ -13,7 +13,6 @@ import (
 	sdktypes "github.com/Layr-Labs/eigensdk-go/types"
 
 	csservicemanager "github.com/alt-research/avs/contracts/bindings/MachServiceManager"
-	"github.com/alt-research/avs/core/config"
 )
 
 type AvsReaderer interface {
@@ -40,9 +39,6 @@ type AvsReader struct {
 
 var _ AvsReaderer = (*AvsReader)(nil)
 
-func BuildAvsReaderFromConfig(c *config.Config) (*AvsReader, error) {
-	return BuildAvsReader(c.RegistryCoordinatorAddr, c.OperatorStateRetrieverAddr, c.EthHttpClient, c.Logger)
-}
 func BuildAvsReader(registryCoordinatorAddr, operatorStateRetrieverAddr gethcommon.Address, ethHttpClient eth.Client, logger logging.Logger) (*AvsReader, error) {
 	avsManagersBindings, err := NewAvsManagersBindings(registryCoordinatorAddr, operatorStateRetrieverAddr, ethHttpClient, logger)
 	if err != nil {

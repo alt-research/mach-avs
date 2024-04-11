@@ -31,25 +31,41 @@ type Config struct {
 	EigenMetricsIpPortAddress string
 	// we need the url for the eigensdk currently... eventually standardize api so as to
 	// only take an ethclient or an rpcUrl (and build the ethclient at each constructor site)
-	EthHttpRpcUrl                     string
-	EthWsRpcUrl                       string
-	EthHttpClient                     eth.Client
-	EthWsClient                       eth.Client
-	OperatorStateRetrieverAddr        common.Address
-	RegistryCoordinatorAddr           common.Address
+	EthHttpRpcUrl string
+	EthWsRpcUrl   string
+	EthHttpClient eth.Client
+	EthWsClient   eth.Client
+
 	AggregatorServerIpPortAddr        string
 	AggregatorGRPCServerIpPortAddr    string
 	AggregatorJSONRPCServerIpPortAddr string
 	Layer1ChainId                     uint32
-	Layer2ChainId                     uint32
 	RpcVhosts                         []string
 	RpcCors                           []string
-	QuorumNums                        types.QuorumNums
+
+	MachAVSCfg *MachAVSConfig
+
 	// json:"-" skips this field when marshaling (only used for logging to stdout), since SignerFn doesnt implement marshalJson
 	SignerFn          signerv2.SignerFn `json:"-"`
 	PrivateKey        *ecdsa.PrivateKey `json:"-"`
 	TxMgr             txmgr.TxManager
 	AggregatorAddress common.Address
+}
+
+type MachAVSConfig struct {
+	Layer2ChainId              uint32
+	OperatorStateRetrieverAddr common.Address
+	RegistryCoordinatorAddr    common.Address
+	QuorumNums                 types.QuorumNums
+}
+
+func (c *MachAVSConfig) validate() {
+	if c.OperatorStateRetrieverAddr == common.HexToAddress("") {
+		panic("Config: BLSOperatorStateRetrieverAddr is required")
+	}
+	if c.RegistryCoordinatorAddr == common.HexToAddress("") {
+		panic("Config: RegistryCoordinatorAddr is required")
+	}
 }
 
 // These are read from ConfigFileFlag
@@ -77,7 +93,6 @@ type MachAvsDeploymentRaw struct {
 // Note: This config is shared by challenger and aggregator and so we put in the core.
 // Operator has a different config and is meant to be used by the operator CLI.
 func NewConfig(ctx *cli.Context) (*Config, error) {
-
 	var configRaw ConfigRaw
 	configFilePath := ctx.GlobalString(ConfigFileFlag.Name)
 	if configFilePath != "" {
@@ -85,6 +100,11 @@ func NewConfig(ctx *cli.Context) (*Config, error) {
 		if err != nil {
 			return nil, err
 		}
+	}
+
+	logger, err := core.NewZapLogger(configRaw.Environment)
+	if err != nil {
+		return nil, err
 	}
 
 	ethRpcUrl, ok := os.LookupEnv("ETH_RPC_URL")
@@ -122,21 +142,42 @@ func NewConfig(ctx *cli.Context) (*Config, error) {
 		deploymentRaw.RegistryCoordinatorAddr = avsRegistryCoordinatorAddress
 	} else {
 		deploymentFilePath := ctx.GlobalString(DeploymentFileFlag.Name)
-		if deploymentFilePath == "" {
-			panic("If not use env `AVS_REGISTRY_COORDINATOR_ADDRESS` and `OPERATOR_STATE_RETRIEVER_ADDRESS`, should use --avs-deployment to use config for avs contract addresses!")
-		}
-
-		if _, err := os.Stat(deploymentFilePath); errors.Is(err, os.ErrNotExist) {
-			panic("Path " + deploymentFilePath + " does not exist")
-		}
-		if err := sdkutils.ReadJsonConfig(deploymentFilePath, &deploymentRaw); err != nil {
-			panic(err)
+		if deploymentFilePath != "" {
+			if _, err := os.Stat(deploymentFilePath); errors.Is(err, os.ErrNotExist) {
+				panic("Path " + deploymentFilePath + " does not exist")
+			}
+			if err := sdkutils.ReadJsonConfig(deploymentFilePath, &deploymentRaw); err != nil {
+				panic(err)
+			}
+		} else {
+			logger.Info("If not use env `AVS_REGISTRY_COORDINATOR_ADDRESS` and `OPERATOR_STATE_RETRIEVER_ADDRESS`, should use --avs-deployment to use config for avs contract addresses!")
 		}
 	}
 
-	logger, err := core.NewZapLogger(configRaw.Environment)
-	if err != nil {
-		return nil, err
+	var machAVSCfg *MachAVSConfig
+	if deploymentRaw.OperatorStateRetrieverAddr != "" && deploymentRaw.RegistryCoordinatorAddr != "" {
+		quorumNums := make([]types.QuorumNum, len(configRaw.QuorumNums))
+		for i, quorumNum := range configRaw.QuorumNums {
+			quorumNums[i] = types.QuorumNum(quorumNum)
+		}
+
+		if len(quorumNums) == 0 {
+			// default use zero
+			logger.Warn("not quorumNums, just use [0]")
+			quorumNums = []types.QuorumNum{types.QuorumNum(0)}
+		}
+		logger.Info(
+			"the quorumNums",
+			"quorumNums", fmt.Sprintf("%#v", quorumNums),
+			"raw", fmt.Sprintf("%#v", configRaw.QuorumNums),
+		)
+
+		machAVSCfg = &MachAVSConfig{
+			OperatorStateRetrieverAddr: common.HexToAddress(deploymentRaw.OperatorStateRetrieverAddr),
+			RegistryCoordinatorAddr:    common.HexToAddress(deploymentRaw.RegistryCoordinatorAddr),
+			Layer2ChainId:              configRaw.Layer2ChainId,
+			QuorumNums:                 quorumNums,
+		}
 	}
 
 	ethRpcClient, err := eth.NewClient(configRaw.EthRpcUrl)
@@ -195,30 +236,12 @@ func NewConfig(ctx *cli.Context) (*Config, error) {
 	}
 	txMgr := txmgr.NewSimpleTxManager(txSender, ethRpcClient, logger, aggregatorAddr)
 
-	quorumNums := make([]types.QuorumNum, len(configRaw.QuorumNums))
-	for i, quorumNum := range configRaw.QuorumNums {
-		quorumNums[i] = types.QuorumNum(quorumNum)
-	}
-
-	if len(quorumNums) == 0 {
-		// default use zero
-		logger.Warn("not quorumNums, just use [0]")
-		quorumNums = []types.QuorumNum{types.QuorumNum(0)}
-	}
-	logger.Info(
-		"the quorumNums",
-		"quorumNums", fmt.Sprintf("%#v", quorumNums),
-		"raw", fmt.Sprintf("%#v", configRaw.QuorumNums),
-	)
-
 	config := &Config{
 		Logger:                            logger,
 		EthWsRpcUrl:                       configRaw.EthWsUrl,
 		EthHttpRpcUrl:                     configRaw.EthRpcUrl,
 		EthHttpClient:                     ethRpcClient,
 		EthWsClient:                       ethWsClient,
-		OperatorStateRetrieverAddr:        common.HexToAddress(deploymentRaw.OperatorStateRetrieverAddr),
-		RegistryCoordinatorAddr:           common.HexToAddress(deploymentRaw.RegistryCoordinatorAddr),
 		AggregatorServerIpPortAddr:        configRaw.AggregatorServerIpPortAddr,
 		AggregatorGRPCServerIpPortAddr:    configRaw.AggregatorGRPCServerIpPortAddr,
 		AggregatorJSONRPCServerIpPortAddr: configRaw.AggregatorJSONRPCServerIpPortAddr,
@@ -227,22 +250,17 @@ func NewConfig(ctx *cli.Context) (*Config, error) {
 		TxMgr:                             txMgr,
 		AggregatorAddress:                 aggregatorAddr,
 		Layer1ChainId:                     configRaw.Layer1ChainId,
-		Layer2ChainId:                     configRaw.Layer2ChainId,
-		QuorumNums:                        quorumNums,
 		RpcVhosts:                         configRaw.RpcVhosts,
 		RpcCors:                           configRaw.RpcCors,
+		MachAVSCfg:                        machAVSCfg,
 	}
 	config.validate()
 	return config, nil
 }
 
 func (c *Config) validate() {
-	// TODO: make sure every pointer is non-nil
-	if c.OperatorStateRetrieverAddr == common.HexToAddress("") {
-		panic("Config: BLSOperatorStateRetrieverAddr is required")
-	}
-	if c.RegistryCoordinatorAddr == common.HexToAddress("") {
-		panic("Config: RegistryCoordinatorAddr is required")
+	if c.MachAVSCfg != nil {
+		c.MachAVSCfg.validate()
 	}
 }
 
@@ -255,6 +273,11 @@ var (
 	}
 	DeploymentFileFlag = cli.StringFlag{
 		Name:     "avs-deployment",
+		Required: false,
+		Usage:    "Load avs contract addresses from `FILE`",
+	}
+	AVSConfigFlag = cli.StringFlag{
+		Name:     "avs-config",
 		Required: false,
 		Usage:    "Load avs contract addresses from `FILE`",
 	}
@@ -273,7 +296,9 @@ var requiredFlags = []cli.Flag{
 	EcdsaPrivateKeyFlag,
 }
 
-var optionalFlags = []cli.Flag{}
+var optionalFlags = []cli.Flag{
+	AVSConfigFlag,
+}
 
 func init() {
 	Flags = append(requiredFlags, optionalFlags...)

@@ -3,6 +3,7 @@ package config
 type NodeConfig struct {
 	// used to set the logger level (true = info, false = debug)
 	Production                        bool   `yaml:"production"`
+	AVSName                           string `yaml:"avs_name"`
 	OperatorStateRetrieverAddress     string `yaml:"operator_state_retriever_address"`
 	AVSRegistryCoordinatorAddress     string `yaml:"avs_registry_coordinator_address"`
 	EthRpcUrl                         string `yaml:"eth_rpc_url"`

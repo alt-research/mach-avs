@@ -14,7 +14,6 @@ import (
 	logging "github.com/Layr-Labs/eigensdk-go/logging"
 
 	csservicemanager "github.com/alt-research/avs/contracts/bindings/MachServiceManager"
-	"github.com/alt-research/avs/core/config"
 	"github.com/alt-research/avs/core/message"
 )
 
@@ -43,10 +42,6 @@ type AvsWriter struct {
 }
 
 var _ AvsWriterer = (*AvsWriter)(nil)
-
-func BuildAvsWriterFromConfig(c *config.Config, avsCfg *message.GenericAVSConfig) (*AvsWriter, error) {
-	return BuildAvsWriter(c.TxMgr, c.RegistryCoordinatorAddr, c.OperatorStateRetrieverAddr, c.EthHttpClient, c.Logger, avsCfg)
-}
 
 func BuildAvsWriter(
 	txMgr txmgr.TxManager,

@@ -139,37 +139,24 @@ func (h *JsonRpcHandler) InitOperator(
 	return resp, nil
 }
 
-type GenericTaskInfo struct {
-	// The hash of alert
-	TaskSigHash hexutil.Bytes `json:"sig_hash"`
-	// QuorumNumbers of task
-	QuorumNumbers []uint8 `json:"quorum_numbers"`
-	// QuorumThresholdPercentages of task
-	QuorumThresholdPercentages []uint8 `json:"quorum_threshold_percentages"`
-	// TaskIndex
-	TaskIndex uint32 `json:"task_index"`
-	// ReferenceBlockNumber
-	ReferenceBlockNumber uint64 `json:"reference_block_number"`
-}
-
 func (h *JsonRpcHandler) CreateTask(
 	ctx context.Context,
 	avsName string,
 	hash hexutil.Bytes,
 	method string,
 	params hexutil.Bytes,
-) (GenericTaskInfo, error) {
+) (message.CreateGenericTaskResponse, error) {
 	hashBytes32, err := message.NewBytes32(hash)
 	if err != nil {
-		return GenericTaskInfo{}, fmt.Errorf("createTask parse request falied: %v", err)
+		return message.CreateGenericTaskResponse{}, fmt.Errorf("createTask parse request falied: %v", err)
 	}
 
 	res, err := h.aggreagtor.CreateTask(avsName, hashBytes32, method, params)
 	if err != nil {
-		return GenericTaskInfo{}, fmt.Errorf("createTask process request falied: %v", err)
+		return message.CreateGenericTaskResponse{}, fmt.Errorf("createTask process request falied: %v", err)
 	}
 
-	resp := GenericTaskInfo{
+	resp := message.CreateGenericTaskResponse{
 		TaskSigHash:                res.TaskSigHash[:],
 		QuorumNumbers:              res.QuorumNumbers.UnderlyingType(),
 		QuorumThresholdPercentages: res.QuorumThresholdPercentages.UnderlyingType(),
@@ -190,7 +177,7 @@ type SignedTaskRespResponse struct {
 func (h *JsonRpcHandler) ProcessSignedTaskResponse(
 	ctx context.Context,
 	avsName string,
-	taskInfo GenericTaskInfo,
+	taskInfo message.CreateGenericTaskResponse,
 	method string,
 	params hexutil.Bytes,
 	operatorRequestSignature hexutil.Bytes,

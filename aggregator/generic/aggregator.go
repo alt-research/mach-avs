@@ -6,7 +6,6 @@ import (
 
 	"github.com/Layr-Labs/eigensdk-go/logging"
 	"github.com/alt-research/avs/core/config"
-	"github.com/alt-research/avs/core/message"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
@@ -21,19 +20,14 @@ type GenericAggregator struct {
 }
 
 func GenericAggregatorMain(cliCtx *cli.Context, ctx context.Context, c *config.Config) (*GenericAggregator, error) {
-	raws, err := config.NewAVSConfigRaws(cliCtx)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to new avs configs")
-	}
-
-	if len(raws) == 0 {
-		c.Logger.Info("not start generic aggregator by not use avs configs")
-		return nil, nil
-	}
-
-	avsConfigs, err := NewAVSConfigs(raws)
+	avsConfigs, err := config.NewAVSConfigs(cliCtx)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to new avs configs from raws")
+	}
+
+	if len(avsConfigs) == 0 {
+		c.Logger.Info("not start generic aggregator by not use avs configs")
+		return nil, nil
 	}
 
 	aggregator, err := NewGenericAggregator(c, avsConfigs)
@@ -49,7 +43,7 @@ func GenericAggregatorMain(cliCtx *cli.Context, ctx context.Context, c *config.C
 	return aggregator, nil
 }
 
-func NewGenericAggregator(c *config.Config, awsConfig []message.GenericAVSConfig) (*GenericAggregator, error) {
+func NewGenericAggregator(c *config.Config, awsConfig []config.GenericAVSConfig) (*GenericAggregator, error) {
 	services, err := NewAVSGenericServices(c, awsConfig)
 	if err != nil {
 		return nil, errors.Wrap(err, "NewAVSGenericServices")

@@ -4,6 +4,7 @@ import (
 	"math/big"
 
 	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
+	"github.com/Layr-Labs/eigensdk-go/logging"
 	sdktypes "github.com/Layr-Labs/eigensdk-go/types"
 	csservicemanager "github.com/alt-research/avs/contracts/bindings/MachServiceManager"
 )
@@ -43,4 +44,19 @@ func ConvertQuorumThresholdPercentagesFromBytes(numbers []byte) sdktypes.QuorumT
 		quorumNumbers[i] = sdktypes.QuorumThresholdPercentage(v)
 	}
 	return quorumNumbers
+}
+
+func NewLogger(production bool) (logging.Logger, error) {
+	var logLevel logging.LogLevel
+	if production {
+		logLevel = logging.Production
+	} else {
+		logLevel = logging.Development
+	}
+	logger, err := NewZapLogger(logLevel)
+	if err != nil {
+		return nil, err
+	}
+
+	return logger, nil
 }

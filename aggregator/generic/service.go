@@ -57,14 +57,14 @@ type AVSGenericService struct {
 	avsWriter chainio.AvsWriterer
 	ethClient eth.Client
 
-	avsConfig             message.GenericAVSConfig
+	avsConfig             config.GenericAVSConfig
 	tasks                 *AVSGenericTasks
 	blsAggregationService blsagg.BlsAggregationService
 
 	wg sync.WaitGroup
 }
 
-func NewAVSGenericTasksAggregatorService(c *config.Config, avsConfig message.GenericAVSConfig) (*AVSGenericService, error) {
+func NewAVSGenericTasksAggregatorService(c *config.Config, avsConfig config.GenericAVSConfig) (*AVSGenericService, error) {
 	avsWriter, err := chainio.BuildAvsWriter(
 		c.TxMgr,
 		avsConfig.AVSRegistryCoordinatorAddress,

@@ -7,7 +7,7 @@ import (
 	"github.com/urfave/cli"
 )
 
-type AVSConfigRaw struct {
+type avsConfigRaw struct {
 	AVSName                       string          `json:"avs_name"`
 	QuorumNumbers                 []uint8         `json:"quorum_numbers"`
 	AVSRegistryCoordinatorAddress string          `json:"avs_registry_coordinator_address"`
@@ -16,8 +16,8 @@ type AVSConfigRaw struct {
 	Abi                           json.RawMessage `json:"abi"`
 }
 
-func NewAVSConfigRaws(ctx *cli.Context) ([]AVSConfigRaw, error) {
-	var configRaw []AVSConfigRaw
+func newAVSConfigRaws(ctx *cli.Context) ([]avsConfigRaw, error) {
+	var configRaw []avsConfigRaw
 
 	configFilePath := ctx.GlobalString(AVSConfigFlag.Name)
 	if configFilePath != "" {

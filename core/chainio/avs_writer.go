@@ -14,6 +14,7 @@ import (
 	logging "github.com/Layr-Labs/eigensdk-go/logging"
 
 	csservicemanager "github.com/alt-research/avs/contracts/bindings/MachServiceManager"
+	"github.com/alt-research/avs/core/config"
 	"github.com/alt-research/avs/core/message"
 )
 
@@ -38,7 +39,7 @@ type AvsWriter struct {
 	TxMgr               txmgr.TxManager
 	ethHttpClient       eth.Client
 
-	avsCfg *message.GenericAVSConfig
+	avsCfg *config.GenericAVSConfig
 }
 
 var _ AvsWriterer = (*AvsWriter)(nil)
@@ -48,7 +49,7 @@ func BuildAvsWriter(
 	registryCoordinatorAddr, operatorStateRetrieverAddr gethcommon.Address,
 	ethHttpClient eth.Client,
 	logger logging.Logger,
-	avsCfg *message.GenericAVSConfig) (*AvsWriter, error) {
+	avsCfg *config.GenericAVSConfig) (*AvsWriter, error) {
 	avsServiceBindings, err := NewAvsManagersBindings(registryCoordinatorAddr, operatorStateRetrieverAddr, ethHttpClient, logger)
 	if err != nil {
 		logger.Error("Failed to create contract bindings", "err", err)
@@ -69,7 +70,7 @@ func NewAvsWriter(
 	logger logging.Logger,
 	txMgr txmgr.TxManager,
 	ethHttpClient eth.Client,
-	avsCfg *message.GenericAVSConfig) *AvsWriter {
+	avsCfg *config.GenericAVSConfig) *AvsWriter {
 	return &AvsWriter{
 		AvsRegistryWriter:   avsRegistryWriter,
 		AvsContractBindings: avsServiceBindings,

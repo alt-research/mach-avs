@@ -1,17 +1,35 @@
-package generic
+package config
 
 import (
 	"fmt"
 
-	"github.com/alt-research/avs/core/config"
-	"github.com/alt-research/avs/core/message"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/pkg/errors"
+	"github.com/urfave/cli"
 )
 
-func NewAVSConfigs(configRaws []config.AVSConfigRaw) ([]message.GenericAVSConfig, error) {
-	res := make([]message.GenericAVSConfig, 0, len(configRaws))
+// Register a generic task
+type GenericAVSConfig struct {
+	AVSName                       string
+	QuorumNumbers                 []uint8
+	AVSRegistryCoordinatorAddress common.Address
+	OperatorStateRetrieverAddress common.Address
+	AVSContractAddress            common.Address
+	Abi                           abi.ABI
+}
+
+func NewAVSConfigs(ctx *cli.Context) ([]GenericAVSConfig, error) {
+	raws, err := newAVSConfigRaws(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewAVSConfigsFromRaw(raws)
+}
+
+func NewAVSConfigsFromRaw(configRaws []avsConfigRaw) ([]GenericAVSConfig, error) {
+	res := make([]GenericAVSConfig, 0, len(configRaws))
 
 	for _, raw := range configRaws {
 		cfg, err := NewAVSConfig(raw)
@@ -25,19 +43,19 @@ func NewAVSConfigs(configRaws []config.AVSConfigRaw) ([]message.GenericAVSConfig
 	return res, nil
 }
 
-func NewAVSConfig(configRaw config.AVSConfigRaw) (message.GenericAVSConfig, error) {
+func NewAVSConfig(configRaw avsConfigRaw) (GenericAVSConfig, error) {
 	if !common.IsHexAddress(configRaw.AVSRegistryCoordinatorAddress) {
-		return message.GenericAVSConfig{}, fmt.Errorf("avs config %s 's avs_registry_coordinator_address not a hex address", configRaw.AVSName)
+		return GenericAVSConfig{}, fmt.Errorf("avs config %s 's avs_registry_coordinator_address not a hex address", configRaw.AVSName)
 	}
 	AVSRegistryCoordinatorAddress := common.HexToAddress(configRaw.AVSRegistryCoordinatorAddress)
 
 	if !common.IsHexAddress(configRaw.OperatorStateRetrieverAddress) {
-		return message.GenericAVSConfig{}, fmt.Errorf("avs config %s 's operator_state_retriever_address not a hex address", configRaw.AVSName)
+		return GenericAVSConfig{}, fmt.Errorf("avs config %s 's operator_state_retriever_address not a hex address", configRaw.AVSName)
 	}
 	OperatorStateRetrieverAddress := common.HexToAddress(configRaw.OperatorStateRetrieverAddress)
 
 	if !common.IsHexAddress(configRaw.AVSContractAddress) {
-		return message.GenericAVSConfig{}, fmt.Errorf("avs config %s 's contract address not a hex address", configRaw.AVSName)
+		return GenericAVSConfig{}, fmt.Errorf("avs config %s 's contract address not a hex address", configRaw.AVSName)
 	}
 
 	AVSContractAddress := common.HexToAddress(configRaw.AVSContractAddress)
@@ -45,10 +63,10 @@ func NewAVSConfig(configRaw config.AVSConfigRaw) (message.GenericAVSConfig, erro
 	var avsAbi abi.ABI
 	err := avsAbi.UnmarshalJSON(configRaw.Abi)
 	if err != nil {
-		return message.GenericAVSConfig{}, errors.Wrapf(err, "avs config %s unmarshal failed", configRaw.AVSName)
+		return GenericAVSConfig{}, errors.Wrapf(err, "avs config %s unmarshal failed", configRaw.AVSName)
 	}
 
-	return message.GenericAVSConfig{
+	return GenericAVSConfig{
 		AVSName:                       configRaw.AVSName,
 		QuorumNumbers:                 configRaw.QuorumNumbers,
 		AVSRegistryCoordinatorAddress: AVSRegistryCoordinatorAddress,

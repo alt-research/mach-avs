@@ -43,7 +43,7 @@ type aggregatorCmdRes struct {
 type AVSGenericServices struct {
 	logger     logging.Logger
 	cfg        *config.Config
-	avsConfigs []message.GenericAVSConfig
+	avsConfigs []config.GenericAVSConfig
 
 	jsonRpcServerIpPortAddr string
 
@@ -53,7 +53,7 @@ type AVSGenericServices struct {
 	cmdChan    chan aggregatorCmd
 }
 
-func NewAVSGenericServices(c *config.Config, avsConfigs []message.GenericAVSConfig) (*AVSGenericServices, error) {
+func NewAVSGenericServices(c *config.Config, avsConfigs []config.GenericAVSConfig) (*AVSGenericServices, error) {
 	return &AVSGenericServices{
 		logger:                  c.Logger,
 		cfg:                     c,
@@ -70,7 +70,7 @@ func (agg *AVSGenericServices) getService(name string) *AVSGenericService {
 	return res
 }
 
-func (agg *AVSGenericServices) newAVS(avsConfig message.GenericAVSConfig) error {
+func (agg *AVSGenericServices) newAVS(avsConfig config.GenericAVSConfig) error {
 	name := avsConfig.AVSName
 
 	if agg.getService(name) != nil {

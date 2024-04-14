@@ -3,11 +3,8 @@ package operator
 import (
 	"context"
 	"crypto/ecdsa"
-	"encoding/json"
 	"fmt"
-	"log"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -67,144 +64,6 @@ type Operator struct {
 	serviceManagerAddr common.Address
 }
 
-// use the env config first for some keys
-func withEnvConfig(c config.NodeConfig) config.NodeConfig {
-	// This keys can use the environment:
-	//
-	// - `ETH_RPC_URL` : eth_rpc_url
-	// - `ETH_WS_URL` : eth_ws_url
-	// - `ECDSA_PRIVATE_KEY_PATH` : ecdsa_private_key_store_path
-	// - `BLS_PRIVATE_KEY_PATH` : bls_private_key_store_path
-	// - `AGGREGATOR_SERVER_URL` : eth_rpc_url
-	// - `EIGEN_METRICS_URL` : eigen_metrics_ip_port_address
-	// - `NODE_API_URL` : node_api_ip_port_address
-	// - `ENABLE_METRICS` : enable_metrics
-	// - `ENABLE_NODE_API` : enable_node_api
-	// - `AVS_REGISTRY_COORDINATOR_ADDRESS` : avs_registry_coordinator_address
-	// - `OPERATOR_STATE_RETRIEVER_ADDRESS` : operator_state_retriever_address
-	// - `OPERATOR_SERVER_URL` : operator_server_ip_port_addr
-	// - `METADATA_URI` : metadata_uri
-
-	Production, ok := os.LookupEnv("OPERATOR_PRODUCTION")
-	if ok && Production != "" {
-		c.Production = Production == "true"
-	}
-
-	ethRpcUrl, ok := os.LookupEnv("ETH_RPC_URL")
-	if ok && ethRpcUrl != "" {
-		c.EthRpcUrl = ethRpcUrl
-	}
-
-	EthWsUrl, ok := os.LookupEnv("ETH_WS_URL")
-	if ok && EthWsUrl != "" {
-		c.EthWsUrl = EthWsUrl
-	}
-
-	ecdsaPrivateKeyStorePath, ok := os.LookupEnv("ECDSA_PRIVATE_KEY_PATH")
-	if ok && ecdsaPrivateKeyStorePath != "" {
-		c.EcdsaPrivateKeyStorePath = ecdsaPrivateKeyStorePath
-	}
-
-	blsPrivateKeyStorePath, ok := os.LookupEnv("BLS_PRIVATE_KEY_PATH")
-	if ok && blsPrivateKeyStorePath != "" {
-		c.BlsPrivateKeyStorePath = blsPrivateKeyStorePath
-	}
-
-	aggregatorServerIpPortAddress, ok := os.LookupEnv("AGGREGATOR_SERVER_URL")
-	if ok && aggregatorServerIpPortAddress != "" {
-		c.AggregatorServerIpPortAddress = aggregatorServerIpPortAddress
-	}
-
-	grpcAggregatorServerIpPortAddress, ok := os.LookupEnv("AGGREGATOR_GRPC_SERVER_URL")
-	if ok && grpcAggregatorServerIpPortAddress != "" {
-		c.AggregatorGRPCServerIpPortAddress = grpcAggregatorServerIpPortAddress
-	}
-
-	jsonRPCAggregatorServerIpPortAddress, ok := os.LookupEnv("AGGREGATOR_JSONRPC_SERVER_URL")
-	if ok && jsonRPCAggregatorServerIpPortAddress != "" {
-		c.AggregatorJSONRPCServerIpPortAddr = jsonRPCAggregatorServerIpPortAddress
-	}
-
-	eigenMetricsIpPortAddress, ok := os.LookupEnv("EIGEN_METRICS_URL")
-	if ok && eigenMetricsIpPortAddress != "" {
-		c.EigenMetricsIpPortAddress = eigenMetricsIpPortAddress
-	}
-
-	nodeApiIpPortAddress, ok := os.LookupEnv("NODE_API_URL")
-	if ok && nodeApiIpPortAddress != "" {
-		c.NodeApiIpPortAddress = nodeApiIpPortAddress
-	}
-
-	enableMetrics, ok := os.LookupEnv("ENABLE_METRICS")
-	if ok && enableMetrics != "" {
-		c.EnableMetrics = enableMetrics == "true"
-	}
-
-	enableNodeApi, ok := os.LookupEnv("ENABLE_NODE_API")
-	if ok && enableNodeApi != "" {
-		c.EnableNodeApi = enableNodeApi == "true"
-	}
-
-	aVSRegistryCoordinatorAddress, ok := os.LookupEnv("AVS_REGISTRY_COORDINATOR_ADDRESS")
-	if ok && aVSRegistryCoordinatorAddress != "" {
-		c.AVSRegistryCoordinatorAddress = aVSRegistryCoordinatorAddress
-	}
-
-	operatorStateRetrieverAddress, ok := os.LookupEnv("OPERATOR_STATE_RETRIEVER_ADDRESS")
-	if ok && operatorStateRetrieverAddress != "" {
-		c.OperatorStateRetrieverAddress = operatorStateRetrieverAddress
-	}
-
-	operatorServerIpPortAddr, ok := os.LookupEnv("OPERATOR_SERVER_URL")
-	if ok && operatorServerIpPortAddr != "" {
-		c.OperatorServerIpPortAddr = operatorServerIpPortAddr
-	}
-
-	metadataURI, ok := os.LookupEnv("METADATA_URI")
-	if ok && metadataURI != "" {
-		c.MetadataURI = metadataURI
-	}
-
-	operatorSocket, ok := os.LookupEnv("OPERATOR_SOCKET")
-	if ok && operatorSocket != "" {
-		c.OperatorSocket = operatorSocket
-	}
-
-	layer1ChainId, ok := os.LookupEnv("LAYER1_CHAIN_ID")
-	if ok && layer1ChainId != "" {
-		layer1ChainId, err := strconv.Atoi(layer1ChainId)
-		if err != nil {
-			panic(fmt.Sprintf("layer1_chain_id parse error: %v", err))
-		}
-
-		c.Layer1ChainId = uint32(layer1ChainId)
-	}
-
-	layer2ChainId, ok := os.LookupEnv("LAYER2_CHAIN_ID")
-	if ok && layer2ChainId != "" {
-		layer2ChainId, err := strconv.Atoi(layer2ChainId)
-		if err != nil {
-			panic(fmt.Sprintf("layer2_chain_id parse error: %v", err))
-		}
-
-		c.Layer2ChainId = uint32(layer2ChainId)
-	}
-
-	operatorEcdsaAddress, ok := os.LookupEnv("OPERATOR_ECDSA_ADDRESS")
-	if ok && operatorEcdsaAddress != "" {
-		c.OperatorEcdsaAddress = operatorEcdsaAddress
-	}
-
-	configJson, err := json.MarshalIndent(c, "", "  ")
-	if err != nil {
-		panic(err)
-	}
-
-	log.Println("Config Env:", string(configJson))
-
-	return c
-}
-
 // TODO(samlaf): config is a mess right now, since the chainio client constructors
 //
 //	take the config in core (which is shared with aggregator and challenger)
@@ -220,25 +79,25 @@ func NewOperatorFromConfig(cfg config.NodeConfig, isUseEcdsaKey bool) (*Operator
 		return nil, err
 	}
 
-	c := withEnvConfig(cfg)
+	cfg.WithEnv()
 
 	reg := prometheus.NewRegistry()
-	eigenMetrics := sdkmetrics.NewEigenMetrics(AVS_NAME, c.EigenMetricsIpPortAddress, reg, logger)
+	eigenMetrics := sdkmetrics.NewEigenMetrics(AVS_NAME, cfg.EigenMetricsIpPortAddress, reg, logger)
 	avsAndEigenMetrics := metrics.NewAvsAndEigenMetrics(AVS_NAME, eigenMetrics, reg)
 
 	// Setup Node Api
-	nodeApi := nodeapi.NewNodeApi(AVS_NAME, SEM_VER, c.NodeApiIpPortAddress, logger)
+	nodeApi := nodeapi.NewNodeApi(AVS_NAME, SEM_VER, cfg.NodeApiIpPortAddress, logger)
 
 	var ethRpcClient eth.Client
-	if c.EnableMetrics {
+	if cfg.EnableMetrics {
 		rpcCallsCollector := rpccalls.NewCollector(AVS_NAME, reg)
-		ethRpcClient, err = eth.NewInstrumentedClient(c.EthRpcUrl, rpcCallsCollector)
+		ethRpcClient, err = eth.NewInstrumentedClient(cfg.EthRpcUrl, rpcCallsCollector)
 		if err != nil {
 			logger.Errorf("Cannot create http ethclient", "err", err)
 			return nil, err
 		}
 	} else {
-		ethRpcClient, err = eth.NewClient(c.EthRpcUrl)
+		ethRpcClient, err = eth.NewClient(cfg.EthRpcUrl)
 		if err != nil {
 			logger.Errorf("Cannot create http ethclient", "err", err)
 			return nil, err
@@ -249,7 +108,7 @@ func NewOperatorFromConfig(cfg config.NodeConfig, isUseEcdsaKey bool) (*Operator
 	if !ok {
 		logger.Warnf("OPERATOR_BLS_KEY_PASSWORD env var not set. using empty string")
 	}
-	blsKeyPair, err := bls.ReadPrivateKeyFromFile(c.BlsPrivateKeyStorePath, blsKeyPassword)
+	blsKeyPair, err := bls.ReadPrivateKeyFromFile(cfg.BlsPrivateKeyStorePath, blsKeyPassword)
 	if err != nil {
 		logger.Errorf("Cannot parse bls private key", "err", err)
 		return nil, err
@@ -268,7 +127,7 @@ func NewOperatorFromConfig(cfg config.NodeConfig, isUseEcdsaKey bool) (*Operator
 	var privateKey *ecdsa.PrivateKey
 	if isUseEcdsaKey {
 		var err error
-		operatorAddress, err = sdkEcdsa.GetAddressFromKeyStoreFile(c.EcdsaPrivateKeyStorePath)
+		operatorAddress, err = sdkEcdsa.GetAddressFromKeyStoreFile(cfg.EcdsaPrivateKeyStorePath)
 		if err != nil {
 			panic(err)
 		}
@@ -279,7 +138,7 @@ func NewOperatorFromConfig(cfg config.NodeConfig, isUseEcdsaKey bool) (*Operator
 		}
 
 		signerConfig := signerv2.Config{
-			KeystorePath: c.EcdsaPrivateKeyStorePath,
+			KeystorePath: cfg.EcdsaPrivateKeyStorePath,
 			Password:     ecdsaKeyPassword,
 		}
 		signerV2, _, err := signerv2.SignerFromConfig(signerConfig, chainId)
@@ -299,8 +158,8 @@ func NewOperatorFromConfig(cfg config.NodeConfig, isUseEcdsaKey bool) (*Operator
 		txMgr := txmgr.NewSimpleTxManager(txSender, ethRpcClient, logger, operatorAddress)
 
 		avsWriter, err = chainio.BuildAvsWriter(
-			txMgr, common.HexToAddress(c.AVSRegistryCoordinatorAddress),
-			common.HexToAddress(c.OperatorStateRetrieverAddress), ethRpcClient, logger,
+			txMgr, common.HexToAddress(cfg.AVSRegistryCoordinatorAddress),
+			common.HexToAddress(cfg.OperatorStateRetrieverAddress), ethRpcClient, logger,
 			nil,
 		)
 		if err != nil {
@@ -316,31 +175,31 @@ func NewOperatorFromConfig(cfg config.NodeConfig, isUseEcdsaKey bool) (*Operator
 		}
 		privateKey = ecdsaPrivateKey
 
-		if c.EcdsaPrivateKeyStorePath != "" {
-			operatorAddress, err = sdkEcdsa.GetAddressFromKeyStoreFile(c.EcdsaPrivateKeyStorePath)
+		if cfg.EcdsaPrivateKeyStorePath != "" {
+			operatorAddress, err = sdkEcdsa.GetAddressFromKeyStoreFile(cfg.EcdsaPrivateKeyStorePath)
 			if err != nil {
 				panic(err)
 			}
 		} else {
-			if c.OperatorEcdsaAddress == "" {
+			if cfg.OperatorEcdsaAddress == "" {
 				return nil, fmt.Errorf("If not use EcdsaPrivateKeyStorePath, must use operator_ecdsa_address or `OPERATOR_ECDSA_ADDRESS` env to select ecdsa address!")
 			}
 
-			if !common.IsHexAddress(c.OperatorEcdsaAddress) {
+			if !common.IsHexAddress(cfg.OperatorEcdsaAddress) {
 				return nil, fmt.Errorf("the operator_ecdsa_address format is not hex address!")
 			}
 
-			operatorAddress = common.HexToAddress(c.OperatorEcdsaAddress)
+			operatorAddress = common.HexToAddress(cfg.OperatorEcdsaAddress)
 		}
 	}
 
 	chainioConfig := clients.BuildAllConfig{
-		EthHttpUrl:                 c.EthRpcUrl,
-		EthWsUrl:                   c.EthWsUrl,
-		RegistryCoordinatorAddr:    c.AVSRegistryCoordinatorAddress,
-		OperatorStateRetrieverAddr: c.OperatorStateRetrieverAddress,
+		EthHttpUrl:                 cfg.EthRpcUrl,
+		EthWsUrl:                   cfg.EthWsUrl,
+		RegistryCoordinatorAddr:    cfg.AVSRegistryCoordinatorAddress,
+		OperatorStateRetrieverAddr: cfg.OperatorStateRetrieverAddress,
 		AvsName:                    AVS_NAME,
-		PromMetricsIpPortAddress:   c.EigenMetricsIpPortAddress,
+		PromMetricsIpPortAddress:   cfg.EigenMetricsIpPortAddress,
 	}
 	sdkClients, err := clients.BuildAll(chainioConfig, privateKey, logger)
 	if err != nil {
@@ -348,8 +207,8 @@ func NewOperatorFromConfig(cfg config.NodeConfig, isUseEcdsaKey bool) (*Operator
 	}
 
 	avsReader, err := chainio.BuildAvsReader(
-		common.HexToAddress(c.AVSRegistryCoordinatorAddress),
-		common.HexToAddress(c.OperatorStateRetrieverAddress),
+		common.HexToAddress(cfg.AVSRegistryCoordinatorAddress),
+		common.HexToAddress(cfg.OperatorStateRetrieverAddress),
 		ethRpcClient, logger)
 	if err != nil {
 		logger.Error("Cannot create AvsReader", "err", err)
@@ -373,7 +232,7 @@ func NewOperatorFromConfig(cfg config.NodeConfig, isUseEcdsaKey bool) (*Operator
 		return nil, err
 	}
 
-	aggregatorRpcClient, err := buildAggregatorClient(c, operatorId, operatorAddress, logger, avsAndEigenMetrics)
+	aggregatorRpcClient, err := buildAggregatorClient(cfg, operatorId, operatorAddress, logger, avsAndEigenMetrics)
 	if err != nil {
 		logger.Error("buildAggregatorClient falied", "err", err)
 		return nil, err
@@ -382,12 +241,12 @@ func NewOperatorFromConfig(cfg config.NodeConfig, isUseEcdsaKey bool) (*Operator
 	newTaskCreatedChan := make(chan alert.AlertRequest, 32)
 	rpcServer := RpcServer{
 		logger:             logger,
-		serverIpPortAddr:   c.OperatorServerIpPortAddr,
+		serverIpPortAddr:   cfg.OperatorServerIpPortAddr,
 		newTaskCreatedChan: newTaskCreatedChan,
 	}
 
 	operator := &Operator{
-		config:                     c,
+		config:                     cfg,
 		logger:                     logger,
 		metricsReg:                 reg,
 		metrics:                    avsAndEigenMetrics,
@@ -400,11 +259,11 @@ func NewOperatorFromConfig(cfg config.NodeConfig, isUseEcdsaKey bool) (*Operator
 		rpcServer:                  rpcServer,
 		blsKeypair:                 blsKeyPair,
 		operatorAddr:               operatorAddress,
-		aggregatorServerIpPortAddr: c.AggregatorServerIpPortAddress,
+		aggregatorServerIpPortAddr: cfg.AggregatorServerIpPortAddress,
 		aggregatorRpcClient:        aggregatorRpcClient,
 		newTaskCreatedChan:         newTaskCreatedChan,
-		serviceManagerAddr:         common.HexToAddress(c.AVSRegistryCoordinatorAddress),
-		metadataURI:                c.MetadataURI,
+		serviceManagerAddr:         common.HexToAddress(cfg.AVSRegistryCoordinatorAddress),
+		metadataURI:                cfg.MetadataURI,
 		operatorId:                 operatorId,
 	}
 

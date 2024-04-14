@@ -164,10 +164,12 @@ func (agg *AVSGenericServices) handlerCmd(cmd aggregatorCmd) {
 		{
 			resp, err := agg.initOperator(name, cmd.initOperatorDatas)
 			if err != nil {
+				agg.logger.Debug("handler cmd failed", "err", err)
 				cmd.resp <- aggregatorCmdRes{
 					err: err,
 				}
 			}
+			agg.logger.Debug("handler cmd", "resp", resp)
 			cmd.resp <- aggregatorCmdRes{
 				ok:     resp.Ok,
 				reason: resp.Res,
@@ -342,6 +344,7 @@ func (agg *AVSGenericServices) InitOperator(avsName string, req *message.InitOpe
 		cmdType:           aggregatorCmdInitOperator,
 		avsName:           avsName,
 		initOperatorDatas: req,
+		resp:              resChan,
 	}
 
 	res := <-resChan
@@ -375,6 +378,7 @@ func (agg *AVSGenericServices) CreateTask(
 			CallMethod:  method,
 			CallParams:  callParams,
 		},
+		resp: resChan,
 	}
 
 	res := <-resChan
@@ -405,6 +409,7 @@ func (agg *AVSGenericServices) ProcessSignedTaskResponse(
 		taskData:     taskData,
 		blsSignature: blsSignature,
 		operatorId:   operatorId,
+		resp:         resChan,
 	}
 
 	res := <-resChan

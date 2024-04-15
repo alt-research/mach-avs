@@ -2,6 +2,7 @@ package generic_operator
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 	"net/rpc"
 	"time"
@@ -79,13 +80,20 @@ func (c *GenericAggregatorClient) InitOperatorToAggregator() error {
 }
 
 // CreateAlertTaskToAggregator create a new alert task, if had existing, just return current alert task.
-func (c *GenericAggregatorClient) CreateTaskToAggregator(sigHash [32]byte, method string, params []interface{}) (*message.CreateGenericTaskResponse, error) {
+func (c *GenericAggregatorClient) CreateTaskToAggregator(sigHash [32]byte, method string, paramsRaw []byte) (*message.CreateGenericTaskResponse, error) {
 	client, err := gethrpc.DialContext(context.Background(), c.jsonRPCAggregatorIpPortAddr)
 	if err != nil {
 		return nil, fmt.Errorf("dial CreateAlertTask connection failed: %v", err.Error())
 	}
 
-	paramsRaw, err := packCallParams(
+	params, err := UnpackCallParams(c.logger, c.config.AVSName, &c.avsCfg.Abi, method, paramsRaw)
+	if err != nil {
+		return nil, errors.Wrap(err, "unpack call params failed")
+	}
+
+	c.logger.Debug("create task to aggregator", "hash", hex.EncodeToString(sigHash[:]), "method", method, "params", params)
+
+	paramsRaBySelf, err := PackCallParams(
 		c.avsCfg.AVSName,
 		&c.avsCfg.Abi,
 		method, params,
@@ -100,7 +108,7 @@ func (c *GenericAggregatorClient) CreateTaskToAggregator(sigHash [32]byte, metho
 		c.avsCfg.AVSName,
 		hexutil.Bytes(sigHash[:]),
 		method,
-		hexutil.Bytes(paramsRaw),
+		hexutil.Bytes(paramsRaBySelf),
 	)
 
 	if err != nil {
@@ -117,7 +125,7 @@ func (c *GenericAggregatorClient) CreateTaskToAggregator(sigHash [32]byte, metho
 // Currently hardcoded to retry sending the signed task response 5 times, waiting 2 seconds in between each attempt.
 func (c *GenericAggregatorClient) SendSignedTaskResponseToAggregator(
 	method string,
-	params []interface{},
+	paramsRaw []byte,
 	operatorRequestSignature bls.Signature,
 	operatorId sdktypes.OperatorId,
 	taskInfo message.CreateGenericTaskResponse,
@@ -133,7 +141,29 @@ func (c *GenericAggregatorClient) SendSignedTaskResponseToAggregator(
 	}
 
 	qperatorRequestSignature := operatorRequestSignature.Serialize()
-	paramsRaw, err := packCallParams(
+
+	params, err := UnpackCallParams(
+		c.logger,
+		c.avsCfg.AVSName,
+		&c.avsCfg.Abi,
+		method, paramsRaw,
+	)
+	if err != nil {
+		resChan <- GenericResponse{
+			Err: err,
+			Msg: "unpack call params failed",
+		}
+		return
+	}
+
+	c.logger.Debug(
+		"send signed task to aggregator",
+		"hash", hex.EncodeToString(taskInfo.TaskSigHash),
+		"method", method,
+		"params", params,
+	)
+
+	paramsRawBySelf, err := PackCallParams(
 		c.avsCfg.AVSName,
 		&c.avsCfg.Abi,
 		method, params,
@@ -154,7 +184,7 @@ func (c *GenericAggregatorClient) SendSignedTaskResponseToAggregator(
 		c.avsCfg.AVSName,
 		taskInfo,
 		method,
-		hexutil.Bytes(paramsRaw),
+		hexutil.Bytes(paramsRawBySelf),
 		hexutil.Bytes(qperatorRequestSignature),
 		hexutil.Bytes(operatorId[:]),
 	)

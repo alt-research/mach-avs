@@ -86,6 +86,8 @@ type Operator struct {
 	aggregatorServerIpPortAddr string
 	// rpc client to send signed task responses to aggregator
 	aggregatorRpcClient *GenericAggregatorClient
+	// rpc server for other service to create bls sig task
+	rpcServer *GenericRpcServer
 }
 
 func NewOperatorFromConfig(cfg config.NodeConfig, avsCfg config.GenericAVSConfig) (*Operator, error) {
@@ -203,6 +205,12 @@ func NewOperatorFromConfig(cfg config.NodeConfig, avsCfg config.GenericAVSConfig
 
 	newTaskCreatedChan := make(chan GenericRequest, 32)
 
+	rpcServer := &GenericRpcServer{
+		logger:             logger,
+		serverIpPortAddr:   cfg.OperatorServerIpPortAddr,
+		newTaskCreatedChan: newTaskCreatedChan,
+	}
+
 	operator := &Operator{
 		config:                     cfg,
 		avsCfg:                     avsCfg,
@@ -221,6 +229,7 @@ func NewOperatorFromConfig(cfg config.NodeConfig, avsCfg config.GenericAVSConfig
 		aggregatorRpcClient:        aggregatorRpcClient,
 		newTaskCreatedChan:         newTaskCreatedChan,
 		operatorId:                 operatorId,
+		rpcServer:                  rpcServer,
 	}
 
 	logger.Info("Operator info",
@@ -258,6 +267,18 @@ func (o *Operator) Start(ctx context.Context) error {
 	nodeApiErrChan := o.StartNodeApi()
 	metricsErrChan := o.StartMetrics(ctx)
 
+	o.logger.Info("start rpc server for got alert")
+	if err = o.rpcServer.StartServer(ctx); err != nil {
+		o.logger.Error("Error start Rpc server", "err", err)
+		return err
+	}
+	defer func() {
+		err := o.rpcServer.Stop()
+		if err != nil {
+			o.logger.Error("Stop Rpc server failed", "err", err)
+		}
+	}()
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -292,7 +313,7 @@ func (o *Operator) CreateTaskThenCommitToAggregator(request GenericRequest) erro
 
 	o.metrics.IncNumTasksReceived()
 
-	taskCreateResponse, err := o.aggregatorRpcClient.CreateTaskToAggregator(request.SigHash, request.Method, request.Params)
+	taskCreateResponse, err := o.aggregatorRpcClient.CreateTaskToAggregator(request.SigHash, request.Method, request.ParamsRaw)
 	if err != nil {
 		o.logger.Error("process task failed by create task", "err", err)
 		var code uint32
@@ -315,7 +336,7 @@ func (o *Operator) CreateTaskThenCommitToAggregator(request GenericRequest) erro
 
 	go o.aggregatorRpcClient.SendSignedTaskResponseToAggregator(
 		request.Method,
-		request.Params,
+		request.ParamsRaw,
 		*blsSignature,
 		o.operatorId,
 		*taskCreateResponse,

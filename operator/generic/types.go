@@ -5,7 +5,7 @@ import "github.com/alt-research/avs/core/message"
 type GenericRequest struct {
 	AVSName      string
 	Method       string
-	Params       []interface{}
+	ParamsRaw    []byte
 	SigHash      message.Bytes32
 	ResponseChan chan GenericResponse
 }

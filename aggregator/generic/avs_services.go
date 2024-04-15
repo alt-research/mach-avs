@@ -226,7 +226,7 @@ func (agg *AVSGenericServices) initOperator(avsName string, req *message.InitOpe
 		agg.logger.Error("not found service for init operator", "name", avsName)
 	}
 
-	agg.logger.Info("init operator service", "name", avsName, "operator", req.OperatorAddress.Hex())
+	agg.logger.Info("init operator service", "name", avsName, "operator", req.OperatorAddress)
 
 	rsp, err := service.InitOperator(req)
 	if err != nil {
@@ -371,7 +371,7 @@ func (agg *AVSGenericServices) CreateTask(
 	resChan := make(chan aggregatorCmdRes, 1)
 
 	agg.cmdChan <- aggregatorCmd{
-		cmdType: aggregatorCmdInitOperator,
+		cmdType: aggregatorCmdCreateTask,
 		avsName: avsName,
 		taskData: &message.GenericTaskData{
 			TaskSigHash: hash,
@@ -404,7 +404,7 @@ func (agg *AVSGenericServices) ProcessSignedTaskResponse(
 	resChan := make(chan aggregatorCmdRes, 1)
 
 	agg.cmdChan <- aggregatorCmd{
-		cmdType:      aggregatorCmdInitOperator,
+		cmdType:      aggregatorCmdProcessSignedTaskResponse,
 		avsName:      avsName,
 		taskData:     taskData,
 		blsSignature: blsSignature,

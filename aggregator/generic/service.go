@@ -149,8 +149,7 @@ func (t *AVSGenericService) sendAggregatedResponseToContract(blsAggServiceResp b
 	// TODO: check if blsAggServiceResp contains an err
 	if blsAggServiceResp.Err != nil {
 		t.logger.Error("BlsAggregationServiceResponse contains an error", "err", blsAggServiceResp.Err)
-		// panicing to help with debugging (fail fast), but we shouldn't panic if we run this in production
-		panic(blsAggServiceResp.Err)
+		return
 	}
 	nonSignerPubkeys := []csservicemanager.BN254G1Point{}
 	for _, nonSignerPubkey := range blsAggServiceResp.NonSignersPubkeysG1 {

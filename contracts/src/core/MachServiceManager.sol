@@ -193,6 +193,10 @@ contract MachServiceManager is
         emit QuorumThresholdPercentageChanged(thresholdPercentage);
     }
 
+    function updateRollupChainId(uint256 newChainid) external onlyOwner {
+        rollupChainId = newChainid;
+    }
+
     //////////////////////////////////////////////////////////////////////////////
     //                          Operator Registration                           //
     //////////////////////////////////////////////////////////////////////////////

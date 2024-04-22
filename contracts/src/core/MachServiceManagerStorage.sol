@@ -14,9 +14,6 @@ abstract contract MachServiceManagerStorage {
     // CONSTANTS
     uint256 public constant THRESHOLD_DENOMINATOR = 100;
 
-    /// @notice Rollup chain id, it is different from block.chainid
-    uint256 public immutable rollupChainId;
-
     EnumerableSet.Bytes32Set internal _messageHashes;
 
     /// @notice Ethereum addresses of currently register operators
@@ -40,9 +37,12 @@ abstract contract MachServiceManagerStorage {
     /// @notice Role for whitelisting operators
     address public whitelister;
 
+    /// @notice Rollup chain id
+    uint256 public rollupChainId;
+
     // storage gap for upgradeability
     // slither-disable-next-line shadowing-state
-    uint256[44] private __GAP;
+    uint256[43] private __GAP;
 
     constructor(uint256 _rollupChainId) {
         rollupChainId = _rollupChainId;

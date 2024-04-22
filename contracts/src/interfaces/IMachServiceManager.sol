@@ -79,6 +79,11 @@ interface IMachServiceManager is IServiceManager {
     event AllowlistDisabled();
 
     /**
+     * @notice Emitted when rollup chain id is changed
+     */
+    event RollupChainIdUpdated(uint256 previousRollupChainId, uint256 newRollupChainId);
+
+    /**
      * @notice Emitted when a Alert is confirmed.
      * @param alertHeaderHash The hash of the alert header
      * @param messageHash The message hash

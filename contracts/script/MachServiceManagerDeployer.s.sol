@@ -338,8 +338,7 @@ contract MachServiceManagerDeployer is Script {
         machServiceContract.machServiceManagerImplementation = new MachServiceManager(
             IAVSDirectory(deploymentConfig.avsDirectory),
             machServiceContract.registryCoordinator,
-            machServiceContract.stakeRegistry,
-            deploymentConfig.chainId
+            machServiceContract.stakeRegistry
         );
         // Third, upgrade the proxy contracts to use the correct implementation contracts and initialize them.
         machAVSProxyAdmin.upgradeAndCall(
@@ -351,7 +350,8 @@ contract MachServiceManagerDeployer is Script {
                 0,
                 deploymentConfig.machAVSCommunityMultisig,
                 deploymentConfig.confirmer,
-                deploymentConfig.whitelister
+                deploymentConfig.whitelister,
+                deploymentConfig.chainId
             )
         );
         vm.stopBroadcast();

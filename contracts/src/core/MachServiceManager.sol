@@ -75,12 +75,10 @@ contract MachServiceManager is
     constructor(
         IAVSDirectory __avsDirectory,
         IRegistryCoordinator __registryCoordinator,
-        IStakeRegistry __stakeRegistry,
-        uint256 __rollupChainId
+        IStakeRegistry __stakeRegistry
     )
         BLSSignatureChecker(__registryCoordinator)
         ServiceManagerBase(__avsDirectory, __registryCoordinator, __stakeRegistry)
-        MachServiceManagerStorage(__rollupChainId)
     {
         _disableInitializers();
     }
@@ -90,12 +88,14 @@ contract MachServiceManager is
         uint256 _initialPausedStatus,
         address _initialOwner,
         address _alertConfirmer,
-        address _whitelister
+        address _whitelister,
+        uint256 _rollupChainId
     ) public initializer {
         _initializePauser(_pauserRegistry, _initialPausedStatus);
         __ServiceManagerBase_init(_initialOwner);
         _setAlertConfirmer(_alertConfirmer);
         _setWhitelister(_whitelister);
+        _updateRollupChainId(_rollupChainId);
         allowlistEnabled = true;
         quorumThresholdPercentage = 66;
     }
@@ -194,9 +194,7 @@ contract MachServiceManager is
     }
 
     function updateRollupChainId(uint256 newChainid) external onlyOwner {
-        uint256 previousRollupChainId = rollupChainId;
-        rollupChainId = newChainid;
-        emit RollupChainIdUpdated(previousRollupChainId, newChainid);
+        _updateRollupChainId(newChainid);
     }
 
     //////////////////////////////////////////////////////////////////////////////
@@ -383,5 +381,11 @@ contract MachServiceManager is
             messageHash: alertHeader.messageHash,
             referenceBlockNumber: alertHeader.referenceBlockNumber
         });
+    }
+
+    function _updateRollupChainId(uint256 newChainid) internal {
+        uint256 previousRollupChainId = rollupChainId;
+        rollupChainId = newChainid;
+        emit RollupChainIdUpdated(previousRollupChainId, newChainid);
     }
 }

@@ -265,13 +265,13 @@ contract AVSDeployer is Test {
 
         operatorStateRetriever = new OperatorStateRetriever();
 
-        serviceManagerImplementation = new MachServiceManager(avsDirectoryMock, registryCoordinator, stakeRegistry, 1);
+        serviceManagerImplementation = new MachServiceManager(avsDirectoryMock, registryCoordinator, stakeRegistry);
 
         proxyAdmin.upgrade(
             TransparentUpgradeableProxy(payable(address(serviceManager))), address(serviceManagerImplementation)
         );
 
-        serviceManager.initialize(pauserRegistry, 0, proxyAdminOwner, proxyAdminOwner, proxyAdminOwner);
+        serviceManager.initialize(pauserRegistry, 0, proxyAdminOwner, proxyAdminOwner, proxyAdminOwner, 1);
 
         cheats.stopPrank();
     }

@@ -43,8 +43,4 @@ abstract contract MachServiceManagerStorage {
     // storage gap for upgradeability
     // slither-disable-next-line shadowing-state
     uint256[43] private __GAP;
-
-    constructor(uint256 _rollupChainId) {
-        rollupChainId = _rollupChainId;
-    }
 }

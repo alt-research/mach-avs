@@ -18,10 +18,7 @@ contract MachServiceManagerImplDeployer is Script {
         vm.startBroadcast();
         // 1. deploy new implementation contract
         MachServiceManager machServiceManagerImplementation = new MachServiceManager(
-            IAVSDirectory(avsDirectory),
-            IRegistryCoordinator(registryCoordinator),
-            IStakeRegistry(stakeRegistry),
-            chainId
+            IAVSDirectory(avsDirectory), IRegistryCoordinator(registryCoordinator), IStakeRegistry(stakeRegistry)
         );
         vm.stopBroadcast();
     }

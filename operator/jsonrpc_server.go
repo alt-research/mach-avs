@@ -26,13 +26,22 @@ type RpcServer struct {
 	newTaskCreatedChan chan alert.AlertRequest
 }
 
-func (s *RpcServer) StartServer(ctx context.Context) error {
-	s.server = &http.Server{
-		Addr: s.serverIpPortAddr,
+// NewRpcServer creates a new rpc server then init the server.
+func NewRpcServer(logger logging.Logger, addr string, taskChain chan alert.AlertRequest) RpcServer {
+	res := RpcServer{
+		logger: logger,
+		server: &http.Server{
+			Addr: addr,
+		},
+		serverIpPortAddr:   addr,
+		newTaskCreatedChan: taskChain,
 	}
+	res.server.Handler = res.setupHandlers()
 
-	s.server.Handler = s.setupHandlers()
+	return res
+}
 
+func (s *RpcServer) StartServer(ctx context.Context) error {
 	go func() {
 		err := s.server.ListenAndServe()
 		if err != nil && !errors.Is(err, http.ErrServerClosed) {

@@ -5,8 +5,10 @@ go 1.21
 toolchain go1.21.1
 
 require (
-	github.com/Layr-Labs/eigensdk-go v0.1.4-0.20240404055221-7d329c19d777
+	github.com/Layr-Labs/eigensdk-go v0.1.6-0.20240416061308-3059172ad5c0
+	github.com/alt-research/avs-generic-aggregator v0.1.1
 	github.com/ethereum/go-ethereum v1.13.14
+	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.19.0
 	github.com/sourcegraph/jsonrpc2 v0.2.0
 	github.com/urfave/cli v1.22.14
@@ -63,7 +65,6 @@ require (
 	github.com/mitchellh/pointerstructure v1.2.0 // indirect
 	github.com/mmcloughlin/addchain v0.4.0 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/client_model v0.5.0 // indirect
 	github.com/prometheus/common v0.48.0 // indirect
 	github.com/prometheus/procfs v0.12.0 // indirect

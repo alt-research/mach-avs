@@ -6,8 +6,8 @@ toolchain go1.21.1
 
 require (
 	github.com/Layr-Labs/eigensdk-go v0.1.6-0.20240416061308-3059172ad5c0
-	github.com/alt-research/avs-generic-aggregator v0.1.1
-	github.com/ethereum/go-ethereum v1.13.14
+	github.com/alt-research/avs-generic-aggregator v0.1.2
+	github.com/ethereum/go-ethereum v1.13.15
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.19.0
 	github.com/sourcegraph/jsonrpc2 v0.2.0

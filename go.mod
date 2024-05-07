@@ -6,7 +6,7 @@ toolchain go1.21.1
 
 require (
 	github.com/Layr-Labs/eigensdk-go v0.1.4-0.20240404055221-7d329c19d777
-	github.com/ethereum/go-ethereum v1.13.14
+	github.com/ethereum/go-ethereum v1.13.15
 	github.com/prometheus/client_golang v1.19.0
 	github.com/sourcegraph/jsonrpc2 v0.2.0
 	github.com/urfave/cli v1.22.14

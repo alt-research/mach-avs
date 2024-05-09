@@ -44,10 +44,13 @@ lint:
 	staticcheck ./...
 	golangci-lint run
 
-build: build-operator build-aggregator build-cli
+build: build-operator build-aggregator build-cli build-operator-proxy
 
 build-operator:
 	go build -o ./bin/mach-operator-signer ./operator/cmd 
+
+build-operator-proxy:
+	go build -o ./bin/mach-operator-proxy ./generic-operator-proxy/cmd
 
 build-aggregator:
 	go build -o ./bin/mach-aggregator ./aggregator/cmd 

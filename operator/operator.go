@@ -379,11 +379,7 @@ func NewOperatorFromConfig(cfg config.NodeConfig, isUseEcdsaKey bool) (*Operator
 	}
 
 	newTaskCreatedChan := make(chan alert.AlertRequest, 32)
-	rpcServer := RpcServer{
-		logger:             logger,
-		serverIpPortAddr:   c.OperatorServerIpPortAddr,
-		newTaskCreatedChan: newTaskCreatedChan,
-	}
+	rpcServer := NewRpcServer(logger, c.OperatorServerIpPortAddr, newTaskCreatedChan)
 
 	operator := &Operator{
 		config:                     c,

@@ -1,5 +1,15 @@
 # Mach AVS Build
 
+## Note
+
+Currently the project is private so need:
+
+```bash
+export GOPRIVATE=github.com/alt-research/avs-generic-aggregator 
+```
+
+For depends.
+
 ## Install dependencies
 
 Install go v1.12.1, first install [gvm](https://github.com/moovweb/gvm):

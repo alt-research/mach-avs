@@ -31,8 +31,9 @@ type CreateSigTaskForByte32Hash struct {
 }
 
 type ProxyHashRpcServer struct {
-	*proxyUtils.ProxyRpcServerBase
-	logger logging.Logger
+	baseServers    map[string]*proxyUtils.ProxyRpcServerBase
+	defaultAVSName string
+	logger         logging.Logger
 	// We use this rpc server as the handler for jsonrpc
 	// to make sure same as legacy operator 's api
 	rpcServer operator.RpcServer
@@ -43,26 +44,33 @@ type ProxyHashRpcServer struct {
 func NewAlertProxyRpcServer(
 	logger logging.Logger,
 	ethClient eth.Client,
-	avsCfg config.GenericAVSConfig,
+	avsCfgs []config.GenericAVSConfig,
+	defaultAVSName string,
 	method string,
 	genericOperatorAddr string,
 	jsonrpcCfg config.JsonRpcServerConfig,
 ) *ProxyHashRpcServer {
-	base := proxyUtils.NewProxyRpcServerBase(
-		logger,
-		ethClient,
-		avsCfg,
-		method,
-		genericOperatorAddr,
-		jsonrpcCfg,
-	)
+	bases := make(map[string]*proxyUtils.ProxyRpcServerBase, len(avsCfgs))
+	for _, avsCfg := range avsCfgs {
+		logger.Infof("load service for %s", avsCfg.AVSName)
+		base := proxyUtils.NewProxyRpcServerBase(
+			logger,
+			ethClient,
+			avsCfg,
+			method,
+			genericOperatorAddr,
+			jsonrpcCfg,
+		)
+		bases[avsCfg.AVSName] = base
+	}
 
 	newTaskCreatedChan := make(chan alert.AlertRequest, 32)
 	rpcServer := operator.NewRpcServer(logger, jsonrpcCfg.Addr, newTaskCreatedChan)
 
 	server := &ProxyHashRpcServer{
-		ProxyRpcServerBase: base,
+		baseServers:        bases,
 		logger:             logger,
+		defaultAVSName:     defaultAVSName,
 		newTaskCreatedChan: newTaskCreatedChan,
 		rpcServer:          rpcServer,
 	}
@@ -93,7 +101,7 @@ func (s *ProxyHashRpcServer) Start(ctx context.Context) error {
 			return nil
 		case newTaskCreatedLog := <-s.newTaskCreatedChan:
 			s.logger.Info("newTaskCreatedLog", "new", newTaskCreatedLog.Alert)
-			resp, err := s.createSigTaskH32(ctx, newTaskCreatedLog.Alert.MessageHash())
+			resp, err := s.createSigTaskH32(ctx, newTaskCreatedLog.Alert.GetAVSName(), newTaskCreatedLog.Alert.MessageHash())
 			if err != nil {
 				newTaskCreatedLog.ResChan <- alert.AlertResponse{
 					Err: err,
@@ -110,8 +118,17 @@ func (s *ProxyHashRpcServer) Start(ctx context.Context) error {
 	}
 }
 
-func (s *ProxyHashRpcServer) createSigTaskH32(ctx context.Context, hash [32]byte) (proxyUtils.CreateSigTaskResp, error) {
-	res, err := s.CreateGenericSigTaskWithSigHash(
+func (s *ProxyHashRpcServer) createSigTaskH32(ctx context.Context, avsName string, hash [32]byte) (proxyUtils.CreateSigTaskResp, error) {
+	avsNameToProxy := avsName
+	if avsNameToProxy == "" {
+		avsNameToProxy = s.defaultAVSName
+	}
+	baseServer, ok := s.baseServers[avsNameToProxy]
+	if !ok || baseServer == nil {
+		return proxyUtils.CreateSigTaskResp{}, errors.Errorf("not found avs name %v", avsNameToProxy)
+	}
+
+	res, err := baseServer.CreateGenericSigTaskWithSigHash(
 		func(
 			referenceBlockNumber uint64,
 			quorumNumbers sdktypes.QuorumNums,

@@ -55,16 +55,6 @@ func operatorProxyMain(ctx *cli.Context) error {
 		return err
 	}
 
-	var avsConfig config.GenericAVSConfig
-	for _, avsCfg := range avsConfigs {
-		if nodeConfig.AVSName == avsCfg.AVSName {
-			avsConfig = avsCfg
-		}
-	}
-	if avsConfig.AVSName == "" {
-		return errors.Errorf("not found the avs config in configs by name %s", nodeConfig.AVSName)
-	}
-
 	ethRpcClient, err := eth.NewClient(nodeConfig.EthRpcUrl)
 	if err != nil {
 		logger.Errorf("Cannot create http ethclient", "err", err)
@@ -74,7 +64,8 @@ func operatorProxyMain(ctx *cli.Context) error {
 	rpcServer := genericproxy.NewAlertProxyRpcServer(
 		logger,
 		ethRpcClient,
-		avsConfig,
+		avsConfigs,
+		nodeConfig.AVSName,
 		nodeConfig.Method,
 		nodeConfig.GenericOperatorAddr,
 		nodeConfig.RpcCfg,

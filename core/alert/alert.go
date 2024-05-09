@@ -68,7 +68,10 @@ func (b *BigIntJSON) UnmarshalJSON(data []byte) (err error) {
 
 // The Alert submit to avs
 type Alert interface {
+	// Get the message hash for this alert, which will commit to avs contract.
 	MessageHash() [32]byte
+	// Get the avs name for this alert
+	GetAVSName() string
 }
 
 // The Alert Request Message
@@ -93,6 +96,8 @@ type AlertResponse struct {
 //	This alert can for the blocks which had not proposal its output
 //	root to layer1, this block may not the checkpoint.
 type AlertBlockMismatch struct {
+	// The AVS name in config
+	AVSName string `json:"avs_name"`
 	// The invalid output root verifier got from op-devnet.
 	InvalidOutputRoot HexEncodedBytes32 `json:"invalid_output_root"`
 	// The output root calc by verifier.
@@ -114,6 +119,10 @@ func (a AlertBlockMismatch) MessageHash() [32]byte {
 	return res
 }
 
+func (a AlertBlockMismatch) GetAVSName() string {
+	return a.AVSName
+}
+
 var _ Alert = (*AlertBlockMismatch)(nil)
 
 //	AlertBlockOutputOracleMismatch is Submit alert for verifier found a op block output root mismatch.
@@ -123,6 +132,8 @@ var _ Alert = (*AlertBlockMismatch)(nil)
 // This alert only for the porposaled output root by proposer,
 // so we just sumit the index for this output root.
 type AlertBlockOutputOracleMismatch struct {
+	// The AVS name in config
+	AVSName string `json:"avs_name"`
 	// The output root calc by verifier.
 	ExpectOutputRoot HexEncodedBytes32 `json:"expect_output_root"`
 	// The invalid output root index.
@@ -141,6 +152,10 @@ func (a AlertBlockOutputOracleMismatch) MessageHash() [32]byte {
 	return res
 }
 
+func (a AlertBlockOutputOracleMismatch) GetAVSName() string {
+	return a.AVSName
+}
+
 var _ Alert = (*AlertBlockOutputOracleMismatch)(nil)
 
 //	AlertBlockOutputOracleMismatch is Submit alert for verifier found a op block output root mismatch.
@@ -150,6 +165,8 @@ var _ Alert = (*AlertBlockOutputOracleMismatch)(nil)
 // This alert only for the porposaled output root by proposer,
 // so we just sumit the index for this output root.
 type AlertBlockHashMismatch struct {
+	// The AVS name in config
+	AVSName string `json:"avs_name"`
 	// The block hash which to alert
 	Hash HexEncodedBytes32 `json:"hash"`
 }
@@ -157,6 +174,10 @@ type AlertBlockHashMismatch struct {
 // Return the message hash for signature in avs
 func (a AlertBlockHashMismatch) MessageHash() [32]byte {
 	return a.Hash
+}
+
+func (a AlertBlockHashMismatch) GetAVSName() string {
+	return a.AVSName
 }
 
 var _ Alert = (*AlertBlockHashMismatch)(nil)

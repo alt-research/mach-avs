@@ -50,9 +50,19 @@ func operatorProxyMain(ctx *cli.Context) error {
 		return errors.Wrap(err, "New logger")
 	}
 
-	avsConfig, err := config.NewAVSConfig(ctx)
+	avsConfigs, err := config.NewAVSConfigs(ctx)
 	if err != nil {
 		return err
+	}
+
+	var avsConfig config.GenericAVSConfig
+	for _, avsCfg := range avsConfigs {
+		if nodeConfig.AVSName == avsCfg.AVSName {
+			avsConfig = avsCfg
+		}
+	}
+	if avsConfig.AVSName == "" {
+		return errors.Errorf("not found the avs config in configs by name %s", nodeConfig.AVSName)
 	}
 
 	ethRpcClient, err := eth.NewClient(nodeConfig.EthRpcUrl)
@@ -70,8 +80,5 @@ func operatorProxyMain(ctx *cli.Context) error {
 		nodeConfig.RpcCfg,
 	)
 
-	rpcServer.StartServer(mainCtx)
-
-	return nil
-
+	return rpcServer.Start(mainCtx)
 }

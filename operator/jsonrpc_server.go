@@ -257,5 +257,9 @@ func (s *RpcServer) AlertBlockHashMismatch(alertReq *alert.AlertBlockHashMismatc
 		s.logger.Error("AlertBlockHashMismatch failed", "msg", response.Msg)
 	}
 
+	if response.Err != nil {
+		s.logger.Error("AlertBlockHashMismatch failed by err", "err", response.Err)
+	}
+
 	return response
 }

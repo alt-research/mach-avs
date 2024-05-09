@@ -3,6 +3,8 @@ package genericproxy
 import (
 	"context"
 
+	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/pkg/errors"
 
 	"github.com/Layr-Labs/eigensdk-go/chainio/clients/eth"
@@ -109,19 +111,24 @@ func (s *ProxyHashRpcServer) Start(ctx context.Context) error {
 }
 
 func (s *ProxyHashRpcServer) createSigTaskH32(ctx context.Context, hash [32]byte) (proxyUtils.CreateSigTaskResp, error) {
-	res, err := s.CreateGenericSigTask(
+	res, err := s.CreateGenericSigTaskWithSigHash(
 		func(
 			referenceBlockNumber uint64,
 			quorumNumbers sdktypes.QuorumNums,
 			quorumThresholdPercentages sdktypes.QuorumThresholdPercentages,
-		) []interface{} {
+		) ([]interface{}, [32]byte) {
+			sigHash, err := CalcSighHash(hash, uint32(referenceBlockNumber))
+			if err != nil {
+				panic(err)
+			}
+
 			return []interface{}{
 				AlertHeaderParam{
 					MessageHash:                hash,
 					QuorumNumbers:              quorumNumbers.UnderlyingType(),
 					QuorumThresholdPercentages: quorumThresholdPercentages.UnderlyingType(),
 					ReferenceBlockNumber:       uint32(referenceBlockNumber),
-				}}
+				}}, sigHash
 		})
 	if err != nil {
 		return proxyUtils.CreateSigTaskResp{}, errors.Wrap(err, "create sig task failed")
@@ -134,4 +141,33 @@ func (s *ProxyHashRpcServer) createSigTaskH32(ctx context.Context, hash [32]byte
 	}
 
 	return response, nil
+}
+
+var (
+	sighHashAbiParams, _ = abi.NewType("tuple", "Hash32SighHashParam", []abi.ArgumentMarshaling{
+		{Name: "messageHash", Type: "bytes32"},
+		{Name: "referenceBlockNumber", Type: "uint32"},
+	})
+
+	sighHashAbiArgs = abi.Arguments{
+		{Type: sighHashAbiParams, Name: "one"},
+	}
+)
+
+func CalcSighHash(messageHash [32]byte, referenceBlockNumber uint32) ([32]byte, error) {
+	record := struct {
+		MessageHash          [32]byte `abi:"messageHash"`
+		ReferenceBlockNumber uint32   `abi:"referenceBlockNumber"`
+	}{
+		MessageHash:          messageHash,
+		ReferenceBlockNumber: referenceBlockNumber,
+	}
+
+	packed, err := sighHashAbiArgs.Pack(&record)
+	if err != nil {
+		return [32]byte{}, err
+	}
+
+	return crypto.Keccak256Hash(packed), nil
+
 }

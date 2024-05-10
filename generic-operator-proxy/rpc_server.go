@@ -129,6 +129,7 @@ func (s *ProxyHashRpcServer) createSigTaskH32(ctx context.Context, avsName strin
 	}
 
 	res, err := baseServer.CreateGenericSigTaskWithSigHash(
+		ctx,
 		func(
 			referenceBlockNumber uint64,
 			quorumNumbers sdktypes.QuorumNums,

@@ -12,7 +12,7 @@ import (
 	"github.com/Layr-Labs/eigensdk-go/logging"
 	"github.com/Layr-Labs/eigensdk-go/services/avsregistry"
 	blsagg "github.com/Layr-Labs/eigensdk-go/services/bls_aggregation"
-	oppubkeysserv "github.com/Layr-Labs/eigensdk-go/services/operatorpubkeys"
+	"github.com/Layr-Labs/eigensdk-go/services/operatorsinfo"
 
 	"github.com/alt-research/avs/aggregator/rpc"
 	"github.com/alt-research/avs/aggregator/types"
@@ -62,8 +62,8 @@ func NewAggregatorService(c *config.Config) (*AggregatorService, error) {
 		return nil, err
 	}
 
-	operatorPubkeysService := oppubkeysserv.NewOperatorPubkeysServiceInMemory(context.Background(), clients.AvsRegistryChainSubscriber, clients.AvsRegistryChainReader, c.Logger)
-	avsRegistryService := avsregistry.NewAvsRegistryServiceChainCaller(avsReader, operatorPubkeysService, c.Logger)
+	operatorsinfoService := operatorsinfo.NewOperatorsInfoServiceInMemory(context.Background(), clients.AvsRegistryChainSubscriber, clients.AvsRegistryChainReader, c.Logger)
+	avsRegistryService := avsregistry.NewAvsRegistryServiceChainCaller(avsReader, operatorsinfoService, c.Logger)
 	blsAggregationService := blsagg.NewBlsAggregatorService(avsRegistryService, c.Logger)
 
 	return &AggregatorService{

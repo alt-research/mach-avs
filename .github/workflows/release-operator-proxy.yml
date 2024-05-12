@@ -16,6 +16,7 @@ env:
   SUBWASM_VERSION: v0.20.0
   CARGO_INCREMENTAL: "0"
   CARGO_NET_GIT_FETCH_WITH_CLI: true
+  GOPRIVATE: github.com/alt-research/avs-generic-aggregator
   ECR_REPO: 305587085711.dkr.ecr.us-west-2.amazonaws.com/mach-operator-proxy
   PUB_REPO: public.ecr.aws
 

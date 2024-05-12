@@ -2,10 +2,14 @@ package genericproxy
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"net/http"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/pkg/errors"
+	"github.com/sourcegraph/jsonrpc2"
 
 	"github.com/Layr-Labs/eigensdk-go/chainio/clients/eth"
 	"github.com/Layr-Labs/eigensdk-go/logging"
@@ -32,6 +36,7 @@ type CreateSigTaskForByte32Hash struct {
 
 type ProxyHashRpcServer struct {
 	baseServers    map[string]*proxyUtils.ProxyRpcServerBase
+	avsCfgs        map[string]config.GenericAVSConfig
 	defaultAVSName string
 	logger         logging.Logger
 	// We use this rpc server as the handler for jsonrpc
@@ -51,6 +56,7 @@ func NewAlertProxyRpcServer(
 	jsonrpcCfg config.JsonRpcServerConfig,
 ) *ProxyHashRpcServer {
 	bases := make(map[string]*proxyUtils.ProxyRpcServerBase, len(avsCfgs))
+	avsCfgsMap := make(map[string]config.GenericAVSConfig, len(avsCfgs))
 	for _, avsCfg := range avsCfgs {
 		logger.Infof("load service for %s", avsCfg.AVSName)
 		base := proxyUtils.NewProxyRpcServerBase(
@@ -62,6 +68,7 @@ func NewAlertProxyRpcServer(
 			jsonrpcCfg,
 		)
 		bases[avsCfg.AVSName] = base
+		avsCfgsMap[avsCfg.AVSName] = avsCfg
 	}
 
 	newTaskCreatedChan := make(chan alert.AlertRequest, 32)
@@ -73,6 +80,7 @@ func NewAlertProxyRpcServer(
 		defaultAVSName:     defaultAVSName,
 		newTaskCreatedChan: newTaskCreatedChan,
 		rpcServer:          rpcServer,
+		avsCfgs:            avsCfgsMap,
 	}
 
 	// not need do this because we not need use this server impl
@@ -81,8 +89,64 @@ func NewAlertProxyRpcServer(
 	return server
 }
 
+func (s *ProxyHashRpcServer) HttpRPCHandler(w http.ResponseWriter, r *http.Request) {
+	rpcRequest := jsonrpc2.Request{}
+	err := json.NewDecoder(r.Body).Decode(&rpcRequest)
+	if err != nil {
+		operator.WriteErrorJSON(s.logger, w, rpcRequest.ID, http.StatusBadRequest, 1, err)
+		return
+	}
+
+	if rpcRequest.Params == nil {
+		err := errors.New("failed to unmarshal request.Params for mevBundle from mev-builder, error: EOF")
+		operator.WriteErrorJSON(s.logger, w, rpcRequest.ID, http.StatusBadRequest, 1, err)
+		return
+	}
+
+	if rpcRequest.Method == "operator_getConfig" {
+		var req []string
+		if err = json.Unmarshal(*rpcRequest.Params, &req); err != nil {
+			s.logger.Error("the unmarshal", "err", err)
+			operator.WriteErrorJSON(s.logger, w, rpcRequest.ID, http.StatusBadRequest, 3, fmt.Errorf("failed to unmarshal req bundle params: %s", err.Error()))
+			return
+		}
+
+		if len(req) != 1 {
+			operator.WriteErrorJSON(s.logger, w, rpcRequest.ID, http.StatusBadRequest, 3, fmt.Errorf("failed to unmarshal req bundle params"))
+			return
+		}
+
+		baseService, ok := s.baseServers[req[0]]
+		if !ok || baseService == nil {
+			operator.WriteErrorJSON(s.logger, w, rpcRequest.ID, http.StatusBadRequest, 3, fmt.Errorf("failed to found the avs config"))
+			return
+		}
+
+		avsCfg, ok := s.avsCfgs[req[0]]
+		if !ok {
+			operator.WriteErrorJSON(s.logger, w, rpcRequest.ID, http.StatusBadRequest, 3, fmt.Errorf("failed to found the avs config"))
+			return
+		}
+
+		cfg := avsCfg.OperatorConfigs
+		if cfg == "" {
+			cfg = "{}"
+		}
+
+		operator.WriteJSON(s.logger, w, rpcRequest.ID, http.StatusOK, json.RawMessage(cfg))
+	} else {
+		s.rpcServer.HttpRPCHandlerRequest(w, rpcRequest)
+	}
+
+}
+
 func (s *ProxyHashRpcServer) Start(ctx context.Context) error {
 	s.logger.Info("start rpc server for got alert")
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", s.HttpRPCHandler)
+	s.rpcServer.SetHandler(mux)
+
 	if err := s.rpcServer.StartServer(ctx); err != nil {
 		s.logger.Error("Error start Rpc server", "err", err)
 		return err

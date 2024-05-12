@@ -89,6 +89,39 @@ func NewAlertProxyRpcServer(
 	return server
 }
 
+func (s *ProxyHashRpcServer) handerConfigReq(w http.ResponseWriter, rpcRequest jsonrpc2.Request) {
+	var req []string
+	if err := json.Unmarshal(*rpcRequest.Params, &req); err != nil {
+		s.logger.Error("the unmarshal", "err", err)
+		operator.WriteErrorJSON(s.logger, w, rpcRequest.ID, http.StatusBadRequest, 3, fmt.Errorf("failed to unmarshal req bundle params: %s", err.Error()))
+		return
+	}
+
+	if len(req) != 1 {
+		operator.WriteErrorJSON(s.logger, w, rpcRequest.ID, http.StatusBadRequest, 3, fmt.Errorf("failed to unmarshal req bundle params"))
+		return
+	}
+
+	baseService, ok := s.baseServers[req[0]]
+	if !ok || baseService == nil {
+		operator.WriteErrorJSON(s.logger, w, rpcRequest.ID, http.StatusBadRequest, 3, fmt.Errorf("failed to found the avs config"))
+		return
+	}
+
+	avsCfg, ok := s.avsCfgs[req[0]]
+	if !ok {
+		operator.WriteErrorJSON(s.logger, w, rpcRequest.ID, http.StatusBadRequest, 3, fmt.Errorf("failed to found the avs config"))
+		return
+	}
+
+	cfg := avsCfg.OperatorConfigs
+	if cfg == "" {
+		cfg = "{}"
+	}
+
+	operator.WriteJSON(s.logger, w, rpcRequest.ID, http.StatusOK, json.RawMessage(cfg))
+}
+
 func (s *ProxyHashRpcServer) HttpRPCHandler(w http.ResponseWriter, r *http.Request) {
 	rpcRequest := jsonrpc2.Request{}
 	err := json.NewDecoder(r.Body).Decode(&rpcRequest)
@@ -104,40 +137,10 @@ func (s *ProxyHashRpcServer) HttpRPCHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	if rpcRequest.Method == "operator_getConfig" {
-		var req []string
-		if err = json.Unmarshal(*rpcRequest.Params, &req); err != nil {
-			s.logger.Error("the unmarshal", "err", err)
-			operator.WriteErrorJSON(s.logger, w, rpcRequest.ID, http.StatusBadRequest, 3, fmt.Errorf("failed to unmarshal req bundle params: %s", err.Error()))
-			return
-		}
-
-		if len(req) != 1 {
-			operator.WriteErrorJSON(s.logger, w, rpcRequest.ID, http.StatusBadRequest, 3, fmt.Errorf("failed to unmarshal req bundle params"))
-			return
-		}
-
-		baseService, ok := s.baseServers[req[0]]
-		if !ok || baseService == nil {
-			operator.WriteErrorJSON(s.logger, w, rpcRequest.ID, http.StatusBadRequest, 3, fmt.Errorf("failed to found the avs config"))
-			return
-		}
-
-		avsCfg, ok := s.avsCfgs[req[0]]
-		if !ok {
-			operator.WriteErrorJSON(s.logger, w, rpcRequest.ID, http.StatusBadRequest, 3, fmt.Errorf("failed to found the avs config"))
-			return
-		}
-
-		cfg := avsCfg.OperatorConfigs
-		if cfg == "" {
-			cfg = "{}"
-		}
-
-		operator.WriteJSON(s.logger, w, rpcRequest.ID, http.StatusOK, json.RawMessage(cfg))
+		s.handerConfigReq(w, rpcRequest)
 	} else {
 		s.rpcServer.HttpRPCHandlerRequest(w, rpcRequest)
 	}
-
 }
 
 func (s *ProxyHashRpcServer) Start(ctx context.Context) error {
@@ -145,6 +148,31 @@ func (s *ProxyHashRpcServer) Start(ctx context.Context) error {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", s.HttpRPCHandler)
+
+	for _, avsCfg := range s.avsCfgs {
+		avsName := avsCfg.AVSName
+		mux.HandleFunc(fmt.Sprintf("/%s", avsName), func(w http.ResponseWriter, r *http.Request) {
+			rpcRequest := jsonrpc2.Request{}
+			err := json.NewDecoder(r.Body).Decode(&rpcRequest)
+			if err != nil {
+				operator.WriteErrorJSON(s.logger, w, rpcRequest.ID, http.StatusBadRequest, 1, err)
+				return
+			}
+
+			if rpcRequest.Params == nil {
+				err := errors.New("failed to unmarshal request.Params for mevBundle from mev-builder, error: EOF")
+				operator.WriteErrorJSON(s.logger, w, rpcRequest.ID, http.StatusBadRequest, 1, err)
+				return
+			}
+
+			if rpcRequest.Method == "operator_getConfig" {
+				s.handerConfigReq(w, rpcRequest)
+			} else {
+				s.rpcServer.HttpRPCHandlerRequestByAVS(avsName, w, rpcRequest)
+			}
+		})
+	}
+
 	s.rpcServer.SetHandler(mux)
 
 	if err := s.rpcServer.StartServer(ctx); err != nil {

@@ -4,6 +4,8 @@ WORKDIR /usr/src/app
 
 COPY go.mod go.sum ./
 
+ENV GOPRIVATE=github.com/alt-research/avs-generic-aggregator
+
 RUN go mod download && go mod tidy && go mod verify
 
 COPY . .

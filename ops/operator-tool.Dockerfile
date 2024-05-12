@@ -6,20 +6,26 @@ COPY go.mod go.sum ./
 
 ENV GOPRIVATE=github.com/alt-research/avs-generic-aggregator
 ARG XDG_CONFIG_HOME=/root/.config/
+
 RUN \
     --mount=type=secret,id=gh_hosts,target=/root/.config/gh/hosts.yml \
     --mount=type=secret,id=git_config,target=/root/.gitconfig \
     --mount=type=secret,id=git_credentials,target=/root/.git-credentials \
     <<EOF
     set -ex
-    go version
+    go mod download && go mod tidy && go mod verify
 EOF
-
-RUN go mod download && go mod tidy && go mod verify
 
 COPY . .
 
-RUN make build-cli
+RUN \
+    --mount=type=secret,id=gh_hosts,target=/root/.config/gh/hosts.yml \
+    --mount=type=secret,id=git_config,target=/root/.gitconfig \
+    --mount=type=secret,id=git_credentials,target=/root/.git-credentials \
+    <<EOF
+    set -ex
+    make build-cli
+EOF
 
 RUN cp ./bin/mach-operator-cli /usr/local/bin/mach-operator-cli
 

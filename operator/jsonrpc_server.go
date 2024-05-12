@@ -94,6 +94,10 @@ func (s *RpcServer) HttpRPCHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *RpcServer) HttpRPCHandlerRequest(w http.ResponseWriter, rpcRequest jsonrpc2.Request) {
+	s.HttpRPCHandlerRequestByAVS("", w, rpcRequest)
+}
+
+func (s *RpcServer) HttpRPCHandlerRequestByAVS(avsName string, w http.ResponseWriter, rpcRequest jsonrpc2.Request) {
 	switch rpcRequest.Method {
 	case "alert_blockMismatch":
 		{
@@ -102,6 +106,9 @@ func (s *RpcServer) HttpRPCHandlerRequest(w http.ResponseWriter, rpcRequest json
 				s.logger.Error("the unmarshal", "err", err)
 				s.writeErrorJSON(w, rpcRequest.ID, http.StatusBadRequest, 3, fmt.Errorf("failed to unmarshal alert bundle params: %s", err.Error()))
 				return
+			}
+			if alert.AVSName == "" && avsName != "" {
+				alert.AVSName = avsName
 			}
 
 			res := s.AlertBlockMismatch(&alert)
@@ -125,6 +132,9 @@ func (s *RpcServer) HttpRPCHandlerRequest(w http.ResponseWriter, rpcRequest json
 				s.writeErrorJSON(w, rpcRequest.ID, http.StatusBadRequest, 3, fmt.Errorf("failed to unmarshal alert bundle params: %s", err.Error()))
 				return
 			}
+			if alert.AVSName == "" && avsName != "" {
+				alert.AVSName = avsName
+			}
 
 			res := s.AlertBlockOutputOracleMismatch(&alert)
 			if res.Err != nil {
@@ -146,6 +156,9 @@ func (s *RpcServer) HttpRPCHandlerRequest(w http.ResponseWriter, rpcRequest json
 			if err := json.Unmarshal(*rpcRequest.Params, &alert); err != nil {
 				s.writeErrorJSON(w, rpcRequest.ID, http.StatusBadRequest, 3, fmt.Errorf("failed to unmarshal alert bundle params: %s", err.Error()))
 				return
+			}
+			if alert.AVSName == "" && avsName != "" {
+				alert.AVSName = avsName
 			}
 
 			res := s.AlertBlockHashMismatch(&alert)

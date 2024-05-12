@@ -68,6 +68,13 @@ jobs:
           echo "REF_NAME=$(echo ${GIT_TAG:-$GITHUB_REF_NAME} | sed 's/[^a-zA-Z0-9._]/-/g')" | tee -a $GITHUB_ENV
       - run: cat $HOME/.gitconfig && cat $XDG_CONFIG_HOME/git/credentials
 
+      - name: Set up Golang
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21.1' # The Go version to download (if necessary) and use.
+      - run: go version
+      - run: go mod download && go mod tidy && go mod verify
+
       - name: Extract operator metadata (tags, labels) for Docker
         id: operator-meta
         uses: docker/metadata-action@v5

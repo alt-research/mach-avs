@@ -2,10 +2,6 @@ FROM golang:1.21-bullseye as build
 
 WORKDIR /usr/src/app
 
-COPY go.mod go.sum ./
-
-RUN go mod download && go mod tidy && go mod verify
-
 COPY . .
 
 WORKDIR /usr/src/app/generic-operator-proxy/cmd

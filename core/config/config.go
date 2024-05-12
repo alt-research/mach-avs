@@ -3,13 +3,12 @@ package config
 import (
 	"context"
 	"crypto/ecdsa"
-	"errors"
 	"fmt"
 	"os"
 
-	"github.com/alt-research/avs/core"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 
 	"github.com/Layr-Labs/eigensdk-go/chainio/clients/eth"
@@ -19,8 +18,9 @@ import (
 	sdklogging "github.com/Layr-Labs/eigensdk-go/logging"
 	"github.com/Layr-Labs/eigensdk-go/signerv2"
 	"github.com/Layr-Labs/eigensdk-go/types"
-
 	sdkutils "github.com/Layr-Labs/eigensdk-go/utils"
+
+	"github.com/alt-research/avs/core"
 )
 
 // Config contains all of the configuration information for a mach aggregators and challengers.
@@ -191,7 +191,7 @@ func NewConfig(ctx *cli.Context) (*Config, error) {
 
 	txSender, err := wallet.NewPrivateKeyWallet(ethRpcClient, signerV2, aggregatorAddr, logger)
 	if err != nil {
-		return nil, types.WrapError(errors.New("failed to create transaction sender"), err)
+		return nil, errors.Wrap(err, "failed to create transaction sender")
 	}
 	txMgr := txmgr.NewSimpleTxManager(txSender, ethRpcClient, logger, aggregatorAddr)
 

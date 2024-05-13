@@ -76,7 +76,7 @@ contract AVSDeployer is Test {
     /// @notice StakeRegistry, Constant used as a divisor in calculating weights.
     uint256 public constant WEIGHTING_DIVISOR = 1e18;
 
-    address public proxyAdminOwner = address(uint160(uint256(keccak256("proxyAdminOwner"))));
+    address public proxyAdminOwner = 0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38;
     address public registryCoordinatorOwner = address(uint160(uint256(keccak256("registryCoordinatorOwner"))));
     address public pauser = address(uint160(uint256(keccak256("pauser"))));
     address public unpauser = address(uint160(uint256(keccak256("unpauser"))));
@@ -100,12 +100,12 @@ contract AVSDeployer is Test {
     uint32 defaultMaxOperatorCount = 10;
     uint16 defaultKickBIPsOfOperatorStake = 15000;
     uint16 defaultKickBIPsOfTotalStake = 150;
-    uint8 numQuorums = 192;
+    uint8 numQuorums = 1;
 
     IRegistryCoordinator.OperatorSetParam[] operatorSetParams;
 
     uint8 maxQuorumsToRegisterFor = 4;
-    uint256 maxOperatorsToRegister = 4;
+    uint256 maxOperatorsToRegister = 10;
     uint32 registrationBlockNumber = 100;
     uint32 blocksBetweenRegistrations = 10;
 

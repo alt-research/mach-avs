@@ -25,6 +25,8 @@ import {
     ZeroAddress,
     AlreadyInAllowlist,
     NotInAllowlist,
+    NoStatusChange,
+    InvalidRollupChainID,
     InvalidReferenceBlockNum,
     InsufficientThreshold,
     InvalidStartIndex,
@@ -177,10 +179,10 @@ contract MachServiceManager is
      * @notice Remove an Alert.
      * @param messageHash The message hash of the alert
      */
-    function removeAlert(bytes32 messageHash) external onlyOwner {
-        bool ret = _messageHashes.remove(messageHash);
+    function removeAlert(uint256 rollupChainId, bytes32 messageHash) external onlyOwner {
+        bool ret = _messageHashes[rollupChainId].remove(messageHash);
         if (ret) {
-            _resolvedMessageHashes.add(messageHash);
+            _resolvedMessageHashes[rollupChainId].add(messageHash);
             emit AlertRemoved(messageHash, _msgSender());
         }
     }
@@ -252,6 +254,7 @@ contract MachServiceManager is
      * - and check whether quorum has been achieved or not.
      */
     function confirmAlert(
+        uint256 rollupChainId,
         AlertHeader calldata alertHeader,
         NonSignerStakesAndSignature memory nonSignerStakesAndSignature
     ) external whenNotPaused onlyAlertConfirmer {
@@ -261,7 +264,7 @@ contract MachServiceManager is
         }
 
         // check is it is the resolved alert before
-        if (_resolvedMessageHashes.contains(alertHeader.messageHash)) {
+        if (_resolvedMessageHashes[rollupChainId].contains(alertHeader.messageHash)) {
             revert ResolvedAlert();
         }
 
@@ -305,7 +308,7 @@ contract MachServiceManager is
         }
 
         // store alert
-        bool success = _messageHashes.add(alertHeader.messageHash);
+        bool success = _messageHashes[rollupChainId].add(alertHeader.messageHash);
         if (!success) {
             revert AlreadyAdded();
         }
@@ -318,18 +321,22 @@ contract MachServiceManager is
     //////////////////////////////////////////////////////////////////////////////
 
     /// @notice Returns the length of total alerts
-    function totalAlerts() external view returns (uint256) {
-        return _messageHashes.length();
+    function totalAlerts(uint256 rollupChainId) external view returns (uint256) {
+        return _messageHashes[rollupChainId].length();
     }
 
     /// @notice Checks if messageHash exists
-    function contains(bytes32 messageHash) external view returns (bool) {
-        return _messageHashes.contains(messageHash);
+    function contains(uint256 rollupChainId, bytes32 messageHash) external view returns (bool) {
+        return _messageHashes[rollupChainId].contains(messageHash);
     }
 
     /// @notice Returns an array of messageHash
-    function queryMessageHashes(uint256 start, uint256 querySize) external view returns (bytes32[] memory) {
-        uint256 length = _messageHashes.length();
+    function queryMessageHashes(uint256 rollupChainId, uint256 start, uint256 querySize)
+        external
+        view
+        returns (bytes32[] memory)
+    {
+        uint256 length = _messageHashes[rollupChainId].length();
 
         if (start >= length) {
             revert InvalidStartIndex();
@@ -343,7 +350,7 @@ contract MachServiceManager is
 
         bytes32[] memory output = new bytes32[](end - start);
         for (uint256 i = start; i < end; ++i) {
-            output[i - start] = _messageHashes.at(i);
+            output[i - start] = _messageHashes[rollupChainId].at(i);
         }
 
         return output;
@@ -388,6 +395,12 @@ contract MachServiceManager is
     }
 
     function _setRollupChainID(uint256 rollupChainId, bool status) internal {
+        if (rollupChainId < 1) {
+            revert InvalidRollupChainID();
+        }
+        if (rollupChainIDs[rollupChainId] == status) {
+            revert NoStatusChange();
+        }
         rollupChainIDs[rollupChainId] = status;
         emit RollupChainIDUpdated(rollupChainId, status);
     }

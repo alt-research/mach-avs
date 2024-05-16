@@ -123,7 +123,7 @@ interface IMachServiceManager is IServiceManager {
      * @notice Remove an Alert.
      * @param messageHash The message hash of the alert
      */
-    function removeAlert(bytes32 messageHash) external;
+    function removeAlert(uint256 rollupChainId, bytes32 messageHash) external;
 
     /**
      * @notice Update quorum threshold percentage
@@ -138,16 +138,20 @@ interface IMachServiceManager is IServiceManager {
      * - and check whether quorum has been achieved or not.
      */
     function confirmAlert(
+        uint256 rollupChainId,
         AlertHeader calldata alertHeader,
         BLSSignatureChecker.NonSignerStakesAndSignature memory nonSignerStakesAndSignature
     ) external;
 
     /// @notice Returns the length of total alerts
-    function totalAlerts() external view returns (uint256);
+    function totalAlerts(uint256 rollupChainId) external view returns (uint256);
 
     /// @notice Checks if messageHash exists
-    function contains(bytes32 messageHash) external view returns (bool);
+    function contains(uint256 rollupChainId, bytes32 messageHash) external view returns (bool);
 
     /// @notice Returns an array of messageHash
-    function queryMessageHashes(uint256 start, uint256 querySize) external view returns (bytes32[] memory);
+    function queryMessageHashes(uint256 rollupChainId, uint256 start, uint256 querySize)
+        external
+        view
+        returns (bytes32[] memory);
 }

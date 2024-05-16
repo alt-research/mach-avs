@@ -15,7 +15,7 @@ abstract contract MachServiceManagerStorage {
     uint256 public constant THRESHOLD_DENOMINATOR = 100;
 
     // Slot 0
-    EnumerableSet.Bytes32Set internal _messageHashes;
+    mapping(uint256 => EnumerableSet.Bytes32Set) internal _messageHashes;
 
     // Slot 1
     /// @notice Ethereum addresses of currently register operators
@@ -37,7 +37,7 @@ abstract contract MachServiceManagerStorage {
 
     // slot 4
     /// @notice Resolved message hashes, prevent aggregator from replay any resolved alert
-    EnumerableSet.Bytes32Set internal _resolvedMessageHashes;
+    mapping(uint256 => EnumerableSet.Bytes32Set) internal _resolvedMessageHashes;
 
     // slot 5
     /// @notice Role for whitelisting operators

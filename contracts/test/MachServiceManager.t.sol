@@ -279,6 +279,36 @@ contract MachServiceManagerTest is BLSAVSDeployer {
         serviceManager.confirmAlert(alertHeader, nonSignerStakesAndSignature);
     }
 
+    function test_confirmAlert_RevertIfInvalidSender() public {
+        vm.startPrank(proxyAdminOwner);
+        serviceManager.disableAllowlist();
+        vm.stopPrank();
+
+        (
+            uint32 referenceBlockNumber,
+            BLSSignatureChecker.NonSignerStakesAndSignature memory nonSignerStakesAndSignature
+        ) = _registerSignatoriesAndGetNonSignerStakeAndSignatureRandom(nonRandomNumber, numNonSigners, quorumBitmap);
+
+        bytes memory quorumThresholdPercentages = new bytes(1);
+        quorumThresholdPercentages[0] = bytes1(uint8(67));
+
+        IMachServiceManager.AlertHeader memory alertHeader = IMachServiceManager.AlertHeader({
+            messageHash: "foo",
+            quorumNumbers: quorumNumbers,
+            quorumThresholdPercentages: quorumThresholdPercentages,
+            referenceBlockNumber: referenceBlockNumber
+        });
+
+        vm.startPrank(proxyAdminOwner);
+        serviceManager.setConfirmer(address(this));
+        vm.stopPrank();
+
+        vm.startPrank(address(this));
+        vm.expectRevert(InvalidSender.selector);
+        serviceManager.confirmAlert(alertHeader, nonSignerStakesAndSignature);
+        vm.stopPrank();
+    }
+
     function test_confirmAlert_RevertIfAlreadyAdded() public {
         vm.startPrank(proxyAdminOwner);
         serviceManager.disableAllowlist();
@@ -484,5 +514,18 @@ contract MachServiceManagerTest is BLSAVSDeployer {
         test_confirmAlert();
         vm.expectRevert("Ownable: caller is not the owner");
         serviceManager.removeAlert("foo");
+    }
+
+    function test_QueryMessageHashes() public {
+        test_confirmAlert();
+        bytes32[] memory results = serviceManager.queryMessageHashes(0, 2);
+        assertTrue(results.length == 1);
+        assertTrue(results[0] == "foo");
+    }
+
+    function test_QueryMessageHashes_RevertIfInvalidStartIndex() public {
+        test_confirmAlert();
+        vm.expectRevert(InvalidStartIndex.selector);
+        bytes32[] memory results = serviceManager.queryMessageHashes(1, 2);
     }
 }

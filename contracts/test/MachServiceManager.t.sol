@@ -515,4 +515,17 @@ contract MachServiceManagerTest is BLSAVSDeployer {
         vm.expectRevert("Ownable: caller is not the owner");
         serviceManager.removeAlert("foo");
     }
+
+    function test_QueryMessageHashes() public {
+        test_confirmAlert();
+        bytes32[] memory results = serviceManager.queryMessageHashes(0, 2);
+        assertTrue(results.length == 1);
+        assertTrue(results[0] == "foo");
+    }
+
+    function test_QueryMessageHashes_RevertIfInvalidStartIndex() public {
+        test_confirmAlert();
+        vm.expectRevert(InvalidStartIndex.selector);
+        bytes32[] memory results = serviceManager.queryMessageHashes(1, 2);
+    }
 }

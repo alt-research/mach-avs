@@ -84,18 +84,22 @@ contract MachServiceManager is
     }
 
     function initialize(
-        IPauserRegistry _pauserRegistry,
-        uint256 _initialPausedStatus,
-        address _initialOwner,
-        address _alertConfirmer,
-        address _whitelister,
-        uint256 _rollupChainId
+        IPauserRegistry pauserRegistry_,
+        uint256 initialPausedStatus_,
+        address initialOwner_,
+        address alertConfirmer_,
+        address whitelister_,
+        uint256[] calldata rollupChainIDs_
     ) public initializer {
-        _initializePauser(_pauserRegistry, _initialPausedStatus);
-        __ServiceManagerBase_init(_initialOwner);
-        _setAlertConfirmer(_alertConfirmer);
-        _setWhitelister(_whitelister);
-        _updateRollupChainId(_rollupChainId);
+        _initializePauser(pauserRegistry_, initialPausedStatus_);
+        __ServiceManagerBase_init(initialOwner_);
+        _setAlertConfirmer(alertConfirmer_);
+        _setWhitelister(whitelister_);
+
+        for (uint256 i; i < rollupChainIDs_.length; ++i) {
+            _setRollupChainID(rollupChainIDs_[i], true);
+        }
+
         allowlistEnabled = true;
         quorumThresholdPercentage = 66;
     }
@@ -193,8 +197,8 @@ contract MachServiceManager is
         emit QuorumThresholdPercentageChanged(thresholdPercentage);
     }
 
-    function updateRollupChainId(uint256 newChainid) external onlyOwner {
-        _updateRollupChainId(newChainid);
+    function setRollupChainID(uint256 rollupChainid, bool status) external onlyOwner {
+        _setRollupChainID(rollupChainid, status);
     }
 
     //////////////////////////////////////////////////////////////////////////////
@@ -383,9 +387,8 @@ contract MachServiceManager is
         });
     }
 
-    function _updateRollupChainId(uint256 newChainid) internal {
-        uint256 previousRollupChainId = rollupChainId;
-        rollupChainId = newChainid;
-        emit RollupChainIdUpdated(previousRollupChainId, newChainid);
+    function _setRollupChainID(uint256 rollupChainId, bool status) internal {
+        rollupChainIDs[rollupChainId] = status;
+        emit RollupChainIDUpdated(rollupChainId, status);
     }
 }

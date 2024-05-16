@@ -14,14 +14,18 @@ abstract contract MachServiceManagerStorage {
     // CONSTANTS
     uint256 public constant THRESHOLD_DENOMINATOR = 100;
 
+    // Slot 0
     EnumerableSet.Bytes32Set internal _messageHashes;
 
+    // Slot 1
     /// @notice Ethereum addresses of currently register operators
     EnumerableSet.AddressSet internal _operators;
 
+    // Slot 2
     /// @notice Set of operators that are allowed to register
     mapping(address => bool) public allowlist;
 
+    // Slot 3
     /// @notice address that is permissioned to confirm alerts
     address public alertConfirmer;
 
@@ -31,16 +35,23 @@ abstract contract MachServiceManagerStorage {
     /// @notice Minimal quorum threshold percentage
     uint8 public quorumThresholdPercentage;
 
+    // slot 4
     /// @notice Resolved message hashes, prevent aggregator from replay any resolved alert
     EnumerableSet.Bytes32Set internal _resolvedMessageHashes;
 
+    // slot 5
     /// @notice Role for whitelisting operators
     address public whitelister;
 
+    // slot 6
     /// @notice Rollup chain id
-    uint256 public rollupChainId;
+    uint256 private __deprecatedSlot6; // rollupChainId
+
+    // slot 7
+    /// @notice Allowed rollup chain IDs
+    mapping(uint256 => bool) public rollupChainIDs;
 
     // storage gap for upgradeability
     // slither-disable-next-line shadowing-state
-    uint256[43] private __GAP;
+    uint256[42] private __GAP;
 }

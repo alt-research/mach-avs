@@ -15,7 +15,7 @@ contract MachServiceManagerTest is BLSAVSDeployer {
     event AlertConfirmerChanged(address previousAddress, address newAddress);
     event WhitelisterChanged(address previousAddress, address newAddress);
     event QuorumThresholdPercentageChanged(uint8 thresholdPercentages);
-    event RollupChainIdUpdated(uint256 previousRollupChainId, uint256 newRollupChainId);
+    event RollupChainIDUpdated(uint256 rollupChainId, bool status);
     event AlertConfirmed(bytes32 indexed alertHeaderHash, bytes32 messageHash);
     event AlertRemoved(bytes32 messageHash, address sender);
 
@@ -207,19 +207,20 @@ contract MachServiceManagerTest is BLSAVSDeployer {
         vm.stopPrank();
     }
 
-    function test_UpdateRollupChainId() public {
+    function test_SetRollupChainID() public {
+        assertTrue(serviceManager.rollupChainIDs(1), "mismatch");
+        assertTrue(serviceManager.rollupChainIDs(2), "mismatch");
         vm.startPrank(proxyAdminOwner);
-        assertTrue(serviceManager.rollupChainId() == 1, "mismatch");
         vm.expectEmit();
-        emit RollupChainIdUpdated(1, 42);
-        serviceManager.updateRollupChainId(42);
-        assertTrue(serviceManager.rollupChainId() == 42, "mismatch");
+        emit RollupChainIDUpdated(42, true);
+        serviceManager.setRollupChainID(42, true);
+        assertTrue(serviceManager.rollupChainIDs(42), "mismatch");
         vm.stopPrank();
     }
 
-    function test_UpdateRollupChainId_RevertIfNotOwner() public {
+    function test_SetRollupChainID_RevertIfNotOwner() public {
         vm.expectRevert("Ownable: caller is not the owner");
-        serviceManager.updateRollupChainId(42);
+        serviceManager.setRollupChainID(42, true);
     }
 
     function test_confirmAlert() public {

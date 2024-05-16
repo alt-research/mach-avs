@@ -271,7 +271,10 @@ contract AVSDeployer is Test {
             TransparentUpgradeableProxy(payable(address(serviceManager))), address(serviceManagerImplementation)
         );
 
-        serviceManager.initialize(pauserRegistry, 0, proxyAdminOwner, proxyAdminOwner, proxyAdminOwner, 1);
+        uint256[] memory ids = new uint256[](2);
+        ids[0] = 1;
+        ids[1] = 2;
+        serviceManager.initialize(pauserRegistry, 0, proxyAdminOwner, proxyAdminOwner, proxyAdminOwner, ids);
 
         cheats.stopPrank();
     }

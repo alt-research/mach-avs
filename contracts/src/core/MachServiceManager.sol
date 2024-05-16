@@ -119,8 +119,7 @@ contract MachServiceManager is
     //////////////////////////////////////////////////////////////////////////////
 
     /**
-     * @notice Add an operator to the allowlist.
-     * @param operator The operator to add
+     * @inheritdoc IMachServiceManager
      */
     function addToAllowlist(address operator) external onlyWhitelister {
         if (operator == address(0)) {
@@ -134,8 +133,7 @@ contract MachServiceManager is
     }
 
     /**
-     * @notice Remove an operator from the allowlist.
-     * @param operator The operator to remove
+     * @inheritdoc IMachServiceManager
      */
     function removeFromAllowlist(address operator) external onlyWhitelister {
         if (!allowlist[operator]) {
@@ -146,7 +144,7 @@ contract MachServiceManager is
     }
 
     /**
-     * @notice Enable the allowlist.
+     * @inheritdoc IMachServiceManager
      */
     function enableAllowlist() external onlyOwner {
         if (allowlistEnabled) {
@@ -158,7 +156,7 @@ contract MachServiceManager is
     }
 
     /**
-     * @notice Disable the allowlist.
+     * @inheritdoc IMachServiceManager
      */
     function disableAllowlist() external onlyOwner {
         if (!allowlistEnabled) {
@@ -170,22 +168,28 @@ contract MachServiceManager is
     }
 
     /**
-     * @notice Set confirmer address.
+     * @inheritdoc IMachServiceManager
      */
     function setConfirmer(address confirmer) external onlyOwner {
         _setAlertConfirmer(confirmer);
     }
 
     /**
-     * @notice Set whitelister address.
+     * @inheritdoc IMachServiceManager
      */
     function setWhitelister(address whitelister) external onlyOwner {
         _setWhitelister(whitelister);
     }
 
     /**
-     * @notice Remove an Alert.
-     * @param messageHash The message hash of the alert
+     * @inheritdoc IMachServiceManager
+     */
+    function setRollupChainID(uint256 rollupChainId, bool status) external onlyOwner {
+        _setRollupChainID(rollupChainId, status);
+    }
+
+    /**
+     * @inheritdoc IMachServiceManager
      */
     function removeAlert(uint256 rollupChainId, bytes32 messageHash)
         external
@@ -200,8 +204,7 @@ contract MachServiceManager is
     }
 
     /**
-     * @notice Update quorum threshold percentage
-     * @param thresholdPercentage The new quorum threshold percentage
+     * @inheritdoc IMachServiceManager
      */
     function updateQuorumThresholdPercentage(uint8 thresholdPercentage) external onlyOwner {
         if (thresholdPercentage > 100) {
@@ -209,10 +212,6 @@ contract MachServiceManager is
         }
         quorumThresholdPercentage = thresholdPercentage;
         emit QuorumThresholdPercentageChanged(thresholdPercentage);
-    }
-
-    function setRollupChainID(uint256 rollupChainid, bool status) external onlyOwner {
-        _setRollupChainID(rollupChainid, status);
     }
 
     //////////////////////////////////////////////////////////////////////////////
@@ -260,10 +259,7 @@ contract MachServiceManager is
     //////////////////////////////////////////////////////////////////////////////
 
     /**
-     * @notice This function is used for
-     * - submitting alert,
-     * - check that the aggregate signature is valid,
-     * - and check whether quorum has been achieved or not.
+     * @inheritdoc IMachServiceManager
      */
     function confirmAlert(
         uint256 rollupChainId,
@@ -332,17 +328,23 @@ contract MachServiceManager is
     //                               View Functions                             //
     //////////////////////////////////////////////////////////////////////////////
 
-    /// @notice Returns the length of total alerts
+    /**
+     * @inheritdoc IMachServiceManager
+     */
     function totalAlerts(uint256 rollupChainId) external view returns (uint256) {
         return _messageHashes[rollupChainId].length();
     }
 
-    /// @notice Checks if messageHash exists
+    /**
+     * @inheritdoc IMachServiceManager
+     */
     function contains(uint256 rollupChainId, bytes32 messageHash) external view returns (bool) {
         return _messageHashes[rollupChainId].contains(messageHash);
     }
 
-    /// @notice Returns an array of messageHash
+    /**
+     * @inheritdoc IMachServiceManager
+     */
     function queryMessageHashes(uint256 rollupChainId, uint256 start, uint256 querySize)
         external
         view
@@ -372,29 +374,35 @@ contract MachServiceManager is
     //                              Internal Functions                          //
     //////////////////////////////////////////////////////////////////////////////
 
-    /// @notice hash the alert header
+    /**
+     *  @dev hash the alert header
+     */
     function _hashAlertHeader(AlertHeader calldata alertHeader) internal pure returns (bytes32) {
         return keccak256(abi.encode(_convertAlertHeaderToReducedAlertHeader(alertHeader)));
     }
 
-    /// @notice changes the alert confirmer
+    /**
+     * @dev changes the alert confirmer
+     */
     function _setAlertConfirmer(address _alertConfirmer) internal {
         address previousBatchConfirmer = alertConfirmer;
         alertConfirmer = _alertConfirmer;
         emit AlertConfirmerChanged(previousBatchConfirmer, alertConfirmer);
     }
 
-    /// @notice changes the whitelister
+    /**
+     *  @dev changes the whitelister
+     */
     function _setWhitelister(address _whitelister) internal {
         address previousWhitelister = whitelister;
         whitelister = _whitelister;
         emit WhitelisterChanged(previousWhitelister, _whitelister);
     }
+
     /**
-     * @notice converts a alert header to a reduced alert header
+     * @dev converts a alert header to a reduced alert header
      * @param alertHeader the alert header to convert
      */
-
     function _convertAlertHeaderToReducedAlertHeader(AlertHeader calldata alertHeader)
         internal
         pure

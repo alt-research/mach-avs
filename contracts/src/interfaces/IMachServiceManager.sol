@@ -120,6 +120,23 @@ interface IMachServiceManager is IServiceManager {
     function disableAllowlist() external;
 
     /**
+     * @notice Set confirmer address.
+     */
+    function setConfirmer(address confirmer) external;
+
+    /**
+     * @notice Set whitelister address.
+     */
+    function setWhitelister(address whitelister) external;
+
+    /**
+     * @notice Set the status of a rollup chain ID
+     * @param rollupChainId The ID of the rollup chain to be updated
+     * @param status The new status for the rollup chain ID (true for active, false for inactive)
+     */
+    function setRollupChainID(uint256 rollupChainId, bool status) external;
+
+    /**
      * @notice Remove an Alert.
      * @param messageHash The message hash of the alert
      */

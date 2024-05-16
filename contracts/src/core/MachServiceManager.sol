@@ -74,6 +74,14 @@ contract MachServiceManager is
         _;
     }
 
+    /// @notice when applied to a function, ensures that the `rollupChainID` is valid.
+    modifier onlyValidRollupChainID(uint256 rollupChainID) {
+        if (!rollupChainIDs[rollupChainID]) {
+            revert InvalidRollupChainID();
+        }
+        _;
+    }
+
     constructor(
         IAVSDirectory __avsDirectory,
         IRegistryCoordinator __registryCoordinator,
@@ -179,7 +187,11 @@ contract MachServiceManager is
      * @notice Remove an Alert.
      * @param messageHash The message hash of the alert
      */
-    function removeAlert(uint256 rollupChainId, bytes32 messageHash) external onlyOwner {
+    function removeAlert(uint256 rollupChainId, bytes32 messageHash)
+        external
+        onlyValidRollupChainID(rollupChainId)
+        onlyOwner
+    {
         bool ret = _messageHashes[rollupChainId].remove(messageHash);
         if (ret) {
             _resolvedMessageHashes[rollupChainId].add(messageHash);
@@ -257,7 +269,7 @@ contract MachServiceManager is
         uint256 rollupChainId,
         AlertHeader calldata alertHeader,
         NonSignerStakesAndSignature memory nonSignerStakesAndSignature
-    ) external whenNotPaused onlyAlertConfirmer {
+    ) external whenNotPaused onlyAlertConfirmer onlyValidRollupChainID(rollupChainId) {
         // make sure the information needed to derive the non-signers and batch is in calldata to avoid emitting events
         if (tx.origin != msg.sender) {
             revert InvalidSender();

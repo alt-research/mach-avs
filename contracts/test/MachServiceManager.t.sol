@@ -247,7 +247,7 @@ contract MachServiceManagerTest is BLSAVSDeployer {
         vm.stopPrank();
     }
 
-    function test_confirmAlert() public {
+    function test_ConfirmAlert() public {
         vm.startPrank(proxyAdminOwner);
         serviceManager.disableAllowlist();
         vm.stopPrank();
@@ -281,7 +281,7 @@ contract MachServiceManagerTest is BLSAVSDeployer {
         vm.stopPrank();
     }
 
-    function test_confirmAlert_RevertIfInvalidConfirmer() public {
+    function test_ConfirmAlert_RevertIfInvalidConfirmer() public {
         vm.startPrank(proxyAdminOwner);
         serviceManager.disableAllowlist();
         vm.stopPrank();
@@ -304,7 +304,7 @@ contract MachServiceManagerTest is BLSAVSDeployer {
         serviceManager.confirmAlert(1, alertHeader, nonSignerStakesAndSignature);
     }
 
-    function test_confirmAlert_RevertIfInvalidSender() public {
+    function test_ConfirmAlert_RevertIfInvalidSender() public {
         vm.startPrank(proxyAdminOwner);
         serviceManager.disableAllowlist();
         vm.stopPrank();
@@ -334,7 +334,7 @@ contract MachServiceManagerTest is BLSAVSDeployer {
         vm.stopPrank();
     }
 
-    function test_confirmAlert_RevertIfAlreadyAdded() public {
+    function test_ConfirmAlert_RevertIfAlreadyAdded() public {
         vm.startPrank(proxyAdminOwner);
         serviceManager.disableAllowlist();
         vm.stopPrank();
@@ -361,7 +361,7 @@ contract MachServiceManagerTest is BLSAVSDeployer {
         vm.stopPrank();
     }
 
-    function test_confirmAlert_RevertIfInvalidQuorumParam() public {
+    function test_ConfirmAlert_RevertIfInvalidQuorumParam() public {
         vm.startPrank(proxyAdminOwner);
         serviceManager.disableAllowlist();
         vm.stopPrank();
@@ -387,7 +387,7 @@ contract MachServiceManagerTest is BLSAVSDeployer {
         vm.stopPrank();
     }
 
-    function test_confirmAlert_RevertIfResolvedAlert() public {
+    function test_ConfirmAlert_RevertIfResolvedAlert() public {
         vm.startPrank(proxyAdminOwner);
         serviceManager.disableAllowlist();
         vm.stopPrank();
@@ -416,7 +416,7 @@ contract MachServiceManagerTest is BLSAVSDeployer {
         vm.stopPrank();
     }
 
-    function test_confirmAlert_RevertIfInvalidReferenceBlockNum() public {
+    function test_ConfirmAlert_RevertIfInvalidReferenceBlockNum() public {
         vm.startPrank(proxyAdminOwner);
         serviceManager.disableAllowlist();
         vm.stopPrank();
@@ -442,7 +442,7 @@ contract MachServiceManagerTest is BLSAVSDeployer {
         vm.stopPrank();
     }
 
-    function test_confirmAlert_RevertIfInvalidQuorumThresholdPercentage() public {
+    function test_ConfirmAlert_RevertIfInvalidQuorumThresholdPercentage() public {
         vm.startPrank(proxyAdminOwner);
         serviceManager.disableAllowlist();
         vm.stopPrank();
@@ -468,7 +468,7 @@ contract MachServiceManagerTest is BLSAVSDeployer {
         vm.stopPrank();
     }
 
-    function test_confirmAlert_RevertIfInsufficientThresholdPercentages() public {
+    function test_ConfirmAlert_RevertIfInsufficientThresholdPercentages() public {
         vm.startPrank(proxyAdminOwner);
         serviceManager.disableAllowlist();
         vm.stopPrank();
@@ -494,7 +494,7 @@ contract MachServiceManagerTest is BLSAVSDeployer {
         vm.stopPrank();
     }
 
-    function test_confirmAlert_RevertIfInsufficientThreshold() public {
+    function test_ConfirmAlert_RevertIfInsufficientThreshold() public {
         vm.startPrank(proxyAdminOwner);
         serviceManager.disableAllowlist();
         vm.stopPrank();
@@ -520,8 +520,34 @@ contract MachServiceManagerTest is BLSAVSDeployer {
         vm.stopPrank();
     }
 
-    function test_removeAlert() public {
-        test_confirmAlert();
+    function test_ConfirmAlert_RevertIfInvalidRollupChainID() public {
+        vm.startPrank(proxyAdminOwner);
+        serviceManager.disableAllowlist();
+        vm.stopPrank();
+
+        (
+            uint32 referenceBlockNumber,
+            BLSSignatureChecker.NonSignerStakesAndSignature memory nonSignerStakesAndSignature
+        ) = _registerSignatoriesAndGetNonSignerStakeAndSignatureRandom(nonRandomNumber, 1, quorumBitmap);
+
+        bytes memory quorumThresholdPercentages = new bytes(1);
+        quorumThresholdPercentages[0] = bytes1(uint8(67));
+
+        IMachServiceManager.AlertHeader memory alertHeader = IMachServiceManager.AlertHeader({
+            messageHash: "foo",
+            quorumNumbers: quorumNumbers,
+            quorumThresholdPercentages: quorumThresholdPercentages,
+            referenceBlockNumber: referenceBlockNumber
+        });
+
+        vm.startPrank(proxyAdminOwner);
+        vm.expectRevert(InvalidRollupChainID.selector);
+        serviceManager.confirmAlert(99, alertHeader, nonSignerStakesAndSignature);
+        vm.stopPrank();
+    }
+
+    function test_RemoveAlert() public {
+        test_ConfirmAlert();
         vm.startPrank(proxyAdminOwner);
         assertEq(serviceManager.totalAlerts(1), 1);
         assertTrue(serviceManager.contains(1, "foo"));
@@ -535,21 +561,29 @@ contract MachServiceManagerTest is BLSAVSDeployer {
         vm.stopPrank();
     }
 
-    function test_removeAlert_RevertIfNotOwner() public {
-        test_confirmAlert();
+    function test_RemoveAlert_RevertIfInvalidRollupChainID() public {
+        test_ConfirmAlert();
+        vm.startPrank(proxyAdminOwner);
+        vm.expectRevert(InvalidRollupChainID.selector);
+        serviceManager.removeAlert(42, "foo");
+        vm.stopPrank();
+    }
+
+    function test_RemoveAlert_RevertIfNotOwner() public {
+        test_ConfirmAlert();
         vm.expectRevert("Ownable: caller is not the owner");
         serviceManager.removeAlert(1, "foo");
     }
 
     function test_QueryMessageHashes() public {
-        test_confirmAlert();
+        test_ConfirmAlert();
         bytes32[] memory results = serviceManager.queryMessageHashes(1, 0, 2);
         assertTrue(results.length == 1);
         assertTrue(results[0] == "foo");
     }
 
     function test_QueryMessageHashes_RevertIfInvalidStartIndex() public {
-        test_confirmAlert();
+        test_ConfirmAlert();
         vm.expectRevert(InvalidStartIndex.selector);
         bytes32[] memory results = serviceManager.queryMessageHashes(1, 1, 2);
     }

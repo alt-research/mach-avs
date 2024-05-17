@@ -58,7 +58,9 @@ contract MachServiceManager is
     using EnumerableSet for EnumerableSet.Bytes32Set;
     using EnumerableSet for EnumerableSet.AddressSet;
 
-    /// @notice when applied to a function, ensures that the function is only callable by the `alertConfirmer`.
+    /**
+     * @dev Ensures that the function is only callable by the `alertConfirmer`.
+     */
     modifier onlyAlertConfirmer() {
         if (_msgSender() != alertConfirmer) {
             revert InvalidConfirmer();
@@ -66,7 +68,9 @@ contract MachServiceManager is
         _;
     }
 
-    /// @notice when applied to a function, ensures that the function is only callable by the `whitelister`.
+    /**
+     * @dev Ensures that the function is only callable by the `whitelister`.
+     */
     modifier onlyWhitelister() {
         if (_msgSender() != whitelister) {
             revert NotWhitelister();
@@ -74,7 +78,9 @@ contract MachServiceManager is
         _;
     }
 
-    /// @notice when applied to a function, ensures that the `rollupChainID` is valid.
+    /**
+     * @dev Ensures that the `rollupChainID` is valid.
+     */
     modifier onlyValidRollupChainID(uint256 rollupChainID) {
         if (!rollupChainIDs[rollupChainID]) {
             revert InvalidRollupChainID();
@@ -219,9 +225,7 @@ contract MachServiceManager is
     //////////////////////////////////////////////////////////////////////////////
 
     /**
-     * @notice Register an operator with the AVS. Forwards call to EigenLayer' AVSDirectory.
-     * @param operator The address of the operator to register.
-     * @param operatorSignature The signature, salt, and expiry of the operator's signature.
+     * @inheritdoc IServiceManager
      */
     function registerOperatorToAVS(
         address operator,
@@ -240,8 +244,7 @@ contract MachServiceManager is
     }
 
     /**
-     * @notice Deregister an operator from the AVS. Forwards a call to EigenLayer's AVSDirectory.
-     * @param operator The address of the operator to register.
+     * @inheritdoc IServiceManager
      */
     function deregisterOperatorFromAVS(address operator)
         public
@@ -375,14 +378,14 @@ contract MachServiceManager is
     //////////////////////////////////////////////////////////////////////////////
 
     /**
-     *  @dev hash the alert header
+     *  @dev Hashes an alert header
      */
     function _hashAlertHeader(AlertHeader calldata alertHeader) internal pure returns (bytes32) {
         return keccak256(abi.encode(_convertAlertHeaderToReducedAlertHeader(alertHeader)));
     }
 
     /**
-     * @dev changes the alert confirmer
+     * @dev Changes the alert confirmer
      */
     function _setAlertConfirmer(address _alertConfirmer) internal {
         address previousBatchConfirmer = alertConfirmer;
@@ -391,7 +394,7 @@ contract MachServiceManager is
     }
 
     /**
-     *  @dev changes the whitelister
+     *  @dev Changes the whitelister
      */
     function _setWhitelister(address _whitelister) internal {
         address previousWhitelister = whitelister;
@@ -400,7 +403,7 @@ contract MachServiceManager is
     }
 
     /**
-     * @dev converts a alert header to a reduced alert header
+     * @dev Converts a alert header to a reduced alert header
      * @param alertHeader the alert header to convert
      */
     function _convertAlertHeaderToReducedAlertHeader(AlertHeader calldata alertHeader)

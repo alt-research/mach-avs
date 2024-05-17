@@ -45,7 +45,7 @@ abstract contract MachServiceManagerStorage {
 
     // slot 6
     /// @notice Rollup chain id
-    uint256 private __deprecatedSlot6; // rollupChainId
+    uint256 private __DEPRECATED_SLOT6; // rollupChainId
 
     // slot 7
     /// @notice Allowed rollup chain IDs

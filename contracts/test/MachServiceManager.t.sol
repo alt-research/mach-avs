@@ -6,6 +6,7 @@ import "forge-std/Test.sol";
 import "./BLSAVSDeployer.sol";
 import "../src/error/Errors.sol";
 import "../src/interfaces/IMachServiceManager.sol";
+import "../src/core/MachServiceManager.sol";
 
 contract MachServiceManagerTest is BLSAVSDeployer {
     event OperatorAllowed(address operator);
@@ -35,11 +36,10 @@ contract MachServiceManagerTest is BLSAVSDeployer {
     }
 
     function test_Init_RevertIfImpleBeingInitialized() public {
+        MachServiceManager impl = new MachServiceManager(avsDirectoryMock, registryCoordinator, stakeRegistry);
         uint256[] memory ids = new uint256[](0);
         vm.expectRevert("Initializable: contract is already initialized");
-        serviceManagerImplementation.initialize(
-            pauserRegistry, 0, proxyAdminOwner, proxyAdminOwner, proxyAdminOwner, ids
-        );
+        impl.initialize(pauserRegistry, 0, proxyAdminOwner, proxyAdminOwner, proxyAdminOwner, ids);
     }
 
     function test_SetConfirmer() public {
@@ -586,5 +586,29 @@ contract MachServiceManagerTest is BLSAVSDeployer {
         test_ConfirmAlert();
         vm.expectRevert(InvalidStartIndex.selector);
         bytes32[] memory results = serviceManager.queryMessageHashes(1, 1, 2);
+    }
+
+    function test_RegisterOperatorToAVS_RevertIfNotInAllowlist() public {
+        vm.startPrank(address(registryCoordinator));
+        vm.expectRevert(NotInAllowlist.selector);
+        serviceManager.registerOperatorToAVS(
+            address(0), ISignatureUtils.SignatureWithSaltAndExpiry(abi.encodePacked(""), 0, 0)
+        );
+        vm.stopPrank();
+    }
+
+    function test_DeregisterOperatorFromAVS() public {
+        vm.startPrank(proxyAdminOwner);
+        serviceManager.disableAllowlist();
+        vm.stopPrank();
+
+        (
+            uint32 referenceBlockNumber,
+            BLSSignatureChecker.NonSignerStakesAndSignature memory nonSignerStakesAndSignature
+        ) = _registerSignatoriesAndGetNonSignerStakeAndSignatureRandom(nonRandomNumber, numNonSigners, quorumBitmap);
+
+        vm.startPrank(address(registryCoordinator));
+        serviceManager.deregisterOperatorFromAVS(0x73E2Ce949F15bE901F76b54f5a4554a6C8Dcf541);
+        vm.stopPrank();
     }
 }

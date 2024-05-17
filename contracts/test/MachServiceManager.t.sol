@@ -15,7 +15,7 @@ contract MachServiceManagerTest is BLSAVSDeployer {
     event AlertConfirmerChanged(address previousAddress, address newAddress);
     event WhitelisterChanged(address previousAddress, address newAddress);
     event QuorumThresholdPercentageChanged(uint8 thresholdPercentages);
-    event RollupChainIdUpdated(uint256 previousRollupChainId, uint256 newRollupChainId);
+    event RollupChainIDUpdated(uint256 rollupChainId, bool status);
     event AlertConfirmed(bytes32 indexed alertHeaderHash, bytes32 messageHash);
     event AlertRemoved(bytes32 messageHash, address sender);
 
@@ -32,6 +32,14 @@ contract MachServiceManagerTest is BLSAVSDeployer {
         );
 
         _setAggregatePublicKeysAndSignature();
+    }
+
+    function test_Init_RevertIfImpleBeingInitialized() public {
+        uint256[] memory ids = new uint256[](0);
+        vm.expectRevert("Initializable: contract is already initialized");
+        serviceManagerImplementation.initialize(
+            pauserRegistry, 0, proxyAdminOwner, proxyAdminOwner, proxyAdminOwner, ids
+        );
     }
 
     function test_SetConfirmer() public {
@@ -207,22 +215,39 @@ contract MachServiceManagerTest is BLSAVSDeployer {
         vm.stopPrank();
     }
 
-    function test_UpdateRollupChainId() public {
+    function test_SetRollupChainID() public {
+        assertTrue(serviceManager.rollupChainIDs(1), "mismatch");
+        assertTrue(serviceManager.rollupChainIDs(2), "mismatch");
         vm.startPrank(proxyAdminOwner);
-        assertTrue(serviceManager.rollupChainId() == 1, "mismatch");
         vm.expectEmit();
-        emit RollupChainIdUpdated(1, 42);
-        serviceManager.updateRollupChainId(42);
-        assertTrue(serviceManager.rollupChainId() == 42, "mismatch");
+        emit RollupChainIDUpdated(42, true);
+        serviceManager.setRollupChainID(42, true);
+        assertTrue(serviceManager.rollupChainIDs(42), "mismatch");
         vm.stopPrank();
     }
 
-    function test_UpdateRollupChainId_RevertIfNotOwner() public {
+    function test_SetRollupChainID_RevertIfNotOwner() public {
         vm.expectRevert("Ownable: caller is not the owner");
-        serviceManager.updateRollupChainId(42);
+        serviceManager.setRollupChainID(42, true);
     }
 
-    function test_confirmAlert() public {
+    function test_SetRollupChainID_RevertIfInvalidRollupChainID() public {
+        vm.startPrank(proxyAdminOwner);
+
+        vm.expectRevert(InvalidRollupChainID.selector);
+        serviceManager.setRollupChainID(0, true);
+        vm.stopPrank();
+    }
+
+    function test_SetRollupChainID_RevertIfNoStatusChange() public {
+        vm.startPrank(proxyAdminOwner);
+
+        vm.expectRevert(NoStatusChange.selector);
+        serviceManager.setRollupChainID(1, true);
+        vm.stopPrank();
+    }
+
+    function test_ConfirmAlert() public {
         vm.startPrank(proxyAdminOwner);
         serviceManager.disableAllowlist();
         vm.stopPrank();
@@ -244,19 +269,19 @@ contract MachServiceManagerTest is BLSAVSDeployer {
 
         vm.startPrank(proxyAdminOwner);
         vm.expectEmit();
-        assertEq(serviceManager.totalAlerts(), 0);
-        assertFalse(serviceManager.contains("foo"));
+        assertEq(serviceManager.totalAlerts(1), 0);
+        assertFalse(serviceManager.contains(1, "foo"));
 
         emit AlertConfirmed(msgHash, alertHeader.messageHash);
-        serviceManager.confirmAlert(alertHeader, nonSignerStakesAndSignature);
+        serviceManager.confirmAlert(1, alertHeader, nonSignerStakesAndSignature);
 
-        assertEq(serviceManager.totalAlerts(), 1);
-        assertTrue(serviceManager.contains("foo"));
+        assertEq(serviceManager.totalAlerts(1), 1);
+        assertTrue(serviceManager.contains(1, "foo"));
 
         vm.stopPrank();
     }
 
-    function test_confirmAlert_RevertIfInvalidConfirmer() public {
+    function test_ConfirmAlert_RevertIfInvalidConfirmer() public {
         vm.startPrank(proxyAdminOwner);
         serviceManager.disableAllowlist();
         vm.stopPrank();
@@ -276,10 +301,10 @@ contract MachServiceManagerTest is BLSAVSDeployer {
             referenceBlockNumber: referenceBlockNumber
         });
         vm.expectRevert(InvalidConfirmer.selector);
-        serviceManager.confirmAlert(alertHeader, nonSignerStakesAndSignature);
+        serviceManager.confirmAlert(1, alertHeader, nonSignerStakesAndSignature);
     }
 
-    function test_confirmAlert_RevertIfInvalidSender() public {
+    function test_ConfirmAlert_RevertIfInvalidSender() public {
         vm.startPrank(proxyAdminOwner);
         serviceManager.disableAllowlist();
         vm.stopPrank();
@@ -305,11 +330,11 @@ contract MachServiceManagerTest is BLSAVSDeployer {
 
         vm.startPrank(address(this));
         vm.expectRevert(InvalidSender.selector);
-        serviceManager.confirmAlert(alertHeader, nonSignerStakesAndSignature);
+        serviceManager.confirmAlert(1, alertHeader, nonSignerStakesAndSignature);
         vm.stopPrank();
     }
 
-    function test_confirmAlert_RevertIfAlreadyAdded() public {
+    function test_ConfirmAlert_RevertIfAlreadyAdded() public {
         vm.startPrank(proxyAdminOwner);
         serviceManager.disableAllowlist();
         vm.stopPrank();
@@ -330,13 +355,13 @@ contract MachServiceManagerTest is BLSAVSDeployer {
         });
 
         vm.startPrank(proxyAdminOwner);
-        serviceManager.confirmAlert(alertHeader, nonSignerStakesAndSignature);
+        serviceManager.confirmAlert(1, alertHeader, nonSignerStakesAndSignature);
         vm.expectRevert(AlreadyAdded.selector);
-        serviceManager.confirmAlert(alertHeader, nonSignerStakesAndSignature);
+        serviceManager.confirmAlert(1, alertHeader, nonSignerStakesAndSignature);
         vm.stopPrank();
     }
 
-    function test_confirmAlert_RevertIfInvalidQuorumParam() public {
+    function test_ConfirmAlert_RevertIfInvalidQuorumParam() public {
         vm.startPrank(proxyAdminOwner);
         serviceManager.disableAllowlist();
         vm.stopPrank();
@@ -358,11 +383,11 @@ contract MachServiceManagerTest is BLSAVSDeployer {
 
         vm.startPrank(proxyAdminOwner);
         vm.expectRevert(InvalidQuorumParam.selector);
-        serviceManager.confirmAlert(alertHeader, nonSignerStakesAndSignature);
+        serviceManager.confirmAlert(1, alertHeader, nonSignerStakesAndSignature);
         vm.stopPrank();
     }
 
-    function test_confirmAlert_RevertIfResolvedAlert() public {
+    function test_ConfirmAlert_RevertIfResolvedAlert() public {
         vm.startPrank(proxyAdminOwner);
         serviceManager.disableAllowlist();
         vm.stopPrank();
@@ -383,15 +408,15 @@ contract MachServiceManagerTest is BLSAVSDeployer {
         });
 
         vm.startPrank(proxyAdminOwner);
-        serviceManager.confirmAlert(alertHeader, nonSignerStakesAndSignature);
-        serviceManager.removeAlert("foo");
+        serviceManager.confirmAlert(1, alertHeader, nonSignerStakesAndSignature);
+        serviceManager.removeAlert(1, "foo");
 
         vm.expectRevert(ResolvedAlert.selector);
-        serviceManager.confirmAlert(alertHeader, nonSignerStakesAndSignature);
+        serviceManager.confirmAlert(1, alertHeader, nonSignerStakesAndSignature);
         vm.stopPrank();
     }
 
-    function test_confirmAlert_RevertIfInvalidReferenceBlockNum() public {
+    function test_ConfirmAlert_RevertIfInvalidReferenceBlockNum() public {
         vm.startPrank(proxyAdminOwner);
         serviceManager.disableAllowlist();
         vm.stopPrank();
@@ -413,11 +438,11 @@ contract MachServiceManagerTest is BLSAVSDeployer {
 
         vm.startPrank(proxyAdminOwner);
         vm.expectRevert(InvalidReferenceBlockNum.selector);
-        serviceManager.confirmAlert(alertHeader, nonSignerStakesAndSignature);
+        serviceManager.confirmAlert(1, alertHeader, nonSignerStakesAndSignature);
         vm.stopPrank();
     }
 
-    function test_confirmAlert_RevertIfInvalidQuorumThresholdPercentage() public {
+    function test_ConfirmAlert_RevertIfInvalidQuorumThresholdPercentage() public {
         vm.startPrank(proxyAdminOwner);
         serviceManager.disableAllowlist();
         vm.stopPrank();
@@ -439,11 +464,11 @@ contract MachServiceManagerTest is BLSAVSDeployer {
 
         vm.startPrank(proxyAdminOwner);
         vm.expectRevert(InvalidQuorumThresholdPercentage.selector);
-        serviceManager.confirmAlert(alertHeader, nonSignerStakesAndSignature);
+        serviceManager.confirmAlert(1, alertHeader, nonSignerStakesAndSignature);
         vm.stopPrank();
     }
 
-    function test_confirmAlert_RevertIfInsufficientThresholdPercentages() public {
+    function test_ConfirmAlert_RevertIfInsufficientThresholdPercentages() public {
         vm.startPrank(proxyAdminOwner);
         serviceManager.disableAllowlist();
         vm.stopPrank();
@@ -465,11 +490,11 @@ contract MachServiceManagerTest is BLSAVSDeployer {
 
         vm.startPrank(proxyAdminOwner);
         vm.expectRevert(InsufficientThresholdPercentages.selector);
-        serviceManager.confirmAlert(alertHeader, nonSignerStakesAndSignature);
+        serviceManager.confirmAlert(1, alertHeader, nonSignerStakesAndSignature);
         vm.stopPrank();
     }
 
-    function test_confirmAlert_RevertIfInsufficientThreshold() public {
+    function test_ConfirmAlert_RevertIfInsufficientThreshold() public {
         vm.startPrank(proxyAdminOwner);
         serviceManager.disableAllowlist();
         vm.stopPrank();
@@ -491,41 +516,75 @@ contract MachServiceManagerTest is BLSAVSDeployer {
 
         vm.startPrank(proxyAdminOwner);
         vm.expectRevert(InsufficientThreshold.selector);
-        serviceManager.confirmAlert(alertHeader, nonSignerStakesAndSignature);
+        serviceManager.confirmAlert(1, alertHeader, nonSignerStakesAndSignature);
         vm.stopPrank();
     }
 
-    function test_removeAlert() public {
-        test_confirmAlert();
+    function test_ConfirmAlert_RevertIfInvalidRollupChainID() public {
         vm.startPrank(proxyAdminOwner);
-        assertEq(serviceManager.totalAlerts(), 1);
-        assertTrue(serviceManager.contains("foo"));
+        serviceManager.disableAllowlist();
+        vm.stopPrank();
+
+        (
+            uint32 referenceBlockNumber,
+            BLSSignatureChecker.NonSignerStakesAndSignature memory nonSignerStakesAndSignature
+        ) = _registerSignatoriesAndGetNonSignerStakeAndSignatureRandom(nonRandomNumber, 1, quorumBitmap);
+
+        bytes memory quorumThresholdPercentages = new bytes(1);
+        quorumThresholdPercentages[0] = bytes1(uint8(67));
+
+        IMachServiceManager.AlertHeader memory alertHeader = IMachServiceManager.AlertHeader({
+            messageHash: "foo",
+            quorumNumbers: quorumNumbers,
+            quorumThresholdPercentages: quorumThresholdPercentages,
+            referenceBlockNumber: referenceBlockNumber
+        });
+
+        vm.startPrank(proxyAdminOwner);
+        vm.expectRevert(InvalidRollupChainID.selector);
+        serviceManager.confirmAlert(99, alertHeader, nonSignerStakesAndSignature);
+        vm.stopPrank();
+    }
+
+    function test_RemoveAlert() public {
+        test_ConfirmAlert();
+        vm.startPrank(proxyAdminOwner);
+        assertEq(serviceManager.totalAlerts(1), 1);
+        assertTrue(serviceManager.contains(1, "foo"));
 
         vm.expectEmit();
         emit AlertRemoved("foo", msg.sender);
-        serviceManager.removeAlert("foo");
+        serviceManager.removeAlert(1, "foo");
 
-        assertFalse(serviceManager.contains("foo"));
-        assertEq(serviceManager.totalAlerts(), 0);
+        assertFalse(serviceManager.contains(1, "foo"));
+        assertEq(serviceManager.totalAlerts(1), 0);
         vm.stopPrank();
     }
 
-    function test_removeAlert_RevertIfNotOwner() public {
-        test_confirmAlert();
+    function test_RemoveAlert_RevertIfInvalidRollupChainID() public {
+        test_ConfirmAlert();
+        vm.startPrank(proxyAdminOwner);
+        vm.expectRevert(InvalidRollupChainID.selector);
+        serviceManager.removeAlert(42, "foo");
+        vm.stopPrank();
+    }
+
+    function test_RemoveAlert_RevertIfNotOwner() public {
+        test_ConfirmAlert();
         vm.expectRevert("Ownable: caller is not the owner");
-        serviceManager.removeAlert("foo");
+        serviceManager.removeAlert(1, "foo");
     }
 
     function test_QueryMessageHashes() public {
-        test_confirmAlert();
-        bytes32[] memory results = serviceManager.queryMessageHashes(0, 2);
+        test_ConfirmAlert();
+        bytes32[] memory results = serviceManager.queryMessageHashes(1, 0, 2);
         assertTrue(results.length == 1);
         assertTrue(results[0] == "foo");
     }
 
     function test_QueryMessageHashes_RevertIfInvalidStartIndex() public {
-        test_confirmAlert();
+        test_ConfirmAlert();
         vm.expectRevert(InvalidStartIndex.selector);
-        bytes32[] memory results = serviceManager.queryMessageHashes(1, 2);
+        bytes32[] memory results = serviceManager.queryMessageHashes(1, 1, 2);
     }
 }

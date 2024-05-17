@@ -25,6 +25,8 @@ import {
     ZeroAddress,
     AlreadyInAllowlist,
     NotInAllowlist,
+    NoStatusChange,
+    InvalidRollupChainID,
     InvalidReferenceBlockNum,
     InsufficientThreshold,
     InvalidStartIndex,
@@ -56,7 +58,9 @@ contract MachServiceManager is
     using EnumerableSet for EnumerableSet.Bytes32Set;
     using EnumerableSet for EnumerableSet.AddressSet;
 
-    /// @notice when applied to a function, ensures that the function is only callable by the `alertConfirmer`.
+    /**
+     * @dev Ensures that the function is only callable by the `alertConfirmer`.
+     */
     modifier onlyAlertConfirmer() {
         if (_msgSender() != alertConfirmer) {
             revert InvalidConfirmer();
@@ -64,10 +68,22 @@ contract MachServiceManager is
         _;
     }
 
-    /// @notice when applied to a function, ensures that the function is only callable by the `whitelister`.
+    /**
+     * @dev Ensures that the function is only callable by the `whitelister`.
+     */
     modifier onlyWhitelister() {
         if (_msgSender() != whitelister) {
             revert NotWhitelister();
+        }
+        _;
+    }
+
+    /**
+     * @dev Ensures that the `rollupChainID` is valid.
+     */
+    modifier onlyValidRollupChainID(uint256 rollupChainID) {
+        if (!rollupChainIDs[rollupChainID]) {
+            revert InvalidRollupChainID();
         }
         _;
     }
@@ -84,18 +100,22 @@ contract MachServiceManager is
     }
 
     function initialize(
-        IPauserRegistry _pauserRegistry,
-        uint256 _initialPausedStatus,
-        address _initialOwner,
-        address _alertConfirmer,
-        address _whitelister,
-        uint256 _rollupChainId
+        IPauserRegistry pauserRegistry_,
+        uint256 initialPausedStatus_,
+        address initialOwner_,
+        address alertConfirmer_,
+        address whitelister_,
+        uint256[] calldata rollupChainIDs_
     ) public initializer {
-        _initializePauser(_pauserRegistry, _initialPausedStatus);
-        __ServiceManagerBase_init(_initialOwner);
-        _setAlertConfirmer(_alertConfirmer);
-        _setWhitelister(_whitelister);
-        _updateRollupChainId(_rollupChainId);
+        _initializePauser(pauserRegistry_, initialPausedStatus_);
+        __ServiceManagerBase_init(initialOwner_);
+        _setAlertConfirmer(alertConfirmer_);
+        _setWhitelister(whitelister_);
+
+        for (uint256 i; i < rollupChainIDs_.length; ++i) {
+            _setRollupChainID(rollupChainIDs_[i], true);
+        }
+
         allowlistEnabled = true;
         quorumThresholdPercentage = 66;
     }
@@ -105,8 +125,7 @@ contract MachServiceManager is
     //////////////////////////////////////////////////////////////////////////////
 
     /**
-     * @notice Add an operator to the allowlist.
-     * @param operator The operator to add
+     * @inheritdoc IMachServiceManager
      */
     function addToAllowlist(address operator) external onlyWhitelister {
         if (operator == address(0)) {
@@ -120,8 +139,7 @@ contract MachServiceManager is
     }
 
     /**
-     * @notice Remove an operator from the allowlist.
-     * @param operator The operator to remove
+     * @inheritdoc IMachServiceManager
      */
     function removeFromAllowlist(address operator) external onlyWhitelister {
         if (!allowlist[operator]) {
@@ -132,7 +150,7 @@ contract MachServiceManager is
     }
 
     /**
-     * @notice Enable the allowlist.
+     * @inheritdoc IMachServiceManager
      */
     function enableAllowlist() external onlyOwner {
         if (allowlistEnabled) {
@@ -144,7 +162,7 @@ contract MachServiceManager is
     }
 
     /**
-     * @notice Disable the allowlist.
+     * @inheritdoc IMachServiceManager
      */
     function disableAllowlist() external onlyOwner {
         if (!allowlistEnabled) {
@@ -156,34 +174,43 @@ contract MachServiceManager is
     }
 
     /**
-     * @notice Set confirmer address.
+     * @inheritdoc IMachServiceManager
      */
     function setConfirmer(address confirmer) external onlyOwner {
         _setAlertConfirmer(confirmer);
     }
 
     /**
-     * @notice Set whitelister address.
+     * @inheritdoc IMachServiceManager
      */
     function setWhitelister(address whitelister) external onlyOwner {
         _setWhitelister(whitelister);
     }
 
     /**
-     * @notice Remove an Alert.
-     * @param messageHash The message hash of the alert
+     * @inheritdoc IMachServiceManager
      */
-    function removeAlert(bytes32 messageHash) external onlyOwner {
-        bool ret = _messageHashes.remove(messageHash);
+    function setRollupChainID(uint256 rollupChainId, bool status) external onlyOwner {
+        _setRollupChainID(rollupChainId, status);
+    }
+
+    /**
+     * @inheritdoc IMachServiceManager
+     */
+    function removeAlert(uint256 rollupChainId, bytes32 messageHash)
+        external
+        onlyValidRollupChainID(rollupChainId)
+        onlyOwner
+    {
+        bool ret = _messageHashes[rollupChainId].remove(messageHash);
         if (ret) {
-            _resolvedMessageHashes.add(messageHash);
+            _resolvedMessageHashes[rollupChainId].add(messageHash);
             emit AlertRemoved(messageHash, _msgSender());
         }
     }
 
     /**
-     * @notice Update quorum threshold percentage
-     * @param thresholdPercentage The new quorum threshold percentage
+     * @inheritdoc IMachServiceManager
      */
     function updateQuorumThresholdPercentage(uint8 thresholdPercentage) external onlyOwner {
         if (thresholdPercentage > 100) {
@@ -193,18 +220,12 @@ contract MachServiceManager is
         emit QuorumThresholdPercentageChanged(thresholdPercentage);
     }
 
-    function updateRollupChainId(uint256 newChainid) external onlyOwner {
-        _updateRollupChainId(newChainid);
-    }
-
     //////////////////////////////////////////////////////////////////////////////
     //                          Operator Registration                           //
     //////////////////////////////////////////////////////////////////////////////
 
     /**
-     * @notice Register an operator with the AVS. Forwards call to EigenLayer' AVSDirectory.
-     * @param operator The address of the operator to register.
-     * @param operatorSignature The signature, salt, and expiry of the operator's signature.
+     * @inheritdoc IServiceManager
      */
     function registerOperatorToAVS(
         address operator,
@@ -223,8 +244,7 @@ contract MachServiceManager is
     }
 
     /**
-     * @notice Deregister an operator from the AVS. Forwards a call to EigenLayer's AVSDirectory.
-     * @param operator The address of the operator to register.
+     * @inheritdoc IServiceManager
      */
     function deregisterOperatorFromAVS(address operator)
         public
@@ -242,22 +262,20 @@ contract MachServiceManager is
     //////////////////////////////////////////////////////////////////////////////
 
     /**
-     * @notice This function is used for
-     * - submitting alert,
-     * - check that the aggregate signature is valid,
-     * - and check whether quorum has been achieved or not.
+     * @inheritdoc IMachServiceManager
      */
     function confirmAlert(
+        uint256 rollupChainId,
         AlertHeader calldata alertHeader,
         NonSignerStakesAndSignature memory nonSignerStakesAndSignature
-    ) external whenNotPaused onlyAlertConfirmer {
+    ) external whenNotPaused onlyAlertConfirmer onlyValidRollupChainID(rollupChainId) {
         // make sure the information needed to derive the non-signers and batch is in calldata to avoid emitting events
         if (tx.origin != msg.sender) {
             revert InvalidSender();
         }
 
         // check is it is the resolved alert before
-        if (_resolvedMessageHashes.contains(alertHeader.messageHash)) {
+        if (_resolvedMessageHashes[rollupChainId].contains(alertHeader.messageHash)) {
             revert ResolvedAlert();
         }
 
@@ -301,7 +319,7 @@ contract MachServiceManager is
         }
 
         // store alert
-        bool success = _messageHashes.add(alertHeader.messageHash);
+        bool success = _messageHashes[rollupChainId].add(alertHeader.messageHash);
         if (!success) {
             revert AlreadyAdded();
         }
@@ -313,19 +331,29 @@ contract MachServiceManager is
     //                               View Functions                             //
     //////////////////////////////////////////////////////////////////////////////
 
-    /// @notice Returns the length of total alerts
-    function totalAlerts() external view returns (uint256) {
-        return _messageHashes.length();
+    /**
+     * @inheritdoc IMachServiceManager
+     */
+    function totalAlerts(uint256 rollupChainId) external view returns (uint256) {
+        return _messageHashes[rollupChainId].length();
     }
 
-    /// @notice Checks if messageHash exists
-    function contains(bytes32 messageHash) external view returns (bool) {
-        return _messageHashes.contains(messageHash);
+    /**
+     * @inheritdoc IMachServiceManager
+     */
+    function contains(uint256 rollupChainId, bytes32 messageHash) external view returns (bool) {
+        return _messageHashes[rollupChainId].contains(messageHash);
     }
 
-    /// @notice Returns an array of messageHash
-    function queryMessageHashes(uint256 start, uint256 querySize) external view returns (bytes32[] memory) {
-        uint256 length = _messageHashes.length();
+    /**
+     * @inheritdoc IMachServiceManager
+     */
+    function queryMessageHashes(uint256 rollupChainId, uint256 start, uint256 querySize)
+        external
+        view
+        returns (bytes32[] memory)
+    {
+        uint256 length = _messageHashes[rollupChainId].length();
 
         if (start >= length) {
             revert InvalidStartIndex();
@@ -339,7 +367,7 @@ contract MachServiceManager is
 
         bytes32[] memory output = new bytes32[](end - start);
         for (uint256 i = start; i < end; ++i) {
-            output[i - start] = _messageHashes.at(i);
+            output[i - start] = _messageHashes[rollupChainId].at(i);
         }
 
         return output;
@@ -349,29 +377,35 @@ contract MachServiceManager is
     //                              Internal Functions                          //
     //////////////////////////////////////////////////////////////////////////////
 
-    /// @notice hash the alert header
+    /**
+     *  @dev Hashes an alert header
+     */
     function _hashAlertHeader(AlertHeader calldata alertHeader) internal pure returns (bytes32) {
         return keccak256(abi.encode(_convertAlertHeaderToReducedAlertHeader(alertHeader)));
     }
 
-    /// @notice changes the alert confirmer
+    /**
+     * @dev Changes the alert confirmer
+     */
     function _setAlertConfirmer(address _alertConfirmer) internal {
         address previousBatchConfirmer = alertConfirmer;
         alertConfirmer = _alertConfirmer;
         emit AlertConfirmerChanged(previousBatchConfirmer, alertConfirmer);
     }
 
-    /// @notice changes the whitelister
+    /**
+     *  @dev Changes the whitelister
+     */
     function _setWhitelister(address _whitelister) internal {
         address previousWhitelister = whitelister;
         whitelister = _whitelister;
         emit WhitelisterChanged(previousWhitelister, _whitelister);
     }
+
     /**
-     * @notice converts a alert header to a reduced alert header
+     * @dev Converts a alert header to a reduced alert header
      * @param alertHeader the alert header to convert
      */
-
     function _convertAlertHeaderToReducedAlertHeader(AlertHeader calldata alertHeader)
         internal
         pure
@@ -383,9 +417,14 @@ contract MachServiceManager is
         });
     }
 
-    function _updateRollupChainId(uint256 newChainid) internal {
-        uint256 previousRollupChainId = rollupChainId;
-        rollupChainId = newChainid;
-        emit RollupChainIdUpdated(previousRollupChainId, newChainid);
+    function _setRollupChainID(uint256 rollupChainId, bool status) internal {
+        if (rollupChainId < 1) {
+            revert InvalidRollupChainID();
+        }
+        if (rollupChainIDs[rollupChainId] == status) {
+            revert NoStatusChange();
+        }
+        rollupChainIDs[rollupChainId] = status;
+        emit RollupChainIDUpdated(rollupChainId, status);
     }
 }

@@ -79,9 +79,9 @@ interface IMachServiceManager is IServiceManager {
     event AllowlistDisabled();
 
     /**
-     * @notice Emitted when rollup chain id is changed
+     * @notice Emitted when rollup chain id is updated
      */
-    event RollupChainIdUpdated(uint256 previousRollupChainId, uint256 newRollupChainId);
+    event RollupChainIDUpdated(uint256 rollupChainId, bool status);
 
     /**
      * @notice Emitted when a Alert is confirmed.
@@ -120,10 +120,27 @@ interface IMachServiceManager is IServiceManager {
     function disableAllowlist() external;
 
     /**
+     * @notice Set confirmer address.
+     */
+    function setConfirmer(address confirmer) external;
+
+    /**
+     * @notice Set whitelister address.
+     */
+    function setWhitelister(address whitelister) external;
+
+    /**
+     * @notice Set the status of a rollup chain ID
+     * @param rollupChainId The ID of the rollup chain to be updated
+     * @param status The new status for the rollup chain ID (true for active, false for inactive)
+     */
+    function setRollupChainID(uint256 rollupChainId, bool status) external;
+
+    /**
      * @notice Remove an Alert.
      * @param messageHash The message hash of the alert
      */
-    function removeAlert(bytes32 messageHash) external;
+    function removeAlert(uint256 rollupChainId, bytes32 messageHash) external;
 
     /**
      * @notice Update quorum threshold percentage
@@ -138,16 +155,20 @@ interface IMachServiceManager is IServiceManager {
      * - and check whether quorum has been achieved or not.
      */
     function confirmAlert(
+        uint256 rollupChainId,
         AlertHeader calldata alertHeader,
         BLSSignatureChecker.NonSignerStakesAndSignature memory nonSignerStakesAndSignature
     ) external;
 
     /// @notice Returns the length of total alerts
-    function totalAlerts() external view returns (uint256);
+    function totalAlerts(uint256 rollupChainId) external view returns (uint256);
 
     /// @notice Checks if messageHash exists
-    function contains(bytes32 messageHash) external view returns (bool);
+    function contains(uint256 rollupChainId, bytes32 messageHash) external view returns (bool);
 
     /// @notice Returns an array of messageHash
-    function queryMessageHashes(uint256 start, uint256 querySize) external view returns (bytes32[] memory);
+    function queryMessageHashes(uint256 rollupChainId, uint256 start, uint256 querySize)
+        external
+        view
+        returns (bytes32[] memory);
 }

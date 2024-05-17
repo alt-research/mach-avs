@@ -6,6 +6,8 @@ error InvalidStartIndex();
 error InvalidConfirmer();
 error NotWhitelister();
 error InvalidSender();
+error NoStatusChange();
+error InvalidRollupChainID();
 error InvalidReferenceBlockNum();
 error InsufficientThreshold();
 error InsufficientThresholdPercentages();

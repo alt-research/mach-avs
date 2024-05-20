@@ -17,11 +17,13 @@ interface IMachServiceManager is IServiceManager {
         bytes quorumThresholdPercentages; // every bytes is an amount less than 100 specifying the percentage of stake
             // the must have signed in the corresponding quorum in `quorumNumbers`
         uint32 referenceBlockNumber;
+        uint256 rollupChainID;
     }
 
     struct ReducedAlertHeader {
         bytes32 messageHash;
         uint32 referenceBlockNumber;
+        uint256 rollupChainID;
     }
 
     /**
@@ -155,7 +157,6 @@ interface IMachServiceManager is IServiceManager {
      * - and check whether quorum has been achieved or not.
      */
     function confirmAlert(
-        uint256 rollupChainId,
         AlertHeader calldata alertHeader,
         BLSSignatureChecker.NonSignerStakesAndSignature memory nonSignerStakesAndSignature
     ) external;

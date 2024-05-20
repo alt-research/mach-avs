@@ -265,17 +265,16 @@ contract MachServiceManager is
      * @inheritdoc IMachServiceManager
      */
     function confirmAlert(
-        uint256 rollupChainId,
         AlertHeader calldata alertHeader,
         NonSignerStakesAndSignature memory nonSignerStakesAndSignature
-    ) external whenNotPaused onlyAlertConfirmer onlyValidRollupChainID(rollupChainId) {
+    ) external whenNotPaused onlyAlertConfirmer onlyValidRollupChainID(alertHeader.rollupChainID) {
         // make sure the information needed to derive the non-signers and batch is in calldata to avoid emitting events
         if (tx.origin != msg.sender) {
             revert InvalidSender();
         }
 
         // check is it is the resolved alert before
-        if (_resolvedMessageHashes[rollupChainId].contains(alertHeader.messageHash)) {
+        if (_resolvedMessageHashes[alertHeader.rollupChainID].contains(alertHeader.messageHash)) {
             revert ResolvedAlert();
         }
 
@@ -319,7 +318,7 @@ contract MachServiceManager is
         }
 
         // store alert
-        bool success = _messageHashes[rollupChainId].add(alertHeader.messageHash);
+        bool success = _messageHashes[alertHeader.rollupChainID].add(alertHeader.messageHash);
         if (!success) {
             revert AlreadyAdded();
         }
@@ -413,7 +412,8 @@ contract MachServiceManager is
     {
         return ReducedAlertHeader({
             messageHash: alertHeader.messageHash,
-            referenceBlockNumber: alertHeader.referenceBlockNumber
+            referenceBlockNumber: alertHeader.referenceBlockNumber,
+            rollupChainID: alertHeader.rollupChainID
         });
     }
 

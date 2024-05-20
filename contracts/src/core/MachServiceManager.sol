@@ -413,7 +413,8 @@ contract MachServiceManager is
     {
         return ReducedAlertHeader({
             messageHash: alertHeader.messageHash,
-            referenceBlockNumber: alertHeader.referenceBlockNumber
+            referenceBlockNumber: alertHeader.referenceBlockNumber,
+            rollupChainID: alertHeader.rollupChainID
         });
     }
 

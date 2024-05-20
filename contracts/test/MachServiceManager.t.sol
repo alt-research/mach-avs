@@ -29,7 +29,9 @@ contract MachServiceManagerTest is BLSAVSDeployer {
         _deployMockEigenLayerAndAVS();
 
         msgHash = keccak256(
-            abi.encode(IMachServiceManager.ReducedAlertHeader({messageHash: "foo", referenceBlockNumber: 201}))
+            abi.encode(
+                IMachServiceManager.ReducedAlertHeader({messageHash: "foo", referenceBlockNumber: 201, rollupChainID: 1})
+            )
         );
 
         _setAggregatePublicKeysAndSignature();
@@ -264,7 +266,8 @@ contract MachServiceManagerTest is BLSAVSDeployer {
             messageHash: "foo",
             quorumNumbers: quorumNumbers,
             quorumThresholdPercentages: quorumThresholdPercentages,
-            referenceBlockNumber: referenceBlockNumber
+            referenceBlockNumber: referenceBlockNumber,
+            rollupChainID: 1
         });
 
         vm.startPrank(proxyAdminOwner);
@@ -298,7 +301,8 @@ contract MachServiceManagerTest is BLSAVSDeployer {
             messageHash: "foo",
             quorumNumbers: quorumNumbers,
             quorumThresholdPercentages: quorumThresholdPercentages,
-            referenceBlockNumber: referenceBlockNumber
+            referenceBlockNumber: referenceBlockNumber,
+            rollupChainID: 1
         });
         vm.expectRevert(InvalidConfirmer.selector);
         serviceManager.confirmAlert(1, alertHeader, nonSignerStakesAndSignature);
@@ -321,7 +325,8 @@ contract MachServiceManagerTest is BLSAVSDeployer {
             messageHash: "foo",
             quorumNumbers: quorumNumbers,
             quorumThresholdPercentages: quorumThresholdPercentages,
-            referenceBlockNumber: referenceBlockNumber
+            referenceBlockNumber: referenceBlockNumber,
+            rollupChainID: 1
         });
 
         vm.startPrank(proxyAdminOwner);
@@ -351,7 +356,8 @@ contract MachServiceManagerTest is BLSAVSDeployer {
             messageHash: "foo",
             quorumNumbers: quorumNumbers,
             quorumThresholdPercentages: quorumThresholdPercentages,
-            referenceBlockNumber: referenceBlockNumber
+            referenceBlockNumber: referenceBlockNumber,
+            rollupChainID: 1
         });
 
         vm.startPrank(proxyAdminOwner);
@@ -378,7 +384,8 @@ contract MachServiceManagerTest is BLSAVSDeployer {
             messageHash: "foo",
             quorumNumbers: quorumNumbers,
             quorumThresholdPercentages: quorumThresholdPercentages,
-            referenceBlockNumber: referenceBlockNumber
+            referenceBlockNumber: referenceBlockNumber,
+            rollupChainID: 1
         });
 
         vm.startPrank(proxyAdminOwner);
@@ -404,7 +411,8 @@ contract MachServiceManagerTest is BLSAVSDeployer {
             messageHash: "foo",
             quorumNumbers: quorumNumbers,
             quorumThresholdPercentages: quorumThresholdPercentages,
-            referenceBlockNumber: referenceBlockNumber
+            referenceBlockNumber: referenceBlockNumber,
+            rollupChainID: 1
         });
 
         vm.startPrank(proxyAdminOwner);
@@ -433,7 +441,8 @@ contract MachServiceManagerTest is BLSAVSDeployer {
             messageHash: "foo",
             quorumNumbers: quorumNumbers,
             quorumThresholdPercentages: quorumThresholdPercentages,
-            referenceBlockNumber: uint32(block.number)
+            referenceBlockNumber: uint32(block.number),
+            rollupChainID: 1
         });
 
         vm.startPrank(proxyAdminOwner);
@@ -459,7 +468,8 @@ contract MachServiceManagerTest is BLSAVSDeployer {
             messageHash: "foo",
             quorumNumbers: quorumNumbers,
             quorumThresholdPercentages: quorumThresholdPercentages,
-            referenceBlockNumber: referenceBlockNumber
+            referenceBlockNumber: referenceBlockNumber,
+            rollupChainID: 1
         });
 
         vm.startPrank(proxyAdminOwner);
@@ -485,7 +495,8 @@ contract MachServiceManagerTest is BLSAVSDeployer {
             messageHash: "foo",
             quorumNumbers: quorumNumbers,
             quorumThresholdPercentages: quorumThresholdPercentages,
-            referenceBlockNumber: referenceBlockNumber
+            referenceBlockNumber: referenceBlockNumber,
+            rollupChainID: 1
         });
 
         vm.startPrank(proxyAdminOwner);
@@ -511,7 +522,8 @@ contract MachServiceManagerTest is BLSAVSDeployer {
             messageHash: "foo",
             quorumNumbers: quorumNumbers,
             quorumThresholdPercentages: quorumThresholdPercentages,
-            referenceBlockNumber: referenceBlockNumber
+            referenceBlockNumber: referenceBlockNumber,
+            rollupChainID: 1
         });
 
         vm.startPrank(proxyAdminOwner);
@@ -537,7 +549,8 @@ contract MachServiceManagerTest is BLSAVSDeployer {
             messageHash: "foo",
             quorumNumbers: quorumNumbers,
             quorumThresholdPercentages: quorumThresholdPercentages,
-            referenceBlockNumber: referenceBlockNumber
+            referenceBlockNumber: referenceBlockNumber,
+            rollupChainID: 1
         });
 
         vm.startPrank(proxyAdminOwner);

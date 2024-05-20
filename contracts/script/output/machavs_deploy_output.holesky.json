@@ -1,0 +1,17 @@
+{
+  "apkRegistry": "0x705c34e97b5bAB460bE69818fae604838c91C681",
+  "apkRegistryImpl": "0x20A1888cfE2EE1A68C825fe2d2912A2441473DE3",
+  "emptyContract": "0x5c87C91319f12E6F39a711a2829fec0d0b19c699",
+  "indexRegistry": "0xD9bB07a1Af8ebef0E4D17bf988d8e866BBEA87Dc",
+  "indexRegistryImpl": "0xAD0f792D31A9686B672b2761B7aB60c9D39F1d18",
+  "machAVSProxyAdmin": "0xCaF316c4200aA1f9898f45dd29611F34fb504692",
+  "machServiceManager": "0x56361D346d1F80c13f7AE2D809401C9aA1399CD3",
+  "machServiceManagerImpl": "0xe3916ba82988e726e3666f1E5bB1338b5704ad5b",
+  "object": "machAVS deployment output",
+  "operatorStateRetriever": "0x57e359910f9432cD4e8f989C935aA4C73205aA85",
+  "pauserRegistry": "0x326FDbCABb5CEb3C430d5b998E190DAD7cA0BA1E",
+  "registryCoordinator": "0xae3a38CBbd2D4e27AC823bb2Fc084361345e6F52",
+  "registryCoordinatorImpl": "0x758efb84b493Ef0d6003e35ea3a4E069b125F73D",
+  "stakeRegistry": "0xaafac23E4B70cEFaba1af85B545642D3C651aB90",
+  "stakeRegistryImpl": "0xD131Fc3d79bD22c2c14Cdd0E63d544A12C8493d6"
+}

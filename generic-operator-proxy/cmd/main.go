@@ -36,11 +36,17 @@ func main() {
 func operatorProxyMain(ctx *cli.Context) error {
 	log.Println("Initializing Operator Alerter Proxy")
 
-	nodeConfig := proxyUtils.ProxyConfig{}
+	proxyCfg := proxyUtils.ProxyConfig{}
+	if err := config.ReadConfig(ctx, &proxyCfg); err != nil {
+		panic(err)
+	}
+	proxyCfg.WithEnv()
+
+	nodeConfig := genericproxy.MachProxyConfig{}
 	if err := config.ReadConfig(ctx, &nodeConfig); err != nil {
 		panic(err)
 	}
-	nodeConfig.WithEnv()
+	nodeConfig.ProxyConfig = proxyCfg
 
 	mainCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
@@ -69,6 +75,7 @@ func operatorProxyMain(ctx *cli.Context) error {
 		nodeConfig.Method,
 		nodeConfig.GenericOperatorAddr,
 		nodeConfig.RpcCfg,
+		nodeConfig.ChainIds,
 	)
 
 	return rpcServer.Start(mainCtx)

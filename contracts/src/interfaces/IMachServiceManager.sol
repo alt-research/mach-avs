@@ -157,7 +157,6 @@ interface IMachServiceManager is IServiceManager {
      * - and check whether quorum has been achieved or not.
      */
     function confirmAlert(
-        uint256 rollupChainId,
         AlertHeader calldata alertHeader,
         BLSSignatureChecker.NonSignerStakesAndSignature memory nonSignerStakesAndSignature
     ) external;

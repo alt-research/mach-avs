@@ -276,7 +276,7 @@ contract MachServiceManagerTest is BLSAVSDeployer {
         assertFalse(serviceManager.contains(1, "foo"));
 
         emit AlertConfirmed(msgHash, alertHeader.messageHash);
-        serviceManager.confirmAlert(1, alertHeader, nonSignerStakesAndSignature);
+        serviceManager.confirmAlert(alertHeader, nonSignerStakesAndSignature);
 
         assertEq(serviceManager.totalAlerts(1), 1);
         assertTrue(serviceManager.contains(1, "foo"));
@@ -305,7 +305,7 @@ contract MachServiceManagerTest is BLSAVSDeployer {
             rollupChainID: 1
         });
         vm.expectRevert(InvalidConfirmer.selector);
-        serviceManager.confirmAlert(1, alertHeader, nonSignerStakesAndSignature);
+        serviceManager.confirmAlert(alertHeader, nonSignerStakesAndSignature);
     }
 
     function test_ConfirmAlert_RevertIfInvalidSender() public {
@@ -335,7 +335,7 @@ contract MachServiceManagerTest is BLSAVSDeployer {
 
         vm.startPrank(address(this));
         vm.expectRevert(InvalidSender.selector);
-        serviceManager.confirmAlert(1, alertHeader, nonSignerStakesAndSignature);
+        serviceManager.confirmAlert(alertHeader, nonSignerStakesAndSignature);
         vm.stopPrank();
     }
 
@@ -361,9 +361,9 @@ contract MachServiceManagerTest is BLSAVSDeployer {
         });
 
         vm.startPrank(proxyAdminOwner);
-        serviceManager.confirmAlert(1, alertHeader, nonSignerStakesAndSignature);
+        serviceManager.confirmAlert(alertHeader, nonSignerStakesAndSignature);
         vm.expectRevert(AlreadyAdded.selector);
-        serviceManager.confirmAlert(1, alertHeader, nonSignerStakesAndSignature);
+        serviceManager.confirmAlert(alertHeader, nonSignerStakesAndSignature);
         vm.stopPrank();
     }
 
@@ -390,7 +390,7 @@ contract MachServiceManagerTest is BLSAVSDeployer {
 
         vm.startPrank(proxyAdminOwner);
         vm.expectRevert(InvalidQuorumParam.selector);
-        serviceManager.confirmAlert(1, alertHeader, nonSignerStakesAndSignature);
+        serviceManager.confirmAlert(alertHeader, nonSignerStakesAndSignature);
         vm.stopPrank();
     }
 
@@ -416,11 +416,11 @@ contract MachServiceManagerTest is BLSAVSDeployer {
         });
 
         vm.startPrank(proxyAdminOwner);
-        serviceManager.confirmAlert(1, alertHeader, nonSignerStakesAndSignature);
+        serviceManager.confirmAlert(alertHeader, nonSignerStakesAndSignature);
         serviceManager.removeAlert(1, "foo");
 
         vm.expectRevert(ResolvedAlert.selector);
-        serviceManager.confirmAlert(1, alertHeader, nonSignerStakesAndSignature);
+        serviceManager.confirmAlert(alertHeader, nonSignerStakesAndSignature);
         vm.stopPrank();
     }
 
@@ -447,7 +447,7 @@ contract MachServiceManagerTest is BLSAVSDeployer {
 
         vm.startPrank(proxyAdminOwner);
         vm.expectRevert(InvalidReferenceBlockNum.selector);
-        serviceManager.confirmAlert(1, alertHeader, nonSignerStakesAndSignature);
+        serviceManager.confirmAlert(alertHeader, nonSignerStakesAndSignature);
         vm.stopPrank();
     }
 
@@ -474,7 +474,7 @@ contract MachServiceManagerTest is BLSAVSDeployer {
 
         vm.startPrank(proxyAdminOwner);
         vm.expectRevert(InvalidQuorumThresholdPercentage.selector);
-        serviceManager.confirmAlert(1, alertHeader, nonSignerStakesAndSignature);
+        serviceManager.confirmAlert(alertHeader, nonSignerStakesAndSignature);
         vm.stopPrank();
     }
 
@@ -501,7 +501,7 @@ contract MachServiceManagerTest is BLSAVSDeployer {
 
         vm.startPrank(proxyAdminOwner);
         vm.expectRevert(InsufficientThresholdPercentages.selector);
-        serviceManager.confirmAlert(1, alertHeader, nonSignerStakesAndSignature);
+        serviceManager.confirmAlert(alertHeader, nonSignerStakesAndSignature);
         vm.stopPrank();
     }
 
@@ -528,7 +528,7 @@ contract MachServiceManagerTest is BLSAVSDeployer {
 
         vm.startPrank(proxyAdminOwner);
         vm.expectRevert(InsufficientThreshold.selector);
-        serviceManager.confirmAlert(1, alertHeader, nonSignerStakesAndSignature);
+        serviceManager.confirmAlert(alertHeader, nonSignerStakesAndSignature);
         vm.stopPrank();
     }
 
@@ -550,12 +550,12 @@ contract MachServiceManagerTest is BLSAVSDeployer {
             quorumNumbers: quorumNumbers,
             quorumThresholdPercentages: quorumThresholdPercentages,
             referenceBlockNumber: referenceBlockNumber,
-            rollupChainID: 1
+            rollupChainID: 99
         });
 
         vm.startPrank(proxyAdminOwner);
         vm.expectRevert(InvalidRollupChainID.selector);
-        serviceManager.confirmAlert(99, alertHeader, nonSignerStakesAndSignature);
+        serviceManager.confirmAlert( alertHeader, nonSignerStakesAndSignature);
         vm.stopPrank();
     }
 

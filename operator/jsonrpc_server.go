@@ -10,6 +10,7 @@ import (
 
 	"github.com/Layr-Labs/eigensdk-go/logging"
 	"github.com/alt-research/avs/core/alert"
+	"github.com/alt-research/avs/core/message"
 	"github.com/sourcegraph/jsonrpc2"
 )
 
@@ -24,10 +25,15 @@ type RpcServer struct {
 	server             *http.Server
 	serverIpPortAddr   string
 	newTaskCreatedChan chan alert.AlertRequest
+	newWorkProofChan   chan message.HealthCheckMsg
 }
 
 // NewRpcServer creates a new rpc server then init the server.
-func NewRpcServer(logger logging.Logger, addr string, taskChain chan alert.AlertRequest) RpcServer {
+func NewRpcServer(
+	logger logging.Logger,
+	addr string,
+	taskChain chan alert.AlertRequest,
+	newWorkProofChan chan message.HealthCheckMsg) RpcServer {
 	res := RpcServer{
 		logger: logger,
 		server: &http.Server{
@@ -35,6 +41,7 @@ func NewRpcServer(logger logging.Logger, addr string, taskChain chan alert.Alert
 		},
 		serverIpPortAddr:   addr,
 		newTaskCreatedChan: taskChain,
+		newWorkProofChan:   newWorkProofChan,
 	}
 	res.SetHandler(res.setupHandlers())
 
@@ -99,6 +106,24 @@ func (s *RpcServer) HttpRPCHandlerRequest(w http.ResponseWriter, rpcRequest json
 
 func (s *RpcServer) HttpRPCHandlerRequestByAVS(avsName string, w http.ResponseWriter, rpcRequest jsonrpc2.Request) {
 	switch rpcRequest.Method {
+	case "health_check":
+		{
+			var msg message.BlockWorkProof
+			if err := json.Unmarshal(*rpcRequest.Params, &msg); err != nil {
+				s.logger.Error("the unmarshal", "err", err)
+				s.writeErrorJSON(w, rpcRequest.ID, http.StatusBadRequest, 3, fmt.Errorf("failed to unmarshal alert bundle params: %s", err.Error()))
+				return
+			}
+
+			s.logger.Info("health_check", "avs_name", avsName, "msg", msg)
+
+			s.newWorkProofChan <- message.HealthCheckMsg{
+				AvsName: avsName,
+				Proof:   msg,
+			}
+
+			s.writeJSON(w, rpcRequest.ID, http.StatusOK, true)
+		}
 	case "alert_blockMismatch":
 		{
 			var alert alert.AlertBlockMismatch

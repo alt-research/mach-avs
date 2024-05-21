@@ -20,6 +20,7 @@ import (
 	"github.com/alt-research/avs-generic-aggregator/core/types"
 	proxyUtils "github.com/alt-research/avs-generic-aggregator/proxy/utils"
 	"github.com/alt-research/avs/core/alert"
+	"github.com/alt-research/avs/core/message"
 	"github.com/alt-research/avs/operator"
 )
 
@@ -47,6 +48,8 @@ type ProxyHashRpcServer struct {
 	rpcServer operator.RpcServer
 	// receive new tasks in this chan (typically from mach service)
 	newTaskCreatedChan chan alert.AlertRequest
+	// receive new work proof in this chan
+	newWorkProofChan chan message.HealthCheckMsg
 }
 
 func NewAlertProxyRpcServer(
@@ -76,13 +79,15 @@ func NewAlertProxyRpcServer(
 	}
 
 	newTaskCreatedChan := make(chan alert.AlertRequest, 32)
-	rpcServer := operator.NewRpcServer(logger, jsonrpcCfg.Addr, newTaskCreatedChan)
+	newWorkProofChan := make(chan message.HealthCheckMsg, 32)
+	rpcServer := operator.NewRpcServer(logger, jsonrpcCfg.Addr, newTaskCreatedChan, newWorkProofChan)
 
 	server := &ProxyHashRpcServer{
 		baseServers:        bases,
 		logger:             logger,
 		defaultAVSName:     defaultAVSName,
 		newTaskCreatedChan: newTaskCreatedChan,
+		newWorkProofChan:   newWorkProofChan,
 		rpcServer:          rpcServer,
 		avsCfgs:            avsCfgsMap,
 		chainIds:           chainIds,
@@ -211,6 +216,20 @@ func (s *ProxyHashRpcServer) Start(ctx context.Context) error {
 				TxHash:    resp.TxHash,
 				TaskIndex: uint32(resp.TaskIndex),
 			}
+		case newWorkProof := <-s.newWorkProofChan:
+			s.logger.Info("newWorkProof", "new", newWorkProof)
+
+			hash, err := types.NewBytes32(newWorkProof.Proof.BlockHash)
+			if err != nil {
+				s.logger.Errorf("new work proof error by: %v", err)
+				continue
+			}
+
+			err = s.commitWorkProof(ctx, newWorkProof.AvsName, uint32(newWorkProof.Proof.BlockNumber), [32]byte(hash))
+			if err != nil {
+				s.logger.Errorf("new work proof error by: %v", err)
+				continue
+			}
 		}
 	}
 }
@@ -266,6 +285,30 @@ func (s *ProxyHashRpcServer) createSigTaskH32(ctx context.Context, avsName strin
 	}
 
 	return response, nil
+}
+
+func (s *ProxyHashRpcServer) commitWorkProof(ctx context.Context, avsName string, index uint32, hash [32]byte) error {
+	avsNameToProxy := avsName
+	if avsNameToProxy == "" {
+		avsNameToProxy = s.defaultAVSName
+	}
+
+	chainId, ok := s.chainIds[avsNameToProxy]
+	if !ok || chainId == 0 {
+		return errors.Errorf("not found chain id for avs name %v", avsNameToProxy)
+	}
+
+	baseServer, ok := s.baseServers[avsNameToProxy]
+	if !ok || baseServer == nil {
+		return errors.Errorf("not found avs name %v", avsNameToProxy)
+	}
+
+	err := baseServer.CommitWorkProof(ctx, index, hash)
+	if err != nil {
+		return errors.Wrap(err, "create sig task failed")
+	}
+
+	return nil
 }
 
 var (

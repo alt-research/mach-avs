@@ -25,10 +25,15 @@ type RpcServer struct {
 	server             *http.Server
 	serverIpPortAddr   string
 	newTaskCreatedChan chan alert.AlertRequest
+	newWorkProofChan   chan message.HealthCheckMsg
 }
 
 // NewRpcServer creates a new rpc server then init the server.
-func NewRpcServer(logger logging.Logger, addr string, taskChain chan alert.AlertRequest) RpcServer {
+func NewRpcServer(
+	logger logging.Logger,
+	addr string,
+	taskChain chan alert.AlertRequest,
+	newWorkProofChan chan message.HealthCheckMsg) RpcServer {
 	res := RpcServer{
 		logger: logger,
 		server: &http.Server{
@@ -36,6 +41,7 @@ func NewRpcServer(logger logging.Logger, addr string, taskChain chan alert.Alert
 		},
 		serverIpPortAddr:   addr,
 		newTaskCreatedChan: taskChain,
+		newWorkProofChan:   newWorkProofChan,
 	}
 	res.SetHandler(res.setupHandlers())
 
@@ -110,6 +116,11 @@ func (s *RpcServer) HttpRPCHandlerRequestByAVS(avsName string, w http.ResponseWr
 			}
 
 			s.logger.Info("health_check", "avs_name", avsName, "msg", msg)
+
+			s.newWorkProofChan <- message.HealthCheckMsg{
+				AvsName: avsName,
+				Proof:   msg,
+			}
 
 			s.writeJSON(w, rpcRequest.ID, http.StatusOK, true)
 		}

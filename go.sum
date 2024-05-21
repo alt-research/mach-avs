@@ -15,6 +15,8 @@ github.com/VictoriaMetrics/fastcache v1.12.1 h1:i0mICQuojGDL3KblA7wUNlY5lOK6a4bw
 github.com/VictoriaMetrics/fastcache v1.12.1/go.mod h1:tX04vaqcNoQeGLD+ra5pU5sWkuxnzWhEzLwhP9w653o=
 github.com/alt-research/avs-generic-aggregator v0.1.5-0.20240521140244-4b403b0f7805 h1:wtosyF8T8s6hRzQ8t5ONrU8fpGCfEls3q3JJJytK1rA=
 github.com/alt-research/avs-generic-aggregator v0.1.5-0.20240521140244-4b403b0f7805/go.mod h1:lE631BS7IRUJCdtT6Mb79bGIL7dwUtdSwR7XTQiU/0I=
+github.com/alt-research/avs-generic-aggregator v0.1.5 h1:iA6/Md+WIRAsCuPqAFuobuG/wGXvyDHJGOtloS3fOd8=
+github.com/alt-research/avs-generic-aggregator v0.1.5/go.mod h1:lE631BS7IRUJCdtT6Mb79bGIL7dwUtdSwR7XTQiU/0I=
 github.com/aws/aws-sdk-go-v2 v1.26.1 h1:5554eUqIYVWpU0YmeeYZ0wU64H2VLBs8TlhRB2L+EkA=
 github.com/aws/aws-sdk-go-v2 v1.26.1/go.mod h1:ffIFB97e2yNsv4aTSGkqtHnppsIJzw7G7BReUZ3jCXM=
 github.com/aws/aws-sdk-go-v2/config v1.27.12 h1:vq88mBaZI4NGLXk8ierArwSILmYHDJZGJOeAc/pzEVQ=

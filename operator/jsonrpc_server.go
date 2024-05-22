@@ -3,10 +3,10 @@ package operator
 import (
 	"context"
 	"encoding/json"
-	"errors"
-	"fmt"
 	"net/http"
 	"time"
+
+	"github.com/pkg/errors"
 
 	"github.com/Layr-Labs/eigensdk-go/logging"
 	"github.com/alt-research/avs/core/alert"
@@ -87,13 +87,13 @@ func (s *RpcServer) HttpRPCHandler(w http.ResponseWriter, r *http.Request) {
 	rpcRequest := jsonrpc2.Request{}
 	err := json.NewDecoder(r.Body).Decode(&rpcRequest)
 	if err != nil {
-		s.writeErrorJSON(w, rpcRequest.ID, http.StatusBadRequest, 1, err)
+		WriteErrorJSON(s.logger, w, rpcRequest.ID, http.StatusBadRequest, 1, err)
 		return
 	}
 
 	if rpcRequest.Params == nil {
 		err := errors.New("failed to unmarshal request.Params for mevBundle from mev-builder, error: EOF")
-		s.writeErrorJSON(w, rpcRequest.ID, http.StatusBadRequest, 1, err)
+		WriteErrorJSON(s.logger, w, rpcRequest.ID, http.StatusBadRequest, 1, err)
 		return
 	}
 
@@ -104,41 +104,71 @@ func (s *RpcServer) HttpRPCHandlerRequest(w http.ResponseWriter, rpcRequest json
 	s.HttpRPCHandlerRequestByAVS("", w, rpcRequest)
 }
 
+func unmarshalParams(logger logging.Logger, rpcRequest jsonrpc2.Request, val any) error {
+	var params []json.RawMessage
+	logger.Debug("params", "raw", *rpcRequest.Params)
+	if err := json.Unmarshal(*rpcRequest.Params, &params); err != nil {
+		logger.Error("the unmarshal", "err", err)
+		return errors.Wrap(err, "failed to unmarshal alert bundle params")
+	}
+
+	if len(params) == 0 {
+		logger.Error("failed to unmarshal params by no msg")
+		return errors.New("failed to unmarshal health check params by no msg")
+	}
+
+	if err := json.Unmarshal(params[0], val); err != nil {
+		logger.Error("the unmarshal", "err", err)
+		return errors.Wrap(err, "failed to unmarshal alert bundle params")
+	}
+
+	return nil
+}
+
 func (s *RpcServer) HttpRPCHandlerRequestByAVS(avsName string, w http.ResponseWriter, rpcRequest jsonrpc2.Request) {
+	logger := s.logger.With(
+		"avsName", avsName,
+		"rpcMethod", rpcRequest.Method,
+	)
+
 	switch rpcRequest.Method {
 	case "health_check":
 		{
 			var msg message.BlockWorkProof
-			if err := json.Unmarshal(*rpcRequest.Params, &msg); err != nil {
-				s.logger.Error("the unmarshal", "err", err)
-				s.writeErrorJSON(w, rpcRequest.ID, http.StatusBadRequest, 3, fmt.Errorf("failed to unmarshal alert bundle params: %s", err.Error()))
+			if err := unmarshalParams(logger, rpcRequest, &msg); err != nil {
+				WriteErrorJSON(logger, w, rpcRequest.ID, http.StatusBadRequest, 3, err)
 				return
 			}
 
-			s.logger.Info("health_check", "avs_name", avsName, "msg", msg)
+			s.logger.Info("on health check", "msg", msg)
 
 			s.newWorkProofChan <- message.HealthCheckMsg{
 				AvsName: avsName,
 				Proof:   msg,
 			}
 
-			s.writeJSON(w, rpcRequest.ID, http.StatusOK, true)
+			WriteJSON(logger, w, rpcRequest.ID, true)
 		}
 	case "alert_blockMismatch":
 		{
 			var alert alert.AlertBlockMismatch
-			if err := json.Unmarshal(*rpcRequest.Params, &alert); err != nil {
-				s.logger.Error("the unmarshal", "err", err)
-				s.writeErrorJSON(w, rpcRequest.ID, http.StatusBadRequest, 3, fmt.Errorf("failed to unmarshal alert bundle params: %s", err.Error()))
+			if err := unmarshalParams(logger, rpcRequest, &alert); err != nil {
+				WriteErrorJSON(logger, w, rpcRequest.ID, http.StatusBadRequest, 3, err)
 				return
 			}
+
 			if alert.AVSName == "" && avsName != "" {
 				alert.AVSName = avsName
 			}
 
-			res := s.AlertBlockMismatch(&alert)
+			res := s.SendAlert(logger.With("alertType", "AlertBlockMismatch"), &alert)
 			if res.Err != nil {
-				s.writeErrorJSON(w, rpcRequest.ID, http.StatusBadRequest, res.Code, fmt.Errorf("failed to call alert: %s", res.Err.Error()))
+				WriteErrorJSON(
+					logger,
+					w, rpcRequest.ID,
+					http.StatusBadRequest, res.Code,
+					errors.Wrap(res.Err, "failed to call alert"),
+				)
 				return
 			}
 
@@ -148,22 +178,27 @@ func (s *RpcServer) HttpRPCHandlerRequestByAVS(avsName string, w http.ResponseWr
 				AlertHash: alert.MessageHash(),
 			}
 
-			s.writeJSON(w, rpcRequest.ID, http.StatusOK, response)
+			WriteJSON(logger, w, rpcRequest.ID, response)
 		}
 	case "alert_blockOutputOracleMismatch":
 		{
 			var alert alert.AlertBlockOutputOracleMismatch
-			if err := json.Unmarshal(*rpcRequest.Params, &alert); err != nil {
-				s.writeErrorJSON(w, rpcRequest.ID, http.StatusBadRequest, 3, fmt.Errorf("failed to unmarshal alert bundle params: %s", err.Error()))
+			if err := unmarshalParams(logger, rpcRequest, &alert); err != nil {
+				WriteErrorJSON(logger, w, rpcRequest.ID, http.StatusBadRequest, 3, err)
 				return
 			}
+
 			if alert.AVSName == "" && avsName != "" {
 				alert.AVSName = avsName
 			}
 
-			res := s.AlertBlockOutputOracleMismatch(&alert)
+			res := s.SendAlert(logger.With("alertType", "AlertBlockOutputOracleMismatch"), &alert)
 			if res.Err != nil {
-				s.writeErrorJSON(w, rpcRequest.ID, http.StatusBadRequest, res.Code, fmt.Errorf("failed to call alert output oracle: %s", res.Err.Error()))
+				WriteErrorJSON(
+					logger,
+					w, rpcRequest.ID, http.StatusBadRequest, res.Code,
+					errors.Wrap(res.Err, "failed to call alert output oracle"),
+				)
 				return
 			}
 
@@ -173,22 +208,27 @@ func (s *RpcServer) HttpRPCHandlerRequestByAVS(avsName string, w http.ResponseWr
 				AlertHash: alert.MessageHash(),
 			}
 
-			s.writeJSON(w, rpcRequest.ID, http.StatusOK, response)
+			WriteJSON(logger, w, rpcRequest.ID, response)
 		}
 	case "alert_blockHash":
 		{
 			var alert alert.AlertBlockHashMismatch
-			if err := json.Unmarshal(*rpcRequest.Params, &alert); err != nil {
-				s.writeErrorJSON(w, rpcRequest.ID, http.StatusBadRequest, 3, fmt.Errorf("failed to unmarshal alert bundle params: %s", err.Error()))
+			if err := unmarshalParams(logger, rpcRequest, &alert); err != nil {
+				WriteErrorJSON(logger, w, rpcRequest.ID, http.StatusBadRequest, 3, err)
 				return
 			}
+
 			if alert.AVSName == "" && avsName != "" {
 				alert.AVSName = avsName
 			}
 
-			res := s.AlertBlockHashMismatch(&alert)
+			res := s.SendAlert(logger.With("alertType", "AlertBlockHashMismatch"), &alert)
 			if res.Err != nil {
-				s.writeErrorJSON(w, rpcRequest.ID, http.StatusBadRequest, res.Code, fmt.Errorf("failed to call alert block hash: %s", res.Err.Error()))
+				WriteErrorJSON(
+					logger,
+					w, rpcRequest.ID, http.StatusBadRequest,
+					res.Code, errors.Wrap(res.Err, "failed to call alert block hash"),
+				)
 				return
 			}
 
@@ -198,24 +238,16 @@ func (s *RpcServer) HttpRPCHandlerRequestByAVS(avsName string, w http.ResponseWr
 				AlertHash: alert.MessageHash(),
 			}
 
-			s.writeJSON(w, rpcRequest.ID, http.StatusOK, response)
+			WriteJSON(logger, w, rpcRequest.ID, response)
 		}
 	default:
-		err := fmt.Errorf("got unsupported method name: %v", rpcRequest.Method)
-		s.writeErrorJSON(w, rpcRequest.ID, http.StatusNotFound, 1, err)
+		err := errors.Errorf("got unsupported method name: %v", rpcRequest.Method)
+		WriteErrorJSON(logger, w, rpcRequest.ID, http.StatusNotFound, 1, err)
 	}
 }
 
-func (s *RpcServer) writeErrorJSON(w http.ResponseWriter, id jsonrpc2.ID, statusCode int, code uint32, err error) {
-	WriteErrorJSON(s.logger, w, id, statusCode, code, err)
-}
-
-func (s *RpcServer) writeJSON(w http.ResponseWriter, id jsonrpc2.ID, resultHTTPCode int, jsonAnswer interface{}) {
-	WriteJSON(s.logger, w, id, resultHTTPCode, jsonAnswer)
-}
-
-func (s *RpcServer) AlertBlockMismatch(alertReq *alert.AlertBlockMismatch) alert.AlertResponse {
-	s.logger.Info("AlertBlockMismatch", "alert", alertReq)
+func (s *RpcServer) SendAlert(logger logging.Logger, alertReq alert.Alert) alert.AlertResponse {
+	logger.Info("Send alert", "alert", alertReq)
 
 	responseChan := make(chan alert.AlertResponse)
 
@@ -227,49 +259,11 @@ func (s *RpcServer) AlertBlockMismatch(alertReq *alert.AlertBlockMismatch) alert
 	response := <-responseChan
 
 	if response.Msg != "" {
-		s.logger.Error("AlertBlockMismatch failed", "msg", response.Msg)
-	}
-
-	return response
-}
-
-func (s *RpcServer) AlertBlockOutputOracleMismatch(alertReq *alert.AlertBlockOutputOracleMismatch) alert.AlertResponse {
-	s.logger.Info("AlertBlockOutputOracleMismatch", "alert", alertReq)
-
-	responseChan := make(chan alert.AlertResponse)
-
-	s.newTaskCreatedChan <- alert.AlertRequest{
-		Alert:   alertReq,
-		ResChan: responseChan,
-	}
-
-	response := <-responseChan
-
-	if response.Msg != "" {
-		s.logger.Error("AlertBlockOutputOracleMismatch failed", "msg", response.Msg)
-	}
-
-	return response
-}
-
-func (s *RpcServer) AlertBlockHashMismatch(alertReq *alert.AlertBlockHashMismatch) alert.AlertResponse {
-	s.logger.Info("AlertBlockHashMismatch", "alert", alertReq)
-
-	responseChan := make(chan alert.AlertResponse)
-
-	s.newTaskCreatedChan <- alert.AlertRequest{
-		Alert:   alertReq,
-		ResChan: responseChan,
-	}
-
-	response := <-responseChan
-
-	if response.Msg != "" {
-		s.logger.Error("AlertBlockHashMismatch failed", "msg", response.Msg)
+		logger.Error("Send alert failed", "msg", response.Msg)
 	}
 
 	if response.Err != nil {
-		s.logger.Error("AlertBlockHashMismatch failed by err", "err", response.Err)
+		logger.Error("Send alert failed by err", "err", response.Err)
 	}
 
 	return response
@@ -298,7 +292,7 @@ func WriteErrorJSON(logger logging.Logger, w http.ResponseWriter, id jsonrpc2.ID
 	}
 }
 
-func WriteJSON(logger logging.Logger, w http.ResponseWriter, id jsonrpc2.ID, resultHTTPCode int, jsonAnswer interface{}) {
+func WriteJSON(logger logging.Logger, w http.ResponseWriter, id jsonrpc2.ID, jsonAnswer interface{}) {
 	resp := &jsonrpc2.Response{
 		ID: id,
 	}
@@ -309,7 +303,7 @@ func WriteJSON(logger logging.Logger, w http.ResponseWriter, id jsonrpc2.ID, res
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(resultHTTPCode)
+	w.WriteHeader(http.StatusOK)
 
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		logger.Errorf("error: failed to marshal json to render an error, error: %v", err)

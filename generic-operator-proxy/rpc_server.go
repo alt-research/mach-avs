@@ -225,7 +225,20 @@ func (s *ProxyHashRpcServer) Start(ctx context.Context) error {
 				continue
 			}
 
-			err = s.commitWorkProof(ctx, newWorkProof.AvsName, uint32(newWorkProof.Proof.BlockNumber), [32]byte(hash))
+			numBig := newWorkProof.Proof.BlockNumber.ToInt()
+			if numBig == nil {
+				s.logger.Errorf("new work proof failed by block number nil")
+				continue
+			}
+
+			if !numBig.IsUint64() {
+				s.logger.Errorf("new work proof failed by block number not uint64")
+				continue
+			}
+
+			n := numBig.Uint64()
+
+			err = s.commitWorkProof(ctx, newWorkProof.AvsName, uint32(n), [32]byte(hash))
 			if err != nil {
 				s.logger.Errorf("new work proof error by: %v", err)
 				continue

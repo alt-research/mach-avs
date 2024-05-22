@@ -108,12 +108,24 @@ func (s *RpcServer) HttpRPCHandlerRequestByAVS(avsName string, w http.ResponseWr
 	switch rpcRequest.Method {
 	case "health_check":
 		{
-			var msg message.BlockWorkProof
-			if err := json.Unmarshal(*rpcRequest.Params, &msg); err != nil {
+			var msgs []message.BlockWorkProof
+			s.logger.Debug("params", "raw", *rpcRequest.Params)
+			if err := json.Unmarshal(*rpcRequest.Params, &msgs); err != nil {
 				s.logger.Error("the unmarshal", "err", err)
 				s.writeErrorJSON(w, rpcRequest.ID, http.StatusBadRequest, 3, fmt.Errorf("failed to unmarshal alert bundle params: %s", err.Error()))
 				return
 			}
+
+			if len(msgs) == 0 {
+				s.logger.Error("failed to unmarshal health check params by no msg")
+				s.writeErrorJSON(
+					w, rpcRequest.ID, http.StatusBadRequest,
+					3,
+					fmt.Errorf("failed to unmarshal health check params by no msg"))
+				return
+			}
+
+			msg := msgs[0]
 
 			s.logger.Info("health_check", "avs_name", avsName, "msg", msg)
 

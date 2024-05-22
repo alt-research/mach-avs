@@ -7,8 +7,6 @@ import (
 	"math/big"
 	"net/http"
 
-	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/pkg/errors"
 	"github.com/sourcegraph/jsonrpc2"
 
@@ -23,19 +21,6 @@ import (
 	"github.com/alt-research/avs/core/message"
 	"github.com/alt-research/avs/operator"
 )
-
-// Hash32HeaderParam is the 1st parameter for the Mach AVS contract 's confirmAlert
-type AlertHeaderParam struct {
-	MessageHash                [32]byte `abi:"messageHash"`
-	QuorumNumbers              []byte   `abi:"quorumNumbers"`
-	QuorumThresholdPercentages []byte   `abi:"quorumThresholdPercentages"`
-	ReferenceBlockNumber       uint32   `abi:"referenceBlockNumber"`
-	ChainId                    *big.Int `abi:"rollupChainID"`
-}
-
-type CreateSigTaskForByte32Hash struct {
-	Hash types.Bytes32 `json:"hash"`
-}
 
 type ProxyHashRpcServer struct {
 	baseServers    map[string]*proxyUtils.ProxyRpcServerBase
@@ -99,28 +84,38 @@ func NewAlertProxyRpcServer(
 	return server
 }
 
-func (s *ProxyHashRpcServer) handerConfigReq(w http.ResponseWriter, rpcRequest jsonrpc2.Request) {
+func (s *ProxyHashRpcServer) handerConfigReq(
+	w http.ResponseWriter,
+	rpcRequest jsonrpc2.Request) {
 	var req []string
 	if err := json.Unmarshal(*rpcRequest.Params, &req); err != nil {
 		s.logger.Error("the unmarshal", "err", err)
-		operator.WriteErrorJSON(s.logger, w, rpcRequest.ID, http.StatusBadRequest, 3, fmt.Errorf("failed to unmarshal req bundle params: %s", err.Error()))
+		operator.WriteErrorJSON(
+			s.logger, w, rpcRequest.ID, http.StatusBadRequest, 3,
+			fmt.Errorf("failed to unmarshal req bundle params: %s", err.Error()))
 		return
 	}
 
 	if len(req) != 1 {
-		operator.WriteErrorJSON(s.logger, w, rpcRequest.ID, http.StatusBadRequest, 3, fmt.Errorf("failed to unmarshal req bundle params"))
+		operator.WriteErrorJSON(
+			s.logger, w, rpcRequest.ID, http.StatusBadRequest, 3,
+			fmt.Errorf("failed to unmarshal req bundle params"))
 		return
 	}
 
 	baseService, ok := s.baseServers[req[0]]
 	if !ok || baseService == nil {
-		operator.WriteErrorJSON(s.logger, w, rpcRequest.ID, http.StatusBadRequest, 3, fmt.Errorf("failed to found the avs config"))
+		operator.WriteErrorJSON(
+			s.logger, w, rpcRequest.ID, http.StatusBadRequest, 3,
+			fmt.Errorf("failed to found the avs config"))
 		return
 	}
 
 	avsCfg, ok := s.avsCfgs[req[0]]
 	if !ok {
-		operator.WriteErrorJSON(s.logger, w, rpcRequest.ID, http.StatusBadRequest, 3, fmt.Errorf("failed to found the avs config"))
+		operator.WriteErrorJSON(
+			s.logger, w, rpcRequest.ID, http.StatusBadRequest, 3,
+			fmt.Errorf("failed to found the avs config"))
 		return
 	}
 
@@ -129,20 +124,22 @@ func (s *ProxyHashRpcServer) handerConfigReq(w http.ResponseWriter, rpcRequest j
 		cfg = "{}"
 	}
 
-	operator.WriteJSON(s.logger, w, rpcRequest.ID, http.StatusOK, json.RawMessage(cfg))
+	operator.WriteJSON(s.logger, w, rpcRequest.ID, json.RawMessage(cfg))
 }
 
 func (s *ProxyHashRpcServer) HttpRPCHandler(w http.ResponseWriter, r *http.Request) {
 	rpcRequest := jsonrpc2.Request{}
 	err := json.NewDecoder(r.Body).Decode(&rpcRequest)
 	if err != nil {
-		operator.WriteErrorJSON(s.logger, w, rpcRequest.ID, http.StatusBadRequest, 1, err)
+		operator.WriteErrorJSON(
+			s.logger, w, rpcRequest.ID, http.StatusBadRequest, 1, err)
 		return
 	}
 
 	if rpcRequest.Params == nil {
 		err := errors.New("failed to unmarshal request.Params for mevBundle from mev-builder, error: EOF")
-		operator.WriteErrorJSON(s.logger, w, rpcRequest.ID, http.StatusBadRequest, 1, err)
+		operator.WriteErrorJSON(
+			s.logger, w, rpcRequest.ID, http.StatusBadRequest, 1, err)
 		return
 	}
 
@@ -279,7 +276,13 @@ func (s *ProxyHashRpcServer) createSigTaskH32(ctx context.Context, avsName strin
 			}
 
 			return []interface{}{
-				AlertHeaderParam{
+				struct {
+					MessageHash                [32]byte `abi:"messageHash"`
+					QuorumNumbers              []byte   `abi:"quorumNumbers"`
+					QuorumThresholdPercentages []byte   `abi:"quorumThresholdPercentages"`
+					ReferenceBlockNumber       uint32   `abi:"referenceBlockNumber"`
+					ChainId                    *big.Int `abi:"rollupChainID"`
+				}{
 					MessageHash:                hash,
 					QuorumNumbers:              quorumNumbers.UnderlyingType(),
 					QuorumThresholdPercentages: quorumThresholdPercentages.UnderlyingType(),
@@ -322,36 +325,4 @@ func (s *ProxyHashRpcServer) commitWorkProof(ctx context.Context, avsName string
 	}
 
 	return nil
-}
-
-var (
-	sighHashAbiParams, _ = abi.NewType("tuple", "Hash32SighHashParam", []abi.ArgumentMarshaling{
-		{Name: "messageHash", Type: "bytes32"},
-		{Name: "referenceBlockNumber", Type: "uint32"},
-		{Name: "rollupChainID", Type: "uint256"},
-	})
-
-	sighHashAbiArgs = abi.Arguments{
-		{Type: sighHashAbiParams, Name: "one"},
-	}
-)
-
-func CalcSighHash(messageHash [32]byte, referenceBlockNumber uint32, chainId *big.Int) ([32]byte, error) {
-	record := struct {
-		MessageHash          [32]byte `abi:"messageHash"`
-		ReferenceBlockNumber uint32   `abi:"referenceBlockNumber"`
-		ChainId              *big.Int `abi:"rollupChainID"`
-	}{
-		MessageHash:          messageHash,
-		ReferenceBlockNumber: referenceBlockNumber,
-		ChainId:              chainId,
-	}
-
-	packed, err := sighHashAbiArgs.Pack(&record)
-	if err != nil {
-		return [32]byte{}, err
-	}
-
-	return crypto.Keccak256Hash(packed), nil
-
 }

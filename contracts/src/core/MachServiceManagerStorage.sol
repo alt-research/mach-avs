@@ -44,10 +44,13 @@ abstract contract MachServiceManagerStorage {
     mapping(uint256 => EnumerableSet.Bytes32Set) internal _resolvedMessageHashes;
 
     // slot 7
+    bytes32 private __DEPRECATED_SLOT7;
+
+    // slot 8
     /// @notice Role for whitelisting operators
     address public whitelister;
 
     // storage gap for upgradeability
     // slither-disable-next-line shadowing-state
-    uint256[42] private __GAP;
+    uint256[44] private __GAP;
 }

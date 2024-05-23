@@ -555,7 +555,7 @@ contract MachServiceManagerTest is BLSAVSDeployer {
 
         vm.startPrank(proxyAdminOwner);
         vm.expectRevert(InvalidRollupChainID.selector);
-        serviceManager.confirmAlert( alertHeader, nonSignerStakesAndSignature);
+        serviceManager.confirmAlert(alertHeader, nonSignerStakesAndSignature);
         vm.stopPrank();
     }
 

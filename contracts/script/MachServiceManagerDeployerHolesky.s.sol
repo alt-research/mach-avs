@@ -82,7 +82,7 @@ contract MachServiceManagerDeployer is Script {
 
         {
             string memory EIGENLAYER = "EIGENLAYER_ADDRESSES_OUTPUT_PATH";
-            string memory defaultPath = "./script/input/parameters.json";
+            string memory defaultPath = "./script/input/parameters.holesky.json";
             string memory deployedPath = vm.envOr(EIGENLAYER, defaultPath);
             string memory deployedEigenLayerAddresses = vm.readFile(deployedPath);
 
@@ -100,13 +100,13 @@ contract MachServiceManagerDeployer is Script {
                 abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".beaconETH"), (address));
             eigenLayerContracts.stETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".stETH"), (address));
             eigenLayerContracts.rETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".rETH"), (address));
-            
+
             eigenLayerContracts.beaconETH_Multiplier =
                 abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".beaconETH_Multiplier"), (uint96));
-            
+
             eigenLayerContracts.stETH_Multiplier =
                 abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".stETH_Multiplier"), (uint96));
-            
+
             eigenLayerContracts.rETH_Multiplier =
                 abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".rETH_Multiplier"), (uint96));
 
@@ -274,9 +274,8 @@ contract MachServiceManagerDeployer is Script {
             machServiceContract.stakeRegistry
         );
 
-                uint256[] memory ids = new uint256[](1);
-                ids[0] = 10;
-
+        uint256[] memory ids = new uint256[](1);
+        ids[0] = 10;
 
         // Third, upgrade the proxy contracts to use the correct implementation contracts and initialize them.
         machAVSProxyAdmin.upgradeAndCall(
@@ -289,7 +288,8 @@ contract MachServiceManagerDeployer is Script {
                 deploymentConfig.machAVSCommunityMultisig,
                 deploymentConfig.confirmer,
                 deploymentConfig.whitelister,
-ids            )
+                ids
+            )
         );
         vm.stopBroadcast();
 

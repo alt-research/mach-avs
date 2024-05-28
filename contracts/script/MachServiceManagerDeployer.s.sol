@@ -173,7 +173,7 @@ contract MachServiceManagerDeployer is Script {
             }
         }
 
-        deploymentConfig.chainId = 10;
+        deploymentConfig.chainId = 7560;
         deploymentConfig.numQuorum = 1;
         deploymentConfig.maxOperatorCount = 50;
         deploymentConfig.minimumStake = 0;

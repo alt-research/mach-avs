@@ -25,5 +25,6 @@ coverage.html
 logs.txt
 
 bin
-contracts/broadcast
+contracts/broadcast/11155111
+contracts/broadcast/17000
 .vscode

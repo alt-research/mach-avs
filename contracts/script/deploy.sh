@@ -1,10 +1,9 @@
 #!/bin/bash
 
-forge script ./script/EigenLayerDeployer.s.sol --broadcast -vvvv \
+forge script ./script/EigenLayerDeployer.s.sol \
     --private-key $OWNER_PRIVATE \
-    --rpc-url $RPC_URL
+    --broadcast -vvvv --slow --rpc-url $RPC_URL
 
 forge script ./script/MachServiceManagerDeployer.s.sol \
     --private-key $OWNER_PRIVATE \
-    --broadcast -vvvv --rpc-url $RPC_URL
-
+    --broadcast -vvvv --slow --rpc-url $RPC_URL

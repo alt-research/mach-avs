@@ -59,6 +59,7 @@ type Operator struct {
 	rpcServer        RpcServer
 	// receive new tasks in this chan (typically from mach service)
 	newTaskCreatedChan chan alert.AlertRequest
+	newWorkProofChan   chan message.HealthCheckMsg
 	// ip address of aggregator
 	aggregatorServerIpPortAddr string
 	// rpc client to send signed task responses to aggregator
@@ -399,6 +400,7 @@ func NewOperatorFromConfig(cfg config.NodeConfig, isUseEcdsaKey bool) (*Operator
 		aggregatorServerIpPortAddr: c.AggregatorServerIpPortAddress,
 		aggregatorRpcClient:        aggregatorRpcClient,
 		newTaskCreatedChan:         newTaskCreatedChan,
+		newWorkProofChan:           newWorkProofChan,
 		serviceManagerAddr:         common.HexToAddress(c.AVSRegistryCoordinatorAddress),
 		metadataURI:                c.MetadataURI,
 		operatorId:                 operatorId,
@@ -544,6 +546,9 @@ func (o *Operator) Start(ctx context.Context) error {
 			// TODO(samlaf); we should also register the service as unhealthy in the node api
 			// https://eigen.nethermind.io/docs/spec/api/
 			o.logger.Fatal("Error in metrics server", "err", err)
+		case newHealthCheck := <-o.newWorkProofChan:
+			o.logger.Info("newHealthCheck", "number", newHealthCheck.Proof.BlockNumber, "hash", newHealthCheck.Proof.BlockHash)
+			// TODO: for v1 version we not support health check now, just for mach new version.
 		case newTaskCreatedLog := <-o.newTaskCreatedChan:
 			o.logger.Info("newTaskCreatedLog", "new", newTaskCreatedLog.Alert)
 			o.metrics.IncNumTasksReceived()

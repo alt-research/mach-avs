@@ -25,7 +25,11 @@ import {OperatorStateRetriever} from "eigenlayer-middleware/OperatorStateRetriev
 import {MachServiceManager} from "../src/core/MachServiceManager.sol";
 import {IMachServiceManager} from "../src/interfaces/IMachServiceManager.sol";
 
-// forge script script/MachServiceManagerDeployer.s.sol --rpc-url $RPC_URL  --private-key $PRIVATE_KEY --broadcast -vvvv
+// forge script ./script/MachServiceManagerDeployer.s.sol \
+//     --private-key $PK \
+//     --rpc-url $URL \
+//     --etherscan-api-key $API_KEY \
+//     --broadcast -vvvv --slow --verify
 contract MachServiceManagerDeployer is Script {
     struct MachServiceContract {
         MachServiceManager machServiceManager;

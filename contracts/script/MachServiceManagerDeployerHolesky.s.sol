@@ -70,7 +70,7 @@ contract MachServiceManagerDeployerHolesky is Script {
         address ejector;
         address whitelister;
         address confirmer;
-        uint256 chainId;
+        uint256[] chainIds;
         uint256 numStrategies;
         uint256 numQuorum;
         uint256 maxOperatorCount;
@@ -89,6 +89,15 @@ contract MachServiceManagerDeployerHolesky is Script {
             string memory defaultPath = "./script/input/parameters.holesky.json";
             string memory deployedPath = vm.envOr(EIGENLAYER, defaultPath);
             string memory deployedEigenLayerAddresses = vm.readFile(deployedPath);
+
+            deploymentConfig.chainIds = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".chainIds"), (uint256[]));
+            deploymentConfig.numQuorum = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".numQuorum"), (uint256));
+            deploymentConfig.maxOperatorCount =
+                abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".maxOperatorCount"), (uint256));
+            deploymentConfig.minimumStake =
+                abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".minimumStake"), (uint96));
+            deploymentConfig.numStrategies =
+                abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".numStrategies"), (uint256));
 
             bytes memory deployedStrategyManagerData = vm.parseJson(deployedEigenLayerAddresses, ".strategyManager");
             address deployedStrategyManager = abi.decode(deployedStrategyManagerData, (address));
@@ -129,12 +138,6 @@ contract MachServiceManagerDeployerHolesky is Script {
                     abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".whitelister"), (address));
             }
         }
-
-        deploymentConfig.chainId = 10;
-        deploymentConfig.numQuorum = 1;
-        deploymentConfig.maxOperatorCount = 50;
-        deploymentConfig.minimumStake = 0;
-        deploymentConfig.numStrategies = 3;
 
         deploymentConfig.avsDirectory = address(eigenLayerContracts.avsDirectory);
         deploymentConfig.delegationManager = address(eigenLayerContracts.delegationManager);
@@ -278,9 +281,6 @@ contract MachServiceManagerDeployerHolesky is Script {
             machServiceContract.stakeRegistry
         );
 
-        uint256[] memory ids = new uint256[](1);
-        ids[0] = 10;
-
         // Third, upgrade the proxy contracts to use the correct implementation contracts and initialize them.
         machAVSProxyAdmin.upgradeAndCall(
             TransparentUpgradeableProxy(payable(address(machServiceContract.machServiceManager))),
@@ -292,7 +292,7 @@ contract MachServiceManagerDeployerHolesky is Script {
                 deploymentConfig.machAVSCommunityMultisig,
                 deploymentConfig.confirmer,
                 deploymentConfig.whitelister,
-                ids
+                deploymentConfig.chainIds
             )
         );
         vm.stopBroadcast();

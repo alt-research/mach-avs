@@ -90,7 +90,7 @@ contract MachServiceManagerDeployer is Script {
         address ejector;
         address whitelister;
         address confirmer;
-        uint256 chainId;
+        uint256[] chainIds;
         uint256 numStrategies;
         uint256 numQuorum;
         uint256 maxOperatorCount;
@@ -109,6 +109,15 @@ contract MachServiceManagerDeployer is Script {
             string memory defaultPath = "./script/input/parameters.json";
             string memory deployedPath = vm.envOr(EIGENLAYER, defaultPath);
             string memory deployedEigenLayerAddresses = vm.readFile(deployedPath);
+
+            deploymentConfig.chainIds = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".chainIds"), (uint256[]));
+            deploymentConfig.numQuorum = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".numQuorum"), (uint256));
+            deploymentConfig.maxOperatorCount =
+                abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".maxOperatorCount"), (uint256));
+            deploymentConfig.minimumStake =
+                abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".minimumStake"), (uint96));
+            deploymentConfig.numStrategies =
+                abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".numStrategies"), (uint256));
 
             bytes memory deployedStrategyManagerData = vm.parseJson(deployedEigenLayerAddresses, ".strategyManager");
             address deployedStrategyManager = abi.decode(deployedStrategyManagerData, (address));
@@ -176,12 +185,6 @@ contract MachServiceManagerDeployer is Script {
                     abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".whitelister"), (address));
             }
         }
-
-        deploymentConfig.chainId = 10;
-        deploymentConfig.numQuorum = 1;
-        deploymentConfig.maxOperatorCount = 50;
-        deploymentConfig.minimumStake = 0;
-        deploymentConfig.numStrategies = 13;
 
         deploymentConfig.avsDirectory = address(eigenLayerContracts.avsDirectory);
         deploymentConfig.delegationManager = address(eigenLayerContracts.delegationManager);
@@ -355,7 +358,7 @@ contract MachServiceManagerDeployer is Script {
                 deploymentConfig.machAVSCommunityMultisig,
                 deploymentConfig.confirmer,
                 deploymentConfig.whitelister,
-                deploymentConfig.chainId
+                deploymentConfig.chainIds
             )
         );
         vm.stopBroadcast();

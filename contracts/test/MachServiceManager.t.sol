@@ -429,10 +429,8 @@ contract MachServiceManagerTest is BLSAVSDeployer {
         serviceManager.disableAllowlist();
         vm.stopPrank();
 
-        (
-            uint32 referenceBlockNumber,
-            BLSSignatureChecker.NonSignerStakesAndSignature memory nonSignerStakesAndSignature
-        ) = _registerSignatoriesAndGetNonSignerStakeAndSignatureRandom(nonRandomNumber, numNonSigners, quorumBitmap);
+        (, BLSSignatureChecker.NonSignerStakesAndSignature memory nonSignerStakesAndSignature) =
+            _registerSignatoriesAndGetNonSignerStakeAndSignatureRandom(nonRandomNumber, numNonSigners, quorumBitmap);
 
         bytes memory quorumThresholdPercentages = new bytes(1);
         quorumThresholdPercentages[0] = bytes1(uint8(67));
@@ -598,7 +596,7 @@ contract MachServiceManagerTest is BLSAVSDeployer {
     function test_QueryMessageHashes_RevertIfInvalidStartIndex() public {
         test_ConfirmAlert();
         vm.expectRevert(InvalidStartIndex.selector);
-        bytes32[] memory results = serviceManager.queryMessageHashes(1, 1, 2);
+        serviceManager.queryMessageHashes(1, 1, 2);
     }
 
     function test_RegisterOperatorToAVS_RevertIfNotInAllowlist() public {
@@ -614,11 +612,7 @@ contract MachServiceManagerTest is BLSAVSDeployer {
         vm.startPrank(proxyAdminOwner);
         serviceManager.disableAllowlist();
         vm.stopPrank();
-
-        (
-            uint32 referenceBlockNumber,
-            BLSSignatureChecker.NonSignerStakesAndSignature memory nonSignerStakesAndSignature
-        ) = _registerSignatoriesAndGetNonSignerStakeAndSignatureRandom(nonRandomNumber, numNonSigners, quorumBitmap);
+        _registerSignatoriesAndGetNonSignerStakeAndSignatureRandom(nonRandomNumber, numNonSigners, quorumBitmap);
 
         vm.startPrank(address(registryCoordinator));
         serviceManager.deregisterOperatorFromAVS(0x73E2Ce949F15bE901F76b54f5a4554a6C8Dcf541);

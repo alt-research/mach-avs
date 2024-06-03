@@ -17,9 +17,9 @@ import (
 	"github.com/alt-research/avs-generic-aggregator/core/config"
 	"github.com/alt-research/avs-generic-aggregator/core/types"
 	proxyUtils "github.com/alt-research/avs-generic-aggregator/proxy/utils"
-	"github.com/alt-research/avs/core/alert"
-	"github.com/alt-research/avs/core/message"
-	"github.com/alt-research/avs/operator"
+	"github.com/alt-research/avs/legacy/core/alert"
+	"github.com/alt-research/avs/legacy/core/message"
+	"github.com/alt-research/avs/legacy/operator"
 )
 
 type ProxyHashRpcServer struct {

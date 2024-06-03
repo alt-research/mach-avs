@@ -18,7 +18,7 @@ EOF
 
 COPY . .
 
-WORKDIR /usr/src/app/operator/cmd
+WORKDIR /usr/src/app/legacy/operator/cmd
 RUN \
     --mount=type=secret,id=gh_hosts,target=/root/.config/gh/hosts.yml \
     --mount=type=secret,id=git_config,target=/root/.gitconfig \

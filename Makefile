@@ -47,16 +47,16 @@ lint:
 build: build-operator build-aggregator build-cli build-operator-proxy
 
 build-operator:
-	go build -o ./bin/mach-operator-signer ./operator/cmd 
+	go build -o ./bin/mach-operator-signer ./legacy/operator/cmd 
 
 build-operator-proxy:
 	go build -o ./bin/mach-operator-proxy ./generic-operator-proxy/cmd
 
 build-aggregator:
-	go build -o ./bin/mach-aggregator ./aggregator/cmd 
+	go build -o ./bin/mach-aggregator ./legacy/aggregator/cmd 
 
 build-cli:
-	go build -o ./bin/mach-operator-cli ./cli 
+	go build -o ./bin/mach-operator-cli ./legacy/cli 
 
 _____HELPER_____: ## 
 mocks: ## generates mocks for tests

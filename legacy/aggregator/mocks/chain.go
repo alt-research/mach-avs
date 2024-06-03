@@ -6,8 +6,8 @@ import (
 	opstateretriever "github.com/Layr-Labs/eigensdk-go/contracts/bindings/OperatorStateRetriever"
 	"github.com/Layr-Labs/eigensdk-go/crypto/bls"
 
-	"github.com/alt-research/avs/aggregator/types"
 	csservicemanager "github.com/alt-research/avs/contracts/bindings/MachServiceManager"
+	"github.com/alt-research/avs/legacy/aggregator/types"
 )
 
 // ====== TaskManager Mocks ======

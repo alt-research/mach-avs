@@ -100,16 +100,16 @@ interface IMachServiceManager is IServiceManager {
     event AlertRemoved(bytes32 messageHash, address sender);
 
     /**
-     * @notice Add an operator to the allowlist.
-     * @param operator The operator to add
+     * @notice Add  operators to the allowlist.
+     * @param operator The operators to add
      */
-    function addToAllowlist(address operator) external;
+    function allowOperators(address[] calldata operator) external;
 
     /**
-     * @notice Remove an operator from the allowlist.
-     * @param operator The operator to remove
+     * @notice Remove operators from the allowlist.
+     * @param operator The operators to remove
      */
-    function removeFromAllowlist(address operator) external;
+    function disallowOperators(address[] calldata operator) external;
 
     /**
      * @notice Enable the allowlist.

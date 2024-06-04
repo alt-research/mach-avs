@@ -127,26 +127,36 @@ contract MachServiceManager is
     /**
      * @inheritdoc IMachServiceManager
      */
-    function addToAllowlist(address operator) external onlyWhitelister {
-        if (operator == address(0)) {
-            revert ZeroAddress();
+    function allowOperators(address[] calldata operators) external onlyWhitelister {
+        for (uint256 i; i < operators.length; ++i) {
+            address operator = operators[i];
+
+            if (operator == address(0)) {
+                revert ZeroAddress();
+            }
+            if (allowlist[operator]) {
+                revert AlreadyInAllowlist();
+            }
+
+            allowlist[operator] = true;
+            emit OperatorAllowed(operator);
         }
-        if (allowlist[operator]) {
-            revert AlreadyInAllowlist();
-        }
-        allowlist[operator] = true;
-        emit OperatorAllowed(operator);
     }
 
     /**
      * @inheritdoc IMachServiceManager
      */
-    function removeFromAllowlist(address operator) external onlyWhitelister {
-        if (!allowlist[operator]) {
-            revert NotInAllowlist();
+    function disallowOperators(address[] calldata operators) external onlyWhitelister {
+        for (uint256 i; i < operators.length; ++i) {
+            address operator = operators[i];
+
+            if (!allowlist[operator]) {
+                revert NotInAllowlist();
+            }
+
+            allowlist[operator] = false;
+            emit OperatorDisallowed(operator);
         }
-        allowlist[operator] = false;
-        emit OperatorDisallowed(operator);
     }
 
     /**

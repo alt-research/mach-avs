@@ -76,63 +76,79 @@ contract MachServiceManagerTest is BLSAVSDeployer {
         serviceManager.setWhitelister(address(42));
     }
 
-    function test_AddToAllowlist() public {
+    function test_AllowOperators() public {
         vm.startPrank(proxyAdminOwner);
+        address[] memory operators = new address[](1);
+        operators[0] = defaultOperator;
         assertFalse(serviceManager.allowlist(defaultOperator), "mismatch");
         vm.expectEmit();
         emit OperatorAllowed(defaultOperator);
-        serviceManager.addToAllowlist(defaultOperator);
+        serviceManager.allowOperators(operators);
         assertTrue(serviceManager.allowlist(defaultOperator), "mismatch");
         vm.stopPrank();
     }
 
-    function test_AddToAllowlist_RevertIfNotWhitelister() public {
+    function test_AllowOperators_RevertIfNotWhitelister() public {
         vm.expectRevert(NotWhitelister.selector);
-        serviceManager.addToAllowlist(defaultOperator);
+        address[] memory operators = new address[](1);
+        operators[0] = defaultOperator;
+        serviceManager.allowOperators(operators);
     }
 
-    function test_AddToAllowlist_RevertIfZeroAddress() public {
+    function test_AllowOperators_RevertIfZeroAddress() public {
         vm.startPrank(proxyAdminOwner);
         vm.expectRevert(ZeroAddress.selector);
-        serviceManager.addToAllowlist(address(0));
+        address[] memory operators = new address[](1);
+        serviceManager.allowOperators(operators);
         vm.stopPrank();
     }
 
-    function test_AddToAllowlist_RevertIfAlreadyInAllowlist() public {
-        test_AddToAllowlist();
+    function test_AllowOperators_RevertIfAlreadyInAllowlist() public {
+        test_AllowOperators();
         vm.startPrank(proxyAdminOwner);
         vm.expectRevert(AlreadyInAllowlist.selector);
-        serviceManager.addToAllowlist(defaultOperator);
+
+        address[] memory operators = new address[](1);
+        operators[0] = defaultOperator;
+        serviceManager.allowOperators(operators);
         vm.stopPrank();
     }
 
-    function test_RemoveFromAllowlist() public {
-        test_AddToAllowlist();
+    function test_DisllowOperators() public {
+        test_AllowOperators();
         vm.startPrank(proxyAdminOwner);
+
+        address[] memory operators = new address[](1);
+        operators[0] = defaultOperator;
+
         assertTrue(serviceManager.allowlist(defaultOperator), "Operator should be in allowlist before removal");
 
         vm.expectEmit();
         emit OperatorDisallowed(defaultOperator);
 
-        serviceManager.removeFromAllowlist(defaultOperator);
+        serviceManager.disallowOperators(operators);
 
         assertFalse(serviceManager.allowlist(defaultOperator), "Operator should not be in allowlist after removal");
         vm.stopPrank();
     }
 
-    function test_RemoveFromAllowlist_RevertIfNotWhitelister() public {
+    function test_DisllowOperators_RevertIfNotWhitelister() public {
+        address[] memory operators = new address[](1);
+        operators[0] = defaultOperator;
+
         vm.expectRevert(NotWhitelister.selector);
-        serviceManager.removeFromAllowlist(defaultOperator);
+        serviceManager.disallowOperators(operators);
     }
 
-    function test_RemoveFromAllowlist_RevertIfNotInAllowlist() public {
-        address nonListedOperator = address(0xdead);
+    function test_DisllowOperators_RevertIfNotInAllowlist() public {
+        address[] memory operators = new address[](1);
+        operators[0] = address(0xdead);
 
         vm.startPrank(proxyAdminOwner);
-        assertFalse(serviceManager.allowlist(nonListedOperator), "Operator should not be in allowlist");
+        assertFalse(serviceManager.allowlist(operators[0]), "Operator should not be in allowlist");
 
         vm.expectRevert(NotInAllowlist.selector);
-        serviceManager.removeFromAllowlist(nonListedOperator);
+        serviceManager.disallowOperators(operators);
         vm.stopPrank();
     }
 

@@ -28,6 +28,19 @@
 | PauserRegistry         | [`0x895Dd27289096722c389Cb3fd99aF2750190a48a`](https://etherscan.io/address/0x895Dd27289096722c389Cb3fd99aF2750190a48a) |
 | StakeRegistry          | [`0x681b76916fdecc07705b91e032D435f03B678C76`](https://etherscan.io/address/0x681b76916fdecc07705b91e032D435f03B678C76) |
 
+### DODOchain MACH AVS
+
+| Name                     | Address                                                                                                               |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------- |
+| ProxyAdmin             | [`0x25f8f07D6fdB1B4799169c983624708E33A96571`](https://etherscan.io/address/0x25f8f07D6fdB1B4799169c983624708E33A96571) |
+| ServiceManager         | [`0xd50E0931703302B080880C45148F5D83ea66aE2a`](https://etherscan.io/address/0xd50E0931703302B080880C45148F5D83ea66aE2a) |
+| RegistryCoordinator    | [`0xCa7f0a65f82230691580F41876161E6282460F29`](https://etherscan.io/address/0xCa7f0a65f82230691580F41876161E6282460F29) |
+| BLSApkRegistry         | [`0x69Ad83345f2AA1D95DC5f2539756e1858b6e8C57`](https://etherscan.io/address/0x69Ad83345f2AA1D95DC5f2539756e1858b6e8C57) |
+| IndexRegistry          | [`0xae60938bba94605DC759708A56Fbf99E8Bd9A3Dd`](https://etherscan.io/address/0xae60938bba94605DC759708A56Fbf99E8Bd9A3Dd) |
+| OperatorStateRetriever | [`0x1d6F6af4464BDb3f2977d4A3EFC29A60d362D20B`](https://etherscan.io/address/0x1d6F6af4464BDb3f2977d4A3EFC29A60d362D20B) |
+| PauserRegistry         | [`0x201FD6D35580b6e35e4009965C39E55ba1a5E35B`](https://etherscan.io/address/0x201FD6D35580b6e35e4009965C39E55ba1a5E35B) |
+| StakeRegistry          | [`0xC4b21787131bCA9898e1B52EE6F6F23B126698D8`](https://etherscan.io/address/0xC4b21787131bCA9898e1B52EE6F6F23B126698D8) |
+
 ### Cyber Mach AVS
 
 | Name                   | Address                                                                                                                 |

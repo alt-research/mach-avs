@@ -1,4 +1,9 @@
 {
+  "chainIds": [10],
+  "numQuorum": 1,
+  "maxOperatorCount": 50,
+  "minimumStake": 0,
+  "numStrategies": 3,
   "strategyManager": "0xdfB5f6CE42aAA7830E94ECFCcAd411beF4d4D5b6",
   "avsDirectory": "0x055733000064333CaDDbC92763c58BF0192fFeBf",
   "delegationManager": "0xA44151489861Fe9e3055d95adC98FbD462B948e7",

@@ -300,7 +300,7 @@ contract MachServiceManager is
         }
 
         // check the signature
-        (QuorumStakeTotals memory quorumStakeTotals, bytes32 signatoryRecordHash) = checkSignatures(
+        (QuorumStakeTotals memory quorumStakeTotals, /* bytes32 signatoryRecordHash */ ) = checkSignatures(
             hashedHeader,
             alertHeader.quorumNumbers, // use list of uint8s instead of uint256 bitmap to not iterate 256 times
             alertHeader.referenceBlockNumber,

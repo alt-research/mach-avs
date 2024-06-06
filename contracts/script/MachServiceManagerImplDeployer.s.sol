@@ -14,10 +14,10 @@ contract MachServiceManagerImplDeployer is Script {
         address avsDirectory = vm.envAddress("AVS_DIRECTORY");
         address registryCoordinator = vm.envAddress("REGISTRY_COORDINATOR");
         address stakeRegistry = vm.envAddress("STAKE_REGISTRY");
-        uint256 chainId = vm.envUint("CHAIN_ID");
+
         vm.startBroadcast();
         // 1. deploy new implementation contract
-        MachServiceManager machServiceManagerImplementation = new MachServiceManager(
+        new MachServiceManager(
             IAVSDirectory(avsDirectory), IRegistryCoordinator(registryCoordinator), IStakeRegistry(stakeRegistry)
         );
         vm.stopBroadcast();

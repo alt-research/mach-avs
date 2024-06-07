@@ -147,7 +147,7 @@ contract MachOptimismZkServiceManager is
      */
     function removeFromAllowlist(address operator) external onlyOwner {
         if (!_allowlist[operator]) {
-            revert NotInAllowlist();
+            revert NotAdded();
         }
         _allowlist[operator] = false;
         emit OperatorDisallowed(operator);
@@ -183,7 +183,7 @@ contract MachOptimismZkServiceManager is
         ISignatureUtils.SignatureWithSaltAndExpiry memory operatorSignature
     ) public override(ServiceManagerBase) whenNotPaused onlyRegistryCoordinator {
         if (allowlistEnabled && !_allowlist[operator]) {
-            revert NotInAllowlist();
+            revert NotAdded();
         }
         _avsDirectory.registerOperatorToAVS(operator, operatorSignature);
         // we don't check if this operator has registered or not as AVSDirectory has such checking already

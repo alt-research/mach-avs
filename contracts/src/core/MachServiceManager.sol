@@ -24,7 +24,7 @@ import {
     NotWhitelister,
     ZeroAddress,
     AlreadyInAllowlist,
-    NotInAllowlist,
+    NotAdded,
     NoStatusChange,
     InvalidRollupChainID,
     InvalidReferenceBlockNum,
@@ -151,7 +151,7 @@ contract MachServiceManager is
             address operator = operators[i];
 
             if (!allowlist[operator]) {
-                revert NotInAllowlist();
+                revert NotAdded();
             }
 
             allowlist[operator] = false;
@@ -242,7 +242,7 @@ contract MachServiceManager is
         ISignatureUtils.SignatureWithSaltAndExpiry memory operatorSignature
     ) public override(ServiceManagerBase, IServiceManager) whenNotPaused onlyRegistryCoordinator {
         if (allowlistEnabled && !allowlist[operator]) {
-            revert NotInAllowlist();
+            revert NotAdded();
         }
         // we don't check if this operator has registered or not as AVSDirectory has such checking already
         _operators.add(operator);

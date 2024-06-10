@@ -140,14 +140,14 @@ contract MachServiceManagerTest is BLSAVSDeployer {
         serviceManager.disallowOperators(operators);
     }
 
-    function test_DisllowOperators_RevertIfNotInAllowlist() public {
+    function test_DisllowOperators_RevertIfNotAdded() public {
         address[] memory operators = new address[](1);
         operators[0] = address(0xdead);
 
         vm.startPrank(proxyAdminOwner);
         assertFalse(serviceManager.allowlist(operators[0]), "Operator should not be in allowlist");
 
-        vm.expectRevert(NotInAllowlist.selector);
+        vm.expectRevert(NotAdded.selector);
         serviceManager.disallowOperators(operators);
         vm.stopPrank();
     }
@@ -615,9 +615,9 @@ contract MachServiceManagerTest is BLSAVSDeployer {
         serviceManager.queryMessageHashes(1, 1, 2);
     }
 
-    function test_RegisterOperatorToAVS_RevertIfNotInAllowlist() public {
+    function test_RegisterOperatorToAVS_RevertIfNotAdded() public {
         vm.startPrank(address(registryCoordinator));
-        vm.expectRevert(NotInAllowlist.selector);
+        vm.expectRevert(NotAdded.selector);
         serviceManager.registerOperatorToAVS(
             address(0), ISignatureUtils.SignatureWithSaltAndExpiry(abi.encodePacked(""), 0, 0)
         );

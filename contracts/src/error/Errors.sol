@@ -14,7 +14,7 @@ error InsufficientThresholdPercentages();
 error InvalidQuorumParam();
 error InvalidQuorumThresholdPercentage();
 error AlreadyInAllowlist();
-error NotInAllowlist();
+error NotAdded();
 error AlreadyAdded();
 error ResolvedAlert();
 error AlreadyEnabled();

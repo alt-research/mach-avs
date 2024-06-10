@@ -11,7 +11,8 @@ contract MachServiceManagerRegistryTest is Test {
     MachServiceManagerRegistry registry;
     IMachServiceManager mockServiceManager;
 
-    event ServiceManagerRegistered(uint256 rollupChainId_, IMachServiceManager serviceManager_, address sender);
+    event ServiceManagerRegistered(uint256 indexed rollupChainId, IMachServiceManager serviceManager, address sender);
+    event ServiceManagerDeregistered(uint256 indexed rollupChainId, IMachServiceManager serviceManager, address sender);
 
     function setUp() public {
         // Deploy the registry
@@ -19,7 +20,7 @@ contract MachServiceManagerRegistryTest is Test {
         registry.initialize();
 
         // Mocking the IMachServiceManager interface
-        mockServiceManager = IMachServiceManager(address(1));
+        mockServiceManager = IMachServiceManager(address(101));
 
         // Ensure registry is owned by this test contract for testing purposes
         registry.transferOwnership(address(this));
@@ -28,7 +29,7 @@ contract MachServiceManagerRegistryTest is Test {
     function test_RegisterServiceManager() public {
         uint256 rollupChainId = 1;
 
-        vm.expectEmit(true, true, true, true);
+        vm.expectEmit();
         emit ServiceManagerRegistered(rollupChainId, mockServiceManager, address(this));
 
         registry.registerServiceManager(rollupChainId, mockServiceManager);
@@ -96,5 +97,38 @@ contract MachServiceManagerRegistryTest is Test {
         bool hasAlerts = registry.hasActiveAlerts(rollupChainId);
 
         assertFalse(hasAlerts, "Expected to have no active alerts");
+    }
+
+    function test_DeregisterServiceManager() public {
+        uint256 rollupChainId = 1;
+
+        registry.registerServiceManager(rollupChainId, mockServiceManager);
+
+        vm.expectEmit();
+        emit ServiceManagerDeregistered(rollupChainId, mockServiceManager, address(this));
+
+        registry.deregisterServiceManager(rollupChainId, mockServiceManager);
+
+        assertEq(address(registry.serviceManagers(rollupChainId)), address(0), "Service manager should be deregistered");
+    }
+
+    function test_DeregisterServiceManager_RevertIfNotAdded() public {
+        uint256 rollupChainId = 1;
+
+        vm.expectRevert(NotAdded.selector);
+        registry.deregisterServiceManager(rollupChainId, mockServiceManager);
+    }
+
+    function test_DeregisterServiceManager_RevertIfNotOwner() public {
+        uint256 rollupChainId = 1;
+
+        // Register a service manager
+        registry.registerServiceManager(rollupChainId, mockServiceManager);
+
+        // Transfer ownership to another address for this test
+        registry.transferOwnership(address(0xdead));
+
+        vm.expectRevert("Ownable: caller is not the owner");
+        registry.deregisterServiceManager(rollupChainId, mockServiceManager);
     }
 }

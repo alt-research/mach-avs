@@ -5,6 +5,17 @@ import {IServiceManager} from "eigenlayer-middleware/interfaces/IServiceManager.
 import {BLSSignatureChecker} from "eigenlayer-middleware/BLSSignatureChecker.sol";
 import {IMachOptimism} from "../interfaces/IMachOptimism.sol";
 
+interface ITotalAlertsLegacy {
+    // Legarcy
+    /// @notice Returns the length of total alerts
+    function totalAlerts() external view returns (uint256);
+}
+
+interface ITotalAlerts {
+    /// @notice Returns the length of total alerts
+    function totalAlerts(uint256 rollupChainId) external view returns (uint256);
+}
+
 /**
  * @title Interface for the MachServiceManager contract.
  * @author Altlayer, Inc.

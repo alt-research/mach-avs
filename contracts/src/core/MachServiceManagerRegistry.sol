@@ -30,6 +30,10 @@ contract MachServiceManagerRegistry is OwnableUpgradeable {
     /// @param sender The address that deregistered the service manager
     event ServiceManagerDeregistered(uint256 indexed rollupChainId, address serviceManager, address sender);
 
+    constructor() {
+        _disableInitializers();
+    }
+
     /// @notice Initializes the contract and sets the deployer as the owner
     function initialize() external initializer {
         __Ownable_init();

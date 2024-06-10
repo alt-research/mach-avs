@@ -2,6 +2,8 @@
 pragma solidity =0.8.12;
 
 import "forge-std/Test.sol";
+import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
+import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import "@openzeppelin-upgrades/contracts/access/OwnableUpgradeable.sol";
 import "../src/interfaces/IMachServiceManager.sol";
 import "../src/core/MachServiceManagerRegistry.sol";
@@ -41,7 +43,13 @@ contract MachServiceManagerRegistryTest is Test {
 
     function setUp() public {
         // Deploy the registry
-        registry = new MachServiceManagerRegistry();
+        registry = MachServiceManagerRegistry(
+            address(
+                new TransparentUpgradeableProxy(
+                    address(new MachServiceManagerRegistry()), address(new ProxyAdmin()), ""
+                )
+            )
+        );
         registry.initialize();
 
         // Deploy the mock service managers

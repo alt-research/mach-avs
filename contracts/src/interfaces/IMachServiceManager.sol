@@ -6,7 +6,7 @@ import {BLSSignatureChecker} from "eigenlayer-middleware/BLSSignatureChecker.sol
 import {IMachOptimism} from "../interfaces/IMachOptimism.sol";
 
 interface ITotalAlertsLegacy {
-    // Legarcy
+    // Legacy
     /// @notice Returns the length of total alerts
     function totalAlerts() external view returns (uint256);
 }

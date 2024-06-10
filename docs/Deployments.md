@@ -54,6 +54,11 @@
 | PauserRegistry         | [`0xFAd89a10cF7b870239f5259631D859c963B6C17a`](https://etherscan.io/address/0xFAd89a10cF7b870239f5259631D859c963B6C17a) |
 | StakeRegistry          | [`0x52e5d46AdbfCf925d9aBA79D21be70e3098fD70f`](https://etherscan.io/address/0x52e5d46AdbfCf925d9aBA79D21be70e3098fD70f) |
 
+### Mach Service Manager Registry
+
+| ProxyAdmin | [`0xba9aC2c9d1Fc2Ba22f3709EC073757777447bb5B`](https://etherscan.io/address/0xba9aC2c9d1Fc2Ba22f3709EC073757777447bb5B) |
+| MachServiceManagerRegistry | [`0x289dbe6573d6a1daf00110b5b1b2d8f0a34099c2`](https://etherscan.io/address/0x289dbe6573d6a1daf00110b5b1b2d8f0a34099c2) |
+
 ## Holesky Testnet
 
 ### AltLayer Mach AVS

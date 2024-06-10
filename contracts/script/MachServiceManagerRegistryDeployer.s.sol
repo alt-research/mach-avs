@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.so
 
 import {MachServiceManagerRegistry} from "../src/core/MachServiceManagerRegistry.sol";
 
-// PROXY_ADMIN=0x2AB98471C25061C11431EA72F92215DC1d918C64 forge script ./script/MachServiceManagerRegistryDeployer.s.sol \
+// PROXY_ADMIN=$PROXY_ADMIN forge script ./script/MachServiceManagerRegistryDeployer.s.sol \
 //     --private-key $PK \
 //     --rpc-url $URL \
 //     --etherscan-api-key $API_KEY \

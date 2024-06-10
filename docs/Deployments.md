@@ -30,8 +30,8 @@
 
 ### DODOchain MACH AVS
 
-| Name                     | Address                                                                                                               |
-| ------------------------ | --------------------------------------------------------------------------------------------------------------------- |
+| Name                   | Address                                                                                                                 |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------- |
 | ProxyAdmin             | [`0x25f8f07D6fdB1B4799169c983624708E33A96571`](https://etherscan.io/address/0x25f8f07D6fdB1B4799169c983624708E33A96571) |
 | ServiceManager         | [`0xd50E0931703302B080880C45148F5D83ea66aE2a`](https://etherscan.io/address/0xd50E0931703302B080880C45148F5D83ea66aE2a) |
 | RegistryCoordinator    | [`0xCa7f0a65f82230691580F41876161E6282460F29`](https://etherscan.io/address/0xCa7f0a65f82230691580F41876161E6282460F29) |
@@ -54,7 +54,7 @@
 | PauserRegistry         | [`0xFAd89a10cF7b870239f5259631D859c963B6C17a`](https://etherscan.io/address/0xFAd89a10cF7b870239f5259631D859c963B6C17a) |
 | StakeRegistry          | [`0x52e5d46AdbfCf925d9aBA79D21be70e3098fD70f`](https://etherscan.io/address/0x52e5d46AdbfCf925d9aBA79D21be70e3098fD70f) |
 
-## Testnet
+## Holesky Testnet
 
 ### AltLayer Mach AVS
 
@@ -81,3 +81,8 @@
 | OperatorStateRetriever | [`0x222B52694Ab22AFc155B573baF52C1ed9a26b3f1`](https://holesky.etherscan.io/address/0x222B52694Ab22AFc155B573baF52C1ed9a26b3f1) |
 | PauserRegistry         | [`0x4eFbD4288119436F91aF2BA199809e82444A4966`](https://holesky.etherscan.io/address/0x4eFbD4288119436F91aF2BA199809e82444A4966) |
 | StakeRegistry          | [`0x6628b0Cc07a6fdB84d660DeF0E74F3C21D78C290`](https://holesky.etherscan.io/address/0x6628b0Cc07a6fdB84d660DeF0E74F3C21D78C290) |
+
+### Mach Service Manager Registry
+
+| ProxyAdmin | [`0xeBaE2a37884e7aeC83c0e69A146e4920c6aAE6Dc`](https://holesky.etherscan.io/address/0xeBaE2a37884e7aeC83c0e69A146e4920c6aAE6Dc) |
+| MachServiceManagerRegistry | [`0x5c36928d11d7a39641ed520d2213afc9ec806d71`](https://holesky.etherscan.io/address/0x5c36928d11d7a39641ed520d2213afc9ec806d71) |

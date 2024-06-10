@@ -77,7 +77,7 @@ contract MachServiceManagerRegistry is OwnableUpgradeable {
 
         try ITotalAlerts(target).totalAlerts(rollupChainId_) returns (uint256 totalAlerts) {
             return totalAlerts > 0;
-        } catch (bytes memory reason) {
+        } catch (bytes memory) {
             return ITotalAlertsLegacy(target).totalAlerts() > 0;
         }
     }

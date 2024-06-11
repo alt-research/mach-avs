@@ -76,6 +76,7 @@ func operatorProxyMain(ctx *cli.Context) error {
 		nodeConfig.GenericOperatorAddr,
 		nodeConfig.RpcCfg,
 		nodeConfig.ChainIds,
+		nodeConfig.WorkProofsBlockNumMod,
 	)
 
 	return rpcServer.Start(mainCtx)

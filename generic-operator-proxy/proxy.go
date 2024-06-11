@@ -23,11 +23,12 @@ import (
 )
 
 type ProxyHashRpcServer struct {
-	baseServers    map[string]*proxyUtils.ProxyRpcServerBase
-	avsCfgs        map[string]config.GenericAVSConfig
-	chainIds       map[string]uint32
-	defaultAVSName string
-	logger         logging.Logger
+	baseServers           map[string]*proxyUtils.ProxyRpcServerBase
+	avsCfgs               map[string]config.GenericAVSConfig
+	chainIds              map[string]uint32
+	workProofsBlockNumMod map[string]uint32
+	defaultAVSName        string
+	logger                logging.Logger
 	// We use this rpc server as the handler for jsonrpc
 	// to make sure same as legacy operator 's api
 	rpcServer operator.RpcServer
@@ -46,6 +47,7 @@ func NewAlertProxyRpcServer(
 	genericOperatorAddr string,
 	jsonrpcCfg config.JsonRpcServerConfig,
 	chainIds map[string]uint32,
+	workProofsBlockNumMod map[string]uint32,
 ) *ProxyHashRpcServer {
 	bases := make(map[string]*proxyUtils.ProxyRpcServerBase, len(avsCfgs))
 	avsCfgsMap := make(map[string]config.GenericAVSConfig, len(avsCfgs))
@@ -68,14 +70,15 @@ func NewAlertProxyRpcServer(
 	rpcServer := operator.NewRpcServer(logger, jsonrpcCfg.Addr, newTaskCreatedChan, newWorkProofChan)
 
 	server := &ProxyHashRpcServer{
-		baseServers:        bases,
-		logger:             logger,
-		defaultAVSName:     defaultAVSName,
-		newTaskCreatedChan: newTaskCreatedChan,
-		newWorkProofChan:   newWorkProofChan,
-		rpcServer:          rpcServer,
-		avsCfgs:            avsCfgsMap,
-		chainIds:           chainIds,
+		baseServers:           bases,
+		logger:                logger,
+		defaultAVSName:        defaultAVSName,
+		newTaskCreatedChan:    newTaskCreatedChan,
+		newWorkProofChan:      newWorkProofChan,
+		rpcServer:             rpcServer,
+		avsCfgs:               avsCfgsMap,
+		chainIds:              chainIds,
+		workProofsBlockNumMod: workProofsBlockNumMod,
 	}
 
 	// not need do this because we not need use this server impl
@@ -312,6 +315,21 @@ func (s *ProxyHashRpcServer) commitWorkProof(ctx context.Context, avsName string
 	chainId, ok := s.chainIds[avsNameToProxy]
 	if !ok || chainId == 0 {
 		return errors.Errorf("not found chain id for avs name %v", avsNameToProxy)
+	}
+
+	blockNumMod, ok := s.workProofsBlockNumMod[avsNameToProxy]
+	if ok {
+		if index > blockNumMod {
+			i := index % blockNumMod
+			if i != 0 {
+				s.logger.Info(
+					"work proof not need commit",
+					"avsName", avsName, "index", index,
+					"inc", i,
+					"next", index-i+blockNumMod)
+				return nil
+			}
+		}
 	}
 
 	baseServer, ok := s.baseServers[avsNameToProxy]

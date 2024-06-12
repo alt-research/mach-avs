@@ -1,4 +1,4 @@
 forge-std/=lib/forge-std/src/
 eigenlayer-middleware/=lib/eigenlayer-middleware/src/
-eigenlayer-core/=lib/eigenlayer-contracts/src/
+eigenlayer-core/=lib/eigenlayer-middleware/lib/eigenlayer-contracts/src/
 eigenlayer-middleware-test/=lib/eigenlayer-middleware/test/

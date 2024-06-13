@@ -52,5 +52,5 @@ abstract contract MachServiceManagerStorage {
 
     // storage gap for upgradeability
     // slither-disable-next-line shadowing-state
-    uint256[44] private __GAP;
+    uint256[43] private __GAP;
 }

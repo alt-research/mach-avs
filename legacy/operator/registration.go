@@ -50,9 +50,9 @@ func (o *Operator) DepositIntoStrategy(strategyAddr common.Address, amount *big.
 // Registration specific functions
 func (o *Operator) RegisterOperatorWithAvs(
 	operatorEcdsaKeyPair *ecdsa.PrivateKey,
+	quorumNumbers []byte,
 ) error {
 	// hardcode these things for now
-	quorumNumbers := []byte{0}
 	socket := o.config.OperatorSocket
 
 	// Generate salt and expiry

@@ -43,6 +43,12 @@ func main() {
 			Aliases: []string{"r"},
 			Usage:   "registers bls keys with pubkey-compendium, opts into slashing by avs service-manager, and registers operators with avs registry",
 			Action:  actions.RegisterOperatorWithAvs,
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "quorum-numbers",
+					Usage: "The quorum numbers, if not set, will be 0",
+				},
+			},
 		},
 		{
 			Name:    "deregister-operator-with-avs",

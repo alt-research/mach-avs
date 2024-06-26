@@ -52,7 +52,7 @@ func RegisterOperatorWithAvs(ctx *cli.Context) error {
 	quorumNumbers := []byte{0}
 
 	quorumNumbersEnvStr, ok := os.LookupEnv("REG_QUORUM_NUMBERS")
-	if !ok && quorumNumbersEnvStr != "" {
+	if ok && quorumNumbersEnvStr != "" {
 		log.Printf("use REG_QUORUM_NUMBERS %v", quorumNumbersEnvStr)
 		quorumNumbers, err = parseQuorumNumbers(quorumNumbersEnvStr)
 		if err != nil {

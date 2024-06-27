@@ -10,10 +10,11 @@ pragma solidity =0.8.12;
 
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {Pausable} from "eigenlayer-core/contracts/permissions/Pausable.sol";
+import {IRewardsCoordinator} from "eigenlayer-core/contracts/interfaces/IRewardsCoordinator.sol";
 import {IAVSDirectory} from "eigenlayer-core/contracts/interfaces/IAVSDirectory.sol";
 import {ISignatureUtils} from "eigenlayer-core/contracts/interfaces/ISignatureUtils.sol";
 import {IPauserRegistry} from "eigenlayer-core/contracts/interfaces/IPauserRegistry.sol";
-import {IServiceManager} from "eigenlayer-middleware/interfaces/IServiceManager.sol";
+import {IServiceManager, IServiceManagerUI} from "eigenlayer-middleware/interfaces/IServiceManager.sol";
 import {IStakeRegistry} from "eigenlayer-middleware/interfaces/IStakeRegistry.sol";
 import {IRegistryCoordinator} from "eigenlayer-middleware/interfaces/IRegistryCoordinator.sol";
 import {BLSSignatureChecker} from "eigenlayer-middleware/BLSSignatureChecker.sol";
@@ -90,11 +91,12 @@ contract MachServiceManager is
 
     constructor(
         IAVSDirectory __avsDirectory,
+        IRewardsCoordinator __rewardsCoordinator,
         IRegistryCoordinator __registryCoordinator,
         IStakeRegistry __stakeRegistry
     )
         BLSSignatureChecker(__registryCoordinator)
-        ServiceManagerBase(__avsDirectory, __registryCoordinator, __stakeRegistry)
+        ServiceManagerBase(__avsDirectory, __rewardsCoordinator, __registryCoordinator, __stakeRegistry)
     {
         _disableInitializers();
     }
@@ -103,12 +105,13 @@ contract MachServiceManager is
         IPauserRegistry pauserRegistry_,
         uint256 initialPausedStatus_,
         address initialOwner_,
+        address rewardsInitiator_,
         address alertConfirmer_,
         address whitelister_,
         uint256[] calldata rollupChainIDs_
     ) public initializer {
         _initializePauser(pauserRegistry_, initialPausedStatus_);
-        __ServiceManagerBase_init(initialOwner_);
+        __ServiceManagerBase_init(initialOwner_, rewardsInitiator_);
         _setAlertConfirmer(alertConfirmer_);
         _setWhitelister(whitelister_);
 
@@ -235,12 +238,12 @@ contract MachServiceManager is
     //////////////////////////////////////////////////////////////////////////////
 
     /**
-     * @inheritdoc IServiceManager
+     * @inheritdoc IServiceManagerUI
      */
     function registerOperatorToAVS(
         address operator,
         ISignatureUtils.SignatureWithSaltAndExpiry memory operatorSignature
-    ) public override(ServiceManagerBase, IServiceManager) whenNotPaused onlyRegistryCoordinator {
+    ) public override(ServiceManagerBase, IServiceManagerUI) whenNotPaused onlyRegistryCoordinator {
         if (allowlistEnabled && !allowlist[operator]) {
             revert NotAdded();
         }
@@ -254,11 +257,11 @@ contract MachServiceManager is
     }
 
     /**
-     * @inheritdoc IServiceManager
+     * @inheritdoc IServiceManagerUI
      */
     function deregisterOperatorFromAVS(address operator)
         public
-        override(ServiceManagerBase, IServiceManager)
+        override(ServiceManagerBase, IServiceManagerUI)
         whenNotPaused
         onlyRegistryCoordinator
     {

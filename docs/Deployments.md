@@ -54,6 +54,19 @@
 | PauserRegistry         | [`0xFAd89a10cF7b870239f5259631D859c963B6C17a`](https://etherscan.io/address/0xFAd89a10cF7b870239f5259631D859c963B6C17a) |
 | StakeRegistry          | [`0x52e5d46AdbfCf925d9aBA79D21be70e3098fD70f`](https://etherscan.io/address/0x52e5d46AdbfCf925d9aBA79D21be70e3098fD70f) |
 
+### GM Network Mach AVS
+
+| Name                   | Address                                                                                                                 |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| ProxyAdmin             | [`0xedcB095d4f59A3f4f3a605f758Df188a175390cB`](https://etherscan.io/address/0xedcB095d4f59A3f4f3a605f758Df188a175390cB) |
+| ServiceManager         | [`0xb3AcAF09a1B801E36655B786da4EAA6aE9F5DC37`](https://etherscan.io/address/0xb3AcAF09a1B801E36655B786da4EAA6aE9F5DC37) |
+| RegistryCoordinator    | [`0xDc7e13f1A2Bd0346D741E932CaA341AB6EC21e92`](https://etherscan.io/address/0xDc7e13f1A2Bd0346D741E932CaA341AB6EC21e92) |
+| BLSApkRegistry         | [`0x6A699E05d9a8BC9109EA149a9c6C015A92e7d13B`](https://etherscan.io/address/0x6A699E05d9a8BC9109EA149a9c6C015A92e7d13B) |
+| IndexRegistry          | [`0xC924cC3184C968eb9F6cf4bDB3aC18Df431a00cC`](https://etherscan.io/address/0xC924cC3184C968eb9F6cf4bDB3aC18Df431a00cC) |
+| OperatorStateRetriever | [`0xCACc7483f5268366EDf9Cb7e9d6eE2fd47Bc3ff9`](https://etherscan.io/address/0xCACc7483f5268366EDf9Cb7e9d6eE2fd47Bc3ff9) |
+| PauserRegistry         | [`0x4FE15c4eAa1ab01742b28dabC69f28319f8bAc40`](https://etherscan.io/address/0x4FE15c4eAa1ab01742b28dabC69f28319f8bAc40) |
+| StakeRegistry          | [`0xBd334A295816C03cbD466F64483389Aba7ABF70f`](https://etherscan.io/address/0xBd334A295816C03cbD466F64483389Aba7ABF70f) |
+
 ### Mach Service Manager Registry
 
 | Name                       | Address                                                                                                                 |

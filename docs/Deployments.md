@@ -108,3 +108,12 @@
 | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | ProxyAdmin                 | [`0xeBaE2a37884e7aeC83c0e69A146e4920c6aAE6Dc`](https://holesky.etherscan.io/address/0xeBaE2a37884e7aeC83c0e69A146e4920c6aAE6Dc) |
 | MachServiceManagerRegistry | [`0x5c36928d11d7a39641ed520d2213afc9ec806d71`](https://holesky.etherscan.io/address/0x5c36928d11d7a39641ed520d2213afc9ec806d71) |
+
+#### Rollup Chain IDs
+
+- AltLayer:
+
+  - `11155420` OP sep
+  - `421614` Arb sep
+
+- Xterio: `1637450`

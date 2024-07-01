@@ -11,6 +11,7 @@ import "eigenlayer-core/contracts/core/AVSDirectory.sol";
 import "eigenlayer-core/contracts/core/DelegationManager.sol";
 import "eigenlayer-core/contracts/core/StrategyManager.sol";
 import "eigenlayer-core/contracts/strategies/StrategyBaseTVLLimits.sol";
+import {IRewardsCoordinator} from "eigenlayer-core/contracts/interfaces/IRewardsCoordinator.sol";
 import {IAVSDirectory} from "eigenlayer-core/contracts/interfaces/IAVSDirectory.sol";
 import {PauserRegistry} from "eigenlayer-core/contracts/permissions/PauserRegistry.sol";
 import {IRegistryCoordinator} from "eigenlayer-middleware/interfaces/IRegistryCoordinator.sol";
@@ -49,6 +50,7 @@ contract MachServiceManagerDeployerHolesky is Script {
         AVSDirectory avsDirectory;
         DelegationManager delegationManager;
         StrategyManager strategyManager;
+        IRewardsCoordinator rewardsCoordinator;
         address beaconETH;
         address stETH;
         address rETH;
@@ -105,10 +107,14 @@ contract MachServiceManagerDeployerHolesky is Script {
             address deployedAvsDirectory = abi.decode(deployedAvsDirectoryData, (address));
             bytes memory deployedDelegationManagerData = vm.parseJson(deployedEigenLayerAddresses, ".delegationManager");
             address deployedDelegationManager = abi.decode(deployedDelegationManagerData, (address));
+            bytes memory deployedRewardsCoordinatorData =
+                vm.parseJson(deployedEigenLayerAddresses, ".rewardsCoordinator");
+            address deployedRewardsCoordinator = abi.decode(deployedRewardsCoordinatorData, (address));
 
             eigenLayerContracts.avsDirectory = AVSDirectory(deployedAvsDirectory);
             eigenLayerContracts.strategyManager = StrategyManager(deployedStrategyManager);
             eigenLayerContracts.delegationManager = DelegationManager(deployedDelegationManager);
+            eigenLayerContracts.rewardsCoordinator = IRewardsCoordinator(deployedRewardsCoordinator);
             eigenLayerContracts.beaconETH =
                 abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".beaconETH"), (address));
             eigenLayerContracts.stETH = abi.decode(vm.parseJson(deployedEigenLayerAddresses, ".stETH"), (address));
@@ -277,51 +283,30 @@ contract MachServiceManagerDeployerHolesky is Script {
         }
         machServiceContract.machServiceManagerImplementation = new MachServiceManager(
             IAVSDirectory(deploymentConfig.avsDirectory),
+            eigenLayerContracts.rewardsCoordinator,
             machServiceContract.registryCoordinator,
             machServiceContract.stakeRegistry
         );
 
-        // Third, upgrade the proxy contracts to use the correct implementation contracts and initialize them.
-        machAVSProxyAdmin.upgradeAndCall(
-            TransparentUpgradeableProxy(payable(address(machServiceContract.machServiceManager))),
-            address(machServiceContract.machServiceManagerImplementation),
-            abi.encodeWithSelector(
+        bytes memory initcode;
+        {
+            initcode = abi.encodeWithSelector(
                 MachServiceManager.initialize.selector,
                 IPauserRegistry(pauserRegistry),
                 0,
                 deploymentConfig.machAVSCommunityMultisig,
+                deploymentConfig.machAVSCommunityMultisig,
                 deploymentConfig.confirmer,
                 deploymentConfig.whitelister,
                 deploymentConfig.chainIds
-            )
+            );
+        }
+        // Third, upgrade the proxy contracts to use the correct implementation contracts and initialize them.
+        machAVSProxyAdmin.upgradeAndCall(
+            TransparentUpgradeableProxy(payable(address(machServiceContract.machServiceManager))),
+            address(machServiceContract.machServiceManagerImplementation),
+            initcode
         );
         vm.stopBroadcast();
-
-        string memory MACH = "MACHAVS_ADDRESSES_OUTPUT_PATH";
-        string memory defaultMachPath = "./script/output/machavs_deploy_output.holesky.json";
-        string memory deployedMachPath = vm.envOr(MACH, defaultMachPath);
-
-        string memory output = "machAVS deployment output";
-        vm.serializeAddress(output, "machServiceManager", address(machServiceContract.machServiceManager));
-        vm.serializeAddress(
-            output, "machServiceManagerImpl", address(machServiceContract.machServiceManagerImplementation)
-        );
-        vm.serializeAddress(output, "registryCoordinator", address(machServiceContract.registryCoordinator));
-        vm.serializeAddress(
-            output, "registryCoordinatorImpl", address(machServiceContract.registryCoordinatorImplementation)
-        );
-        vm.serializeAddress(output, "indexRegistry", address(machServiceContract.indexRegistry));
-        vm.serializeAddress(output, "indexRegistryImpl", address(machServiceContract.indexRegistryImplementation));
-        vm.serializeAddress(output, "stakeRegistry", address(machServiceContract.stakeRegistry));
-        vm.serializeAddress(output, "stakeRegistryImpl", address(machServiceContract.stakeRegistryImplementation));
-        vm.serializeAddress(output, "apkRegistry", address(machServiceContract.apkRegistry));
-        vm.serializeAddress(output, "apkRegistryImpl", address(machServiceContract.apkRegistryImplementation));
-        vm.serializeAddress(output, "pauserRegistry", address(pauserRegistry));
-        vm.serializeAddress(output, "machAVSProxyAdmin", address(machAVSProxyAdmin));
-        vm.serializeAddress(output, "emptyContract", address(emptyContract));
-        vm.serializeAddress(output, "operatorStateRetriever", address(machServiceContract.operatorStateRetriever));
-        string memory finalJson = vm.serializeString(output, "object", output);
-        vm.createDir("./script/output", true);
-        vm.writeJson(finalJson, deployedMachPath);
     }
 }

@@ -2,7 +2,7 @@
 
 ## Mainnet
 
-### AltLayer Mach AVS
+### AltLayer MACH AVS
 
 | Name                   | Address                                                                                                                 | Implementation                                                                                                                                                                                                                 |
 | ---------------------- | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -15,7 +15,7 @@
 | PauserRegistry         | [`0xcCC62915256c7137aaD62d5E4385fc737264D2B1`](https://etherscan.io/address/0xcCC62915256c7137aaD62d5E4385fc737264D2B1) |                                                                                                                                                                                                                                |
 | StakeRegistry          | [`0x49296A7D4a76888370CB377CD909Cc73a2f71289`](https://etherscan.io/address/0x49296A7D4a76888370CB377CD909Cc73a2f71289) |                                                                                                                                                                                                                                |
 
-### Xterio Mach AVS
+### Xterio MACH AVS
 
 | Name                   | Address                                                                                                                 |
 | ---------------------- | ----------------------------------------------------------------------------------------------------------------------- |
@@ -41,7 +41,7 @@
 | PauserRegistry         | [`0x201FD6D35580b6e35e4009965C39E55ba1a5E35B`](https://etherscan.io/address/0x201FD6D35580b6e35e4009965C39E55ba1a5E35B) |
 | StakeRegistry          | [`0xC4b21787131bCA9898e1B52EE6F6F23B126698D8`](https://etherscan.io/address/0xC4b21787131bCA9898e1B52EE6F6F23B126698D8) |
 
-### Cyber Mach AVS
+### Cyber MACH AVS
 
 | Name                   | Address                                                                                                                 |
 | ---------------------- | ----------------------------------------------------------------------------------------------------------------------- |
@@ -54,7 +54,7 @@
 | PauserRegistry         | [`0xFAd89a10cF7b870239f5259631D859c963B6C17a`](https://etherscan.io/address/0xFAd89a10cF7b870239f5259631D859c963B6C17a) |
 | StakeRegistry          | [`0x52e5d46AdbfCf925d9aBA79D21be70e3098fD70f`](https://etherscan.io/address/0x52e5d46AdbfCf925d9aBA79D21be70e3098fD70f) |
 
-### GM Network Mach AVS
+### GM Network MACH AVS
 
 | Name                   | Address                                                                                                                 |
 | ---------------------- | ----------------------------------------------------------------------------------------------------------------------- |
@@ -67,7 +67,7 @@
 | PauserRegistry         | [`0x4FE15c4eAa1ab01742b28dabC69f28319f8bAc40`](https://etherscan.io/address/0x4FE15c4eAa1ab01742b28dabC69f28319f8bAc40) |
 | StakeRegistry          | [`0xBd334A295816C03cbD466F64483389Aba7ABF70f`](https://etherscan.io/address/0xBd334A295816C03cbD466F64483389Aba7ABF70f) |
 
-### Mach Service Manager Registry
+### MACH Service Manager Registry
 
 | Name                       | Address                                                                                                                 |
 | -------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
@@ -76,7 +76,7 @@
 
 ## Holesky Testnet
 
-### AltLayer Mach AVS
+### AltLayer MACH AVS
 
 | Name                   | Address                                                                                                                         | Implementation                                                                                                                                                                                                                         |
 | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -89,7 +89,7 @@
 | PauserRegistry         | [`0x709510e198967ff878041C56866beB43C4196862`](https://holesky.etherscan.io/address/0x709510e198967ff878041C56866beB43C4196862) |                                                                                                                                                                                                                                        |
 | StakeRegistry          | [`0x0b3eE1aDc2944DCcBb817f7d77915C7d38F7B858`](https://holesky.etherscan.io/address/0x0b3eE1aDc2944DCcBb817f7d77915C7d38F7B858) |                                                                                                                                                                                                                                        |
 
-### Xterio Mach AVS
+### Xterio MACH AVS
 
 | Name                   | Address                                                                                                                         |
 | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------- |

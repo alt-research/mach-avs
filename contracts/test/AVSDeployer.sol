@@ -23,6 +23,7 @@ import {IIndexRegistry} from "eigenlayer-middleware/interfaces/IIndexRegistry.so
 import {IRegistryCoordinator} from "eigenlayer-middleware/interfaces/IRegistryCoordinator.sol";
 import {IServiceManager} from "eigenlayer-middleware/interfaces/IServiceManager.sol";
 
+import {RewardsCoordinatorMock} from "eigenlayer-middleware-test/mocks/RewardsCoordinatorMock.sol";
 import {StrategyManagerMock} from "eigenlayer-contracts/src/test/mocks/StrategyManagerMock.sol";
 import {EigenPodManagerMock} from "eigenlayer-contracts/src/test/mocks/EigenPodManagerMock.sol";
 import {AVSDirectoryMock} from "eigenlayer-middleware-test/mocks/AVSDirectoryMock.sol";
@@ -66,6 +67,7 @@ contract AVSDeployer is Test {
     IIndexRegistry public indexRegistry;
     MachServiceManager public serviceManager;
 
+    RewardsCoordinatorMock public rewardsCoordinatorMock;
     StrategyManagerMock public strategyManagerMock;
     DelegationMock public delegationMock;
     EigenPodManagerMock public eigenPodManagerMock;
@@ -137,6 +139,7 @@ contract AVSDeployer is Test {
         pausers[0] = pauser;
         pauserRegistry = new PauserRegistry(pausers, unpauser);
 
+        rewardsCoordinatorMock = new RewardsCoordinatorMock();
         delegationMock = new DelegationMock();
         avsDirectoryMock = new AVSDirectoryMock();
         eigenPodManagerMock = new EigenPodManagerMock();
@@ -265,7 +268,9 @@ contract AVSDeployer is Test {
 
         operatorStateRetriever = new OperatorStateRetriever();
 
-        serviceManagerImplementation = new MachServiceManager(avsDirectoryMock, registryCoordinator, stakeRegistry);
+        serviceManagerImplementation = new MachServiceManager(
+            avsDirectoryMock, IRewardsCoordinator(address(rewardsCoordinatorMock)), registryCoordinator, stakeRegistry
+        );
 
         proxyAdmin.upgrade(
             TransparentUpgradeableProxy(payable(address(serviceManager))), address(serviceManagerImplementation)
@@ -274,7 +279,9 @@ contract AVSDeployer is Test {
         uint256[] memory ids = new uint256[](2);
         ids[0] = 1;
         ids[1] = 2;
-        serviceManager.initialize(pauserRegistry, 0, proxyAdminOwner, proxyAdminOwner, proxyAdminOwner, ids);
+        serviceManager.initialize(
+            pauserRegistry, 0, proxyAdminOwner, proxyAdminOwner, proxyAdminOwner, proxyAdminOwner, ids
+        );
 
         cheats.stopPrank();
     }

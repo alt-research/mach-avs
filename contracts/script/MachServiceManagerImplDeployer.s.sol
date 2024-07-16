@@ -8,17 +8,22 @@ import {IStakeRegistry} from "eigenlayer-middleware/interfaces/IStakeRegistry.so
 import {IRegistryCoordinator} from "eigenlayer-middleware/interfaces/IRegistryCoordinator.sol";
 import {IPauserRegistry} from "eigenlayer-core/contracts/interfaces/IPauserRegistry.sol";
 import {IAVSDirectory} from "eigenlayer-core/contracts/interfaces/IAVSDirectory.sol";
+import {IRewardsCoordinator} from "eigenlayer-core/contracts/interfaces/IRewardsCoordinator.sol";
 
 contract MachServiceManagerImplDeployer is Script {
     function run() external {
         address avsDirectory = vm.envAddress("AVS_DIRECTORY");
         address registryCoordinator = vm.envAddress("REGISTRY_COORDINATOR");
         address stakeRegistry = vm.envAddress("STAKE_REGISTRY");
+        address rewardsCoordinator = vm.envAddress("REWARDS_COORDINATOR");
 
         vm.startBroadcast();
         // 1. deploy new implementation contract
         new MachServiceManager(
-            IAVSDirectory(avsDirectory), IRegistryCoordinator(registryCoordinator), IStakeRegistry(stakeRegistry)
+            IAVSDirectory(avsDirectory),
+            IRewardsCoordinator(rewardsCoordinator),
+            IRegistryCoordinator(registryCoordinator),
+            IStakeRegistry(stakeRegistry)
         );
         vm.stopBroadcast();
     }

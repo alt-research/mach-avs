@@ -22,6 +22,7 @@ import {IBLSApkRegistry} from "eigenlayer-middleware/interfaces/IRegistryCoordin
 import {MachOptimismZkServiceManagerStorage} from "./MachOptimismZkServiceManagerStorage.sol";
 import {IMachOptimism, CallbackAuthorization, IRiscZeroVerifier} from "../interfaces/IMachOptimism.sol";
 import {IMachOptimismL2OutputOracle} from "../interfaces/IMachOptimismL2OutputOracle.sol";
+import {IRewardsCoordinator} from "eigenlayer-core/contracts/interfaces/IRewardsCoordinator.sol";
 import "../error/Errors.sol";
 
 contract MachOptimismZkServiceManager is
@@ -35,12 +36,15 @@ contract MachOptimismZkServiceManager is
     constructor(
         uint256 rollupChainID_,
         IAVSDirectory __avsDirectory,
+        IRewardsCoordinator __rewardsCoordinator,
         IRegistryCoordinator __registryCoordinator,
         IStakeRegistry __stakeRegistry
     )
-        ServiceManagerBase(__avsDirectory, __registryCoordinator, __stakeRegistry)
+        ServiceManagerBase(__avsDirectory, __rewardsCoordinator, __registryCoordinator, __stakeRegistry)
         MachOptimismZkServiceManagerStorage(block.chainid, rollupChainID_)
-    {}
+    {
+        _disableInitializers();
+    }
 
     modifier onlyValidOperator() {
         if (!_operators.contains(msg.sender)) {

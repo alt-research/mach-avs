@@ -9,8 +9,8 @@ import "../src/interfaces/IMachServiceManager.sol";
 import "../src/core/MachServiceManager.sol";
 
 contract MachServiceManagerTest is BLSAVSDeployer {
-    event OperatorAllowed(address operator);
-    event OperatorDisallowed(address operator);
+    event AllowlistUpdated(address[] operators, bool[] status);
+
     event AllowlistEnabled();
     event AllowlistDisabled();
     event AlertConfirmerChanged(address previousAddress, address newAddress);
@@ -77,79 +77,46 @@ contract MachServiceManagerTest is BLSAVSDeployer {
         serviceManager.setWhitelister(address(42));
     }
 
-    function test_AllowOperators() public {
+    function test_SetAllowlist() public {
+        address[] memory operators = new address[](2);
+        bool[] memory status = new bool[](2);
+        operators[0] = address(0x102);
+        operators[1] = address(0x103);
+        status[0] = true;
+        status[1] = true;
+
         vm.startPrank(proxyAdminOwner);
-        address[] memory operators = new address[](1);
-        operators[0] = defaultOperator;
-        assertFalse(serviceManager.allowlist(defaultOperator), "mismatch");
-        vm.expectEmit();
-        emit OperatorAllowed(defaultOperator);
-        serviceManager.allowOperators(operators);
-        assertTrue(serviceManager.allowlist(defaultOperator), "mismatch");
+        vm.expectEmit(true, true, true, true);
+        emit AllowlistUpdated(operators, status);
+        serviceManager.setAllowlist(operators, status);
         vm.stopPrank();
+
+        assertTrue(serviceManager.isOperatorAllowed(operators[0]));
+        assertTrue(serviceManager.isOperatorAllowed(operators[1]));
     }
 
     function test_AllowOperators_RevertIfNotWhitelister() public {
         vm.expectRevert(NotWhitelister.selector);
-        address[] memory operators = new address[](1);
-        operators[0] = defaultOperator;
-        serviceManager.allowOperators(operators);
+        address[] memory operators = new address[](2);
+        bool[] memory status = new bool[](2);
+        operators[0] = address(0x102);
+        operators[1] = address(0x103);
+        status[0] = true;
+        status[1] = true;
+        serviceManager.setAllowlist(operators, status);
+        (operators);
     }
 
     function test_AllowOperators_RevertIfZeroAddress() public {
         vm.startPrank(proxyAdminOwner);
         vm.expectRevert(ZeroAddress.selector);
-        address[] memory operators = new address[](1);
-        serviceManager.allowOperators(operators);
-        vm.stopPrank();
-    }
-
-    function test_AllowOperators_RevertIfAlreadyInAllowlist() public {
-        test_AllowOperators();
-        vm.startPrank(proxyAdminOwner);
-        vm.expectRevert(AlreadyInAllowlist.selector);
-
-        address[] memory operators = new address[](1);
-        operators[0] = defaultOperator;
-        serviceManager.allowOperators(operators);
-        vm.stopPrank();
-    }
-
-    function test_DisllowOperators() public {
-        test_AllowOperators();
-        vm.startPrank(proxyAdminOwner);
-
-        address[] memory operators = new address[](1);
-        operators[0] = defaultOperator;
-
-        assertTrue(serviceManager.allowlist(defaultOperator), "Operator should be in allowlist before removal");
-
-        vm.expectEmit();
-        emit OperatorDisallowed(defaultOperator);
-
-        serviceManager.disallowOperators(operators);
-
-        assertFalse(serviceManager.allowlist(defaultOperator), "Operator should not be in allowlist after removal");
-        vm.stopPrank();
-    }
-
-    function test_DisllowOperators_RevertIfNotWhitelister() public {
-        address[] memory operators = new address[](1);
-        operators[0] = defaultOperator;
-
-        vm.expectRevert(NotWhitelister.selector);
-        serviceManager.disallowOperators(operators);
-    }
-
-    function test_DisllowOperators_RevertIfNotAdded() public {
-        address[] memory operators = new address[](1);
-        operators[0] = address(0xdead);
-
-        vm.startPrank(proxyAdminOwner);
-        assertFalse(serviceManager.allowlist(operators[0]), "Operator should not be in allowlist");
-
-        vm.expectRevert(NotAdded.selector);
-        serviceManager.disallowOperators(operators);
+        address[] memory operators = new address[](2);
+        bool[] memory status = new bool[](2);
+        operators[0] = address(0x0);
+        operators[1] = address(0x103);
+        status[0] = true;
+        status[1] = true;
+        serviceManager.setAllowlist(operators, status);
         vm.stopPrank();
     }
 

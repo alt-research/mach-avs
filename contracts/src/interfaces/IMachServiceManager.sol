@@ -37,17 +37,7 @@ interface IMachServiceManager is IServiceManager {
         uint256 rollupChainID;
     }
 
-    /**
-     * @notice Emitted when an operator is added to the MachServiceManagerAVS.
-     * @param operator The address of the operator
-     */
-    event OperatorAdded(address indexed operator);
-
-    /**
-     * @notice Emitted when an operator is removed from the MachServiceManagerAVS.
-     * @param operator The address of the operator
-     */
-    event OperatorRemoved(address indexed operator);
+    event AllowlistUpdated(address[] operators, bool[] status);
 
     /**
      * @notice Emitted when the alert confirmer is changed.
@@ -109,18 +99,6 @@ interface IMachServiceManager is IServiceManager {
      * @param messageHash The sender address
      */
     event AlertRemoved(bytes32 messageHash, address sender);
-
-    /**
-     * @notice Add  operators to the allowlist.
-     * @param operator The operators to add
-     */
-    function allowOperators(address[] calldata operator) external;
-
-    /**
-     * @notice Remove operators from the allowlist.
-     * @param operator The operators to remove
-     */
-    function disallowOperators(address[] calldata operator) external;
 
     /**
      * @notice Enable the allowlist.

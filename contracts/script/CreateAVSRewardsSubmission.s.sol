@@ -66,7 +66,7 @@ contract CreateAVSRewardsSubmission is Script {
         );
 
         IRewardsCoordinator.RewardsSubmission[] memory rewardsSubmissions =
-            new IRewardsCoordinator.RewardsSubmission[](1) ;
+            new IRewardsCoordinator.RewardsSubmission[](1);
 
         AltLayerInu rewardToken = new AltLayerInu();
         uint256 amount = 1000000 ether;

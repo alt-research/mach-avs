@@ -21,13 +21,10 @@ abstract contract MachServiceManagerStorage {
     // Slot 1
     mapping(uint256 => EnumerableSet.Bytes32Set) internal _messageHashes;
 
-    // Slot 2, 3
-    /// @notice Ethereum addresses of currently register operators
-    EnumerableSet.AddressSet internal _operators;
-
-    // Slot 4
-    /// @notice Set of operators that are allowed to register
-    mapping(address => bool) public allowlist;
+    // Slot 2, 3, 4
+    bytes32 private __DEPRECATED_SLOT2;
+    bytes32 private __DEPRECATED_SLOT3;
+    bytes32 private __DEPRECATED_SLOT4;
 
     // Slot 5
     /// @notice address that is permissioned to confirm alerts
@@ -50,7 +47,10 @@ abstract contract MachServiceManagerStorage {
     /// @notice Role for whitelisting operators
     address public whitelister;
 
+    /// @notice Set of operators that are allowed to register
+    EnumerableSet.AddressSet internal _allowlist;
+
     // storage gap for upgradeability
     // slither-disable-next-line shadowing-state
-    uint256[44] private __GAP;
+    uint256[42] private __GAP;
 }

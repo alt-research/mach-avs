@@ -127,39 +127,23 @@ contract MachServiceManager is
     //                              Admin Functions                             //
     //////////////////////////////////////////////////////////////////////////////
 
-    /**
-     * @inheritdoc IMachServiceManager
-     */
-    function allowOperators(address[] calldata operators) external onlyWhitelister {
-        for (uint256 i; i < operators.length; ++i) {
+    function setAllowlist(address[] calldata operators, bool[] calldata status) external onlyWhitelister {
+        require(operators.length == status.length, "Input arrays length mismatch");
+
+        for (uint256 i = 0; i < operators.length; ++i) {
             address operator = operators[i];
 
             if (operator == address(0)) {
                 revert ZeroAddress();
             }
-            if (allowlist[operator]) {
-                revert AlreadyInAllowlist();
+
+            if (status[i]) {
+                _allowlist.add(operator);
+            } else {
+                _allowlist.remove(operator);
             }
-
-            allowlist[operator] = true;
-            emit OperatorAllowed(operator);
         }
-    }
-
-    /**
-     * @inheritdoc IMachServiceManager
-     */
-    function disallowOperators(address[] calldata operators) external onlyWhitelister {
-        for (uint256 i; i < operators.length; ++i) {
-            address operator = operators[i];
-
-            if (!allowlist[operator]) {
-                revert NotAdded();
-            }
-
-            allowlist[operator] = false;
-            emit OperatorDisallowed(operator);
-        }
+        emit AllowlistUpdated(operators, status);
     }
 
     /**
@@ -244,16 +228,13 @@ contract MachServiceManager is
         address operator,
         ISignatureUtils.SignatureWithSaltAndExpiry memory operatorSignature
     ) public override(ServiceManagerBase, IServiceManagerUI) whenNotPaused onlyRegistryCoordinator {
-        if (allowlistEnabled && !allowlist[operator]) {
+        if (allowlistEnabled && !isOperatorAllowed(operator)) {
             revert NotAdded();
         }
-        // we don't check if this operator has registered or not as AVSDirectory has such checking already
-        _operators.add(operator);
         // Stake requirement for quorum is checked in StakeRegistry.sol
         // https://github.com/Layr-Labs/eigenlayer-middleware/blob/dev/src/RegistryCoordinator.sol#L488
         // https://github.com/Layr-Labs/eigenlayer-middleware/blob/dev/src/StakeRegistry.sol#L84
         _avsDirectory.registerOperatorToAVS(operator, operatorSignature);
-        emit OperatorAdded(operator);
     }
 
     /**
@@ -265,9 +246,7 @@ contract MachServiceManager is
         whenNotPaused
         onlyRegistryCoordinator
     {
-        _operators.remove(operator);
         _avsDirectory.deregisterOperatorFromAVS(operator);
-        emit OperatorRemoved(operator);
     }
 
     //////////////////////////////////////////////////////////////////////////////
@@ -383,6 +362,18 @@ contract MachServiceManager is
         }
 
         return output;
+    }
+
+    function isOperatorAllowed(address operator) public view returns (bool) {
+        return _allowlist.contains(operator);
+    }
+
+    function getAllowlistSize() public view returns (uint256) {
+        return _allowlist.length();
+    }
+
+    function getAllowlistAtIndex(uint256 index) public view returns (address) {
+        return _allowlist.at(index);
     }
 
     //////////////////////////////////////////////////////////////////////////////

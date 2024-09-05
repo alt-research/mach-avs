@@ -27,9 +27,12 @@ Mach AVS consists of the following component:
 
 ## Architecture
 
+![Overview](<docs/images/EigenlayerMachAVSOverview.png>)
+
+
 ### BLS Signature Aggregation Mode
 
-![BLS Mode](<docs/images/EigenlayerMachAVSArch(BLS).jpg>)
+![BLS Mode](<docs/images/EigenlayerMachAVSArch(BLS).png>)
 
 ```mermaid
 sequenceDiagram

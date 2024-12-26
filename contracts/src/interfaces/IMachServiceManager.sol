@@ -87,14 +87,14 @@ interface IMachServiceManager is IServiceManager {
     event RollupChainIDUpdated(uint256 rollupChainId, bool status);
 
     /**
-     * @notice Emitted when a Alert is confirmed.
+     * @notice Emitted when an Alert is confirmed.
      * @param alertHeaderHash The hash of the alert header
      * @param messageHash The message hash
      */
     event AlertConfirmed(bytes32 indexed alertHeaderHash, bytes32 messageHash);
 
     /**
-     * @notice Emitted when a Alert is removed.
+     * @notice Emitted when an Alert is removed.
      * @param messageHash The message hash
      * @param messageHash The sender address
      */

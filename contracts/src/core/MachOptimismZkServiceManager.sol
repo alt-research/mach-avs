@@ -449,7 +449,7 @@ contract MachOptimismZkServiceManager is
             })
         );
 
-        // For the proved output, if there are exist a early block alert
+        // For the proved output, if there are exist an early block alert
         // we will make it not proved! so we just set to `length`
         provedIndex = l2OutputAlerts.length;
     }

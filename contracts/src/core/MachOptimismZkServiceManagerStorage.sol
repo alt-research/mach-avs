@@ -22,7 +22,7 @@ contract MachOptimismZkServiceManagerStorage {
     bytes32 public imageId;
 
     // Alerts for blocks, the tail is for earliest block.
-    // For the proved output, if there are exist a early block alert
+    // For the proved output, if there are exist an early block alert
     // we will make it not proved!
     IMachOptimism.L2OutputAlert[] internal l2OutputAlerts;
     // The next index for no proved alert,

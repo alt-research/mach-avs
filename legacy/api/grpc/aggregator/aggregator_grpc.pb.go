@@ -24,7 +24,7 @@ const _ = grpc.SupportPackageIsVersion7
 type AggregatorClient interface {
 	// Send Init operator to aggregator from operator, will check if the config is matching
 	InitOperator(ctx context.Context, in *InitOperatorRequest, opts ...grpc.CallOption) (*InitOperatorResponse, error)
-	// Create a alert task
+	// Create an alert task
 	CreateTask(ctx context.Context, in *CreateTaskRequest, opts ...grpc.CallOption) (*CreateTaskResponse, error)
 	// Send signed task for alert
 	ProcessSignedTaskResponse(ctx context.Context, in *SignedTaskRespRequest, opts ...grpc.CallOption) (*SignedTaskRespResponse, error)
@@ -71,7 +71,7 @@ func (c *aggregatorClient) ProcessSignedTaskResponse(ctx context.Context, in *Si
 type AggregatorServer interface {
 	// Send Init operator to aggregator from operator, will check if the config is matching
 	InitOperator(context.Context, *InitOperatorRequest) (*InitOperatorResponse, error)
-	// Create a alert task
+	// Create an alert task
 	CreateTask(context.Context, *CreateTaskRequest) (*CreateTaskResponse, error)
 	// Send signed task for alert
 	ProcessSignedTaskResponse(context.Context, *SignedTaskRespRequest) (*SignedTaskRespResponse, error)

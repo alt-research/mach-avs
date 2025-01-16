@@ -13,6 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/alt-research/avs/legacy/core"
@@ -23,7 +24,8 @@ import (
 	"github.com/alt-research/avs/legacy/metrics"
 
 	"github.com/Layr-Labs/eigensdk-go/chainio/clients"
-	sdkelcontracts "github.com/Layr-Labs/eigensdk-go/chainio/clients/elcontracts"
+	"github.com/Layr-Labs/eigensdk-go/chainio/clients/avsregistry"
+	"github.com/Layr-Labs/eigensdk-go/chainio/clients/elcontracts"
 	"github.com/Layr-Labs/eigensdk-go/chainio/clients/eth"
 	"github.com/Layr-Labs/eigensdk-go/chainio/clients/wallet"
 	"github.com/Layr-Labs/eigensdk-go/chainio/txmgr"
@@ -42,21 +44,22 @@ const AVS_NAME = "mach"
 const SEM_VER = "0.0.1"
 
 type Operator struct {
-	config           config.NodeConfig
-	logger           sdklogging.Logger
-	ethClient        eth.Client
-	metricsReg       *prometheus.Registry
-	metrics          metrics.Metrics
-	nodeApi          *nodeapi.NodeApi
-	avsWriter        *chainio.AvsWriter
-	avsReader        chainio.AvsReaderer
-	eigenlayerReader sdkelcontracts.ELReader
-	eigenlayerWriter sdkelcontracts.ELWriter
-	blsKeypair       *bls.KeyPair
-	operatorId       sdktypes.OperatorId
-	operatorAddr     common.Address
-	metadataURI      string
-	rpcServer        RpcServer
+	config                 config.NodeConfig
+	logger                 sdklogging.Logger
+	ethClient              eth.HttpBackend
+	metricsReg             *prometheus.Registry
+	metrics                metrics.Metrics
+	nodeApi                *nodeapi.NodeApi
+	avsWriter              *chainio.AvsWriter
+	avsReader              chainio.AvsReaderer
+	avsRegistryChainReader *avsregistry.ChainReader
+	eigenlayerReader       *elcontracts.ChainReader
+	eigenlayerWriter       *elcontracts.ChainWriter
+	blsKeypair             *bls.KeyPair
+	operatorId             sdktypes.OperatorId
+	operatorAddr           common.Address
+	metadataURI            string
+	rpcServer              RpcServer
 	// receive new tasks in this chan (typically from mach service)
 	newTaskCreatedChan chan alert.AlertRequest
 	newWorkProofChan   chan message.HealthCheckMsg
@@ -230,21 +233,7 @@ func NewOperatorFromConfig(cfg config.NodeConfig, isUseEcdsaKey bool) (*Operator
 	// Setup Node Api
 	nodeApi := nodeapi.NewNodeApi(AVS_NAME, SEM_VER, c.NodeApiIpPortAddress, logger)
 
-	var ethRpcClient eth.Client
-	if c.EnableMetrics {
-		rpcCallsCollector := rpccalls.NewCollector(AVS_NAME, reg)
-		ethRpcClient, err = eth.NewInstrumentedClient(c.EthRpcUrl, rpcCallsCollector)
-		if err != nil {
-			logger.Errorf("Cannot create http ethclient", "err", err)
-			return nil, err
-		}
-	} else {
-		ethRpcClient, err = eth.NewClient(c.EthRpcUrl)
-		if err != nil {
-			logger.Errorf("Cannot create http ethclient", "err", err)
-			return nil, err
-		}
-	}
+	ethRpcClient, err := ethclient.Dial(c.EthRpcUrl)
 
 	blsKeyPassword, ok := os.LookupEnv("OPERATOR_BLS_KEY_PASSWORD")
 	if !ok {
@@ -347,10 +336,20 @@ func NewOperatorFromConfig(cfg config.NodeConfig, isUseEcdsaKey bool) (*Operator
 		panic(err)
 	}
 
+	var ethClient eth.HttpBackend = ethRpcClient
+	if c.EnableMetrics {
+		rpcCallsCollector := rpccalls.NewCollector(AVS_NAME, reg)
+		ethClient, err = eth.NewInstrumentedClient(c.EthRpcUrl, rpcCallsCollector)
+		if err != nil {
+			logger.Errorf("Cannot create http ethclient", "err", err)
+			return nil, err
+		}
+	}
+
 	avsReader, err := chainio.BuildAvsReader(
 		common.HexToAddress(c.AVSRegistryCoordinatorAddress),
 		common.HexToAddress(c.OperatorStateRetrieverAddress),
-		ethRpcClient, logger)
+		ethClient, logger)
 	if err != nil {
 		logger.Error("Cannot create AvsReader", "err", err)
 		return nil, err
@@ -394,6 +393,7 @@ func NewOperatorFromConfig(cfg config.NodeConfig, isUseEcdsaKey bool) (*Operator
 		avsReader:                  avsReader,
 		eigenlayerReader:           sdkClients.ElChainReader,
 		eigenlayerWriter:           sdkClients.ElChainWriter,
+		avsRegistryChainReader:     sdkClients.AvsRegistryChainReader,
 		rpcServer:                  rpcServer,
 		blsKeypair:                 blsKeyPair,
 		operatorAddr:               operatorAddress,

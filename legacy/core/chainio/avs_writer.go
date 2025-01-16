@@ -17,8 +17,6 @@ import (
 )
 
 type AvsWriterer interface {
-	avsregistry.AvsRegistryWriter
-
 	SendConfirmAlert(ctx context.Context,
 		alertHeader *message.AlertTaskInfo,
 		nonSignerStakesAndSignature csservicemanager.IBLSSignatureCheckerNonSignerStakesAndSignature,
@@ -26,7 +24,7 @@ type AvsWriterer interface {
 }
 
 type AvsWriter struct {
-	avsregistry.AvsRegistryWriter
+	*avsregistry.ChainWriter
 	AvsContractBindings *AvsManagersBindings
 	logger              logging.Logger
 	TxMgr               txmgr.TxManager
@@ -38,7 +36,7 @@ func BuildAvsWriterFromConfig(c *config.Config) (*AvsWriter, error) {
 	return BuildAvsWriter(c.TxMgr, c.RegistryCoordinatorAddr, c.OperatorStateRetrieverAddr, c.EthHttpClient, c.Logger)
 }
 
-func BuildAvsWriter(txMgr txmgr.TxManager, registryCoordinatorAddr, operatorStateRetrieverAddr gethcommon.Address, ethHttpClient eth.Client, logger logging.Logger) (*AvsWriter, error) {
+func BuildAvsWriter(txMgr txmgr.TxManager, registryCoordinatorAddr, operatorStateRetrieverAddr gethcommon.Address, ethHttpClient eth.HttpBackend, logger logging.Logger) (*AvsWriter, error) {
 	avsServiceBindings, err := NewAvsManagersBindings(registryCoordinatorAddr, operatorStateRetrieverAddr, ethHttpClient, logger)
 	if err != nil {
 		logger.Error("Failed to create contract bindings", "err", err)
@@ -53,9 +51,9 @@ func BuildAvsWriter(txMgr txmgr.TxManager, registryCoordinatorAddr, operatorStat
 	}
 	return NewAvsWriter(avsRegistryWriter, avsServiceBindings, logger, txMgr), nil
 }
-func NewAvsWriter(avsRegistryWriter avsregistry.AvsRegistryWriter, avsServiceBindings *AvsManagersBindings, logger logging.Logger, txMgr txmgr.TxManager) *AvsWriter {
+func NewAvsWriter(avsRegistryWriter *avsregistry.ChainWriter, avsServiceBindings *AvsManagersBindings, logger logging.Logger, txMgr txmgr.TxManager) *AvsWriter {
 	return &AvsWriter{
-		AvsRegistryWriter:   avsRegistryWriter,
+		ChainWriter:         avsRegistryWriter,
 		AvsContractBindings: avsServiceBindings,
 		logger:              logger,
 		TxMgr:               txMgr,
@@ -76,7 +74,7 @@ func (w *AvsWriter) SendConfirmAlert(ctx context.Context,
 		w.logger.Error("Error submitting SubmitTaskResponse tx while calling respondToTask", "err", err)
 		return nil, err
 	}
-	receipt, err := w.TxMgr.Send(ctx, tx)
+	receipt, err := w.TxMgr.Send(ctx, tx, true)
 	if err != nil {
 		w.logger.Errorf("Error submitting CreateNewTask tx")
 		return nil, err

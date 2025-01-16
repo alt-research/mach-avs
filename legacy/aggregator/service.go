@@ -3,6 +3,7 @@ package aggregator
 import (
 	"context"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -13,6 +14,7 @@ import (
 	"github.com/Layr-Labs/eigensdk-go/services/avsregistry"
 	blsagg "github.com/Layr-Labs/eigensdk-go/services/bls_aggregation"
 	"github.com/Layr-Labs/eigensdk-go/services/operatorsinfo"
+	eigentypes "github.com/Layr-Labs/eigensdk-go/types"
 
 	"github.com/alt-research/avs/legacy/aggregator/rpc"
 	"github.com/alt-research/avs/legacy/aggregator/types"
@@ -27,7 +29,7 @@ type AggregatorService struct {
 	cfg    *config.Config
 
 	avsReader chainio.AvsReaderer
-	ethClient eth.Client
+	ethClient eth.HttpBackend
 
 	blsAggregationService blsagg.BlsAggregationService
 	tasks                 map[types.TaskIndex]*message.AlertTaskInfo
@@ -62,9 +64,22 @@ func NewAggregatorService(c *config.Config) (*AggregatorService, error) {
 		return nil, err
 	}
 
-	operatorsinfoService := operatorsinfo.NewOperatorsInfoServiceInMemory(context.Background(), clients.AvsRegistryChainSubscriber, clients.AvsRegistryChainReader, c.Logger)
+	operatorsinfoService := operatorsinfo.NewOperatorsInfoServiceInMemory(
+		context.Background(),
+		clients.AvsRegistryChainSubscriber,
+		clients.AvsRegistryChainReader,
+		nil,
+		// TODO: support start block number
+		operatorsinfo.Opts{},
+		c.Logger)
 	avsRegistryService := avsregistry.NewAvsRegistryServiceChainCaller(avsReader, operatorsinfoService, c.Logger)
-	blsAggregationService := blsagg.NewBlsAggregatorService(avsRegistryService, c.Logger)
+	blsAggregationService := blsagg.NewBlsAggregatorService(avsRegistryService, func(taskResponse eigentypes.TaskResponse) (eigentypes.TaskResponseDigest, error) {
+		taskResponseDetails, ok := taskResponse.(eigentypes.Bytes32)
+		if !ok {
+			return eigentypes.TaskResponseDigest{}, errors.New("the taskResponse should be types.Bytes32")
+		}
+		return taskResponseDetails, nil
+	}, c.Logger)
 
 	return &AggregatorService{
 		logger:                c.Logger,

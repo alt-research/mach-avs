@@ -26,11 +26,11 @@ import (
 
 func (o *Operator) RegisterOperatorWithEigenlayer() error {
 	op := sdktypes.Operator{
-		Address:                 o.operatorAddr.String(),
-		EarningsReceiverAddress: o.operatorAddr.String(),
-		MetadataUrl:             o.metadataURI,
+		Address:                   o.operatorAddr.String(),
+		DelegationApproverAddress: o.operatorAddr.String(),
+		MetadataUrl:               o.metadataURI,
 	}
-	_, err := o.eigenlayerWriter.RegisterAsOperator(context.Background(), op)
+	_, err := o.eigenlayerWriter.RegisterAsOperator(context.Background(), op, true)
 	if err != nil {
 		o.logger.Error("Error registering operator with eigenlayer", err)
 		return err
@@ -39,7 +39,7 @@ func (o *Operator) RegisterOperatorWithEigenlayer() error {
 }
 
 func (o *Operator) DepositIntoStrategy(strategyAddr common.Address, amount *big.Int) error {
-	_, err := o.eigenlayerWriter.DepositERC20IntoStrategy(context.Background(), strategyAddr, amount)
+	_, err := o.eigenlayerWriter.DepositERC20IntoStrategy(context.Background(), strategyAddr, amount, true)
 	if err != nil {
 		o.logger.Errorf("Error depositing into strategy", "err", err)
 		return err
@@ -59,8 +59,6 @@ func (o *Operator) RegisterOperatorWithAvs(
 	privateKeyBytes := []byte(o.blsKeypair.PrivKey.String())
 	salt := [32]byte{}
 	copy(salt[:], crypto.Keccak256([]byte("churn"), []byte(time.Now().String()), quorumNumbers[:], privateKeyBytes))
-
-	operatorToAvsRegistrationSigSalt := salt
 
 	curBlockNum, err := o.ethClient.BlockNumber(context.Background())
 	if err != nil {
@@ -84,10 +82,13 @@ func (o *Operator) RegisterOperatorWithAvs(
 
 	quorumNumbersToSDK := core.ConvertQuorumNumbersFromBytes(quorumNumbers)
 
-	_, err = o.avsWriter.RegisterOperatorInQuorumWithAVSRegistryCoordinator(
+	_, err = o.avsWriter.RegisterOperator(
 		context.Background(),
-		operatorEcdsaKeyPair, operatorToAvsRegistrationSigSalt, operatorToAvsRegistrationSigExpiry,
-		o.blsKeypair, quorumNumbersToSDK, socket,
+		operatorEcdsaKeyPair,
+		o.blsKeypair,
+		quorumNumbersToSDK,
+		socket,
+		true,
 	)
 	if err != nil {
 		o.logger.Error("Unable to register operator with avs registry coordinator", err)
@@ -115,6 +116,7 @@ func (o *Operator) DeregisterOperatorWithAvs() error {
 		context.Background(),
 		quorumNumbersToSDK,
 		regcoord.BN254G1Point{},
+		true,
 	)
 	if err != nil {
 		o.logger.Error("Unable to deregister operator with avs registry coordinator", err)
@@ -151,7 +153,7 @@ type OperatorStatus struct {
 
 func (o *Operator) PrintOperatorStatus() error {
 	fmt.Println("Printing operator status")
-	operatorId, err := o.avsReader.GetOperatorId(&bind.CallOpts{}, o.operatorAddr)
+	operatorId, err := o.avsRegistryChainReader.GetOperatorId(&bind.CallOpts{}, o.operatorAddr)
 	if err != nil {
 		return err
 	}

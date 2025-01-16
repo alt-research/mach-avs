@@ -7,10 +7,9 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
-
-	"github.com/Layr-Labs/eigensdk-go/chainio/clients/eth"
 
 	"github.com/alt-research/avs-generic-aggregator/core"
 	"github.com/alt-research/avs-generic-aggregator/core/config"
@@ -56,12 +55,12 @@ func operatorProxyMain(ctx *cli.Context) error {
 		return errors.Wrap(err, "New logger")
 	}
 
-	avsConfigs, err := config.NewAVSConfigs(ctx)
+	avsConfigs, err := config.NewAVSConfigs(ctx, logger)
 	if err != nil {
 		return err
 	}
 
-	ethRpcClient, err := eth.NewClient(nodeConfig.EthRpcUrl)
+	ethRpcClient, err := ethclient.Dial(nodeConfig.EthRpcUrl)
 	if err != nil {
 		logger.Errorf("Cannot create http ethclient", "err", err)
 		return err

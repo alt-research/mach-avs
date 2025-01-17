@@ -52,7 +52,7 @@ sequenceDiagram
     MV ->> L2: Fetch next blocks
     else the block is invalid
     MV ->> MO: Commit alert to operator
-    MV ->> MC: Commit an Earlier Alert
+    MV ->> MC: Commit an earlier Alert
     MO ->> MO: Sig the alert
     MO ->> MA: Commit alert bls sig
     MA ->> MC: If collected, commit Avs confirmed Alert

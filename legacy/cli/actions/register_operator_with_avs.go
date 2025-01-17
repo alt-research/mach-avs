@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	sdkecdsa "github.com/Layr-Labs/eigensdk-go/crypto/ecdsa"
-	sdkutils "github.com/Layr-Labs/eigensdk-go/utils"
 	"github.com/alt-research/avs/legacy/core/config"
 	"github.com/alt-research/avs/legacy/operator"
 	"github.com/pkg/errors"
@@ -21,7 +20,7 @@ func RegisterOperatorWithAvs(ctx *cli.Context) error {
 	nodeConfig := config.NodeConfig{}
 
 	if configPath != "" {
-		err := sdkutils.ReadYamlConfig(configPath, &nodeConfig)
+		err := config.ReadYamlConfig(configPath, &nodeConfig)
 		if err != nil {
 			return err
 		}

@@ -6,7 +6,6 @@ import (
 
 	"github.com/urfave/cli"
 
-	sdkutils "github.com/Layr-Labs/eigensdk-go/utils"
 	"github.com/alt-research/avs/legacy/core/config"
 	"github.com/alt-research/avs/legacy/operator"
 )
@@ -17,7 +16,7 @@ func RegisterOperatorWithEigenlayer(ctx *cli.Context) error {
 	nodeConfig := config.NodeConfig{}
 
 	if configPath != "" {
-		err := sdkutils.ReadYamlConfig(configPath, &nodeConfig)
+		err := config.ReadYamlConfig(configPath, &nodeConfig)
 		if err != nil {
 			return err
 		}

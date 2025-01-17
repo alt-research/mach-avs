@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"log"
 
-	sdkutils "github.com/Layr-Labs/eigensdk-go/utils"
 	"github.com/alt-research/avs/legacy/core/config"
 	"github.com/alt-research/avs/legacy/operator"
 	"github.com/urfave/cli"
@@ -16,7 +15,7 @@ func PrintOperatorStatus(ctx *cli.Context) error {
 	nodeConfig := config.NodeConfig{}
 
 	if configPath != "" {
-		err := sdkutils.ReadYamlConfig(configPath, &nodeConfig)
+		err := config.ReadYamlConfig(configPath, &nodeConfig)
 		if err != nil {
 			return err
 		}

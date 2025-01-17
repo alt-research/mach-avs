@@ -42,7 +42,7 @@ type ProxyHashRpcServer struct {
 
 func NewAlertProxyRpcServer(
 	logger logging.Logger,
-	ethClient eth.Client,
+	ethClient eth.HttpBackend,
 	avsCfgs []config.GenericAVSConfig,
 	defaultAVSName string,
 	method string,

@@ -79,7 +79,7 @@ func (s *GRpcHandler) InitOperator(ctx context.Context, req *aggregator.InitOper
 	return resp.ToPbType(), nil
 }
 
-// Create a alert task
+// Create an alert task
 func (s *GRpcHandler) CreateTask(ctx context.Context, req *aggregator.CreateTaskRequest) (*aggregator.CreateTaskResponse, error) {
 	msg, err := message.NewCreateTaskRequest(req)
 	if err != nil {

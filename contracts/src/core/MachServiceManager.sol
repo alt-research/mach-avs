@@ -406,7 +406,7 @@ contract MachServiceManager is
     }
 
     /**
-     * @dev Converts a alert header to a reduced alert header
+     * @dev Converts an alert header to a reduced alert header
      * @param alertHeader the alert header to convert
      */
     function _convertAlertHeaderToReducedAlertHeader(AlertHeader calldata alertHeader)

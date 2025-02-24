@@ -26,12 +26,13 @@ import {BLSApkRegistry} from "eigenlayer-middleware/BLSApkRegistry.sol";
 import {OperatorStateRetriever} from "eigenlayer-middleware/OperatorStateRetriever.sol";
 import {MachServiceManager} from "../src/core/MachServiceManager.sol";
 import {IMachServiceManager} from "../src/interfaces/IMachServiceManager.sol";
-
+import {BLSSignatureChecker} from "eigenlayer-middleware/BLSSignatureChecker.sol";
 // forge script ./script/MachServiceManagerDeployer.s.sol \
 //     --private-key $PK \
 //     --rpc-url $URL \
 //     --etherscan-api-key $API_KEY \
 //     --broadcast -vvvv --slow --verify
+
 contract MachServiceManagerDeployer is Script {
     struct MachServiceContract {
         MachServiceManager machServiceManager;
@@ -46,6 +47,7 @@ contract MachServiceManagerDeployer is Script {
         BLSApkRegistry apkRegistryImplementation;
         OperatorStateRetriever operatorStateRetriever;
         SocketRegistry socketRegistry;
+        BLSSignatureChecker blsSignatureChecker;
     }
 
     struct EigenLayerContracts {
@@ -356,7 +358,8 @@ contract MachServiceManagerDeployer is Script {
             IAVSDirectory(deploymentConfig.avsDirectory),
             eigenLayerContracts.rewardsCoordinator,
             machServiceContract.registryCoordinator,
-            machServiceContract.stakeRegistry
+            machServiceContract.stakeRegistry,
+            machServiceContract.blsSignatureChecker
         );
         // Third, upgrade the proxy contracts to use the correct implementation contracts and initialize them.
         machAVSProxyAdmin.upgradeAndCall(

@@ -38,8 +38,9 @@ contract MachServiceManagerTest is BLSAVSDeployer {
     }
 
     function test_Init_RevertIfImpleBeingInitialized() public {
-        MachServiceManager impl =
-            new MachServiceManager(avsDirectoryMock, rewardsCoordinatorMock, registryCoordinator, stakeRegistry);
+        MachServiceManager impl = new MachServiceManager(
+            avsDirectoryMock, rewardsCoordinatorMock, registryCoordinator, stakeRegistry, signatureChecker
+        );
         uint256[] memory ids = new uint256[](0);
         vm.expectRevert("Initializable: contract is already initialized");
         impl.initialize(pauserRegistry, 0, proxyAdminOwner, proxyAdminOwner, proxyAdminOwner, proxyAdminOwner, ids);

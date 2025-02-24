@@ -27,12 +27,13 @@ import {BLSApkRegistry} from "eigenlayer-middleware/BLSApkRegistry.sol";
 import {OperatorStateRetriever} from "eigenlayer-middleware/OperatorStateRetriever.sol";
 import {MachServiceManager} from "../src/core/MachServiceManager.sol";
 import {IMachServiceManager} from "../src/interfaces/IMachServiceManager.sol";
-
+import {BLSSignatureChecker} from "eigenlayer-middleware/BLSSignatureChecker.sol";
 // forge script ./script/MachServiceManagerDeployerHolesky.s.sol \
 //     --private-key $PK \
 //     --rpc-url $URL \
 //     --etherscan-api-key $API_KEY \
 //     --broadcast -vvvv --slow --verify
+
 contract MachServiceManagerDeployerHolesky is Script {
     struct MachServiceContract {
         MachServiceManager machServiceManager;
@@ -47,6 +48,7 @@ contract MachServiceManagerDeployerHolesky is Script {
         BLSApkRegistry apkRegistryImplementation;
         OperatorStateRetriever operatorStateRetriever;
         SocketRegistry socketRegistry;
+        BLSSignatureChecker blsSignatureChecker;
     }
 
     struct EigenLayerContracts {
@@ -289,7 +291,8 @@ contract MachServiceManagerDeployerHolesky is Script {
             IAVSDirectory(deploymentConfig.avsDirectory),
             eigenLayerContracts.rewardsCoordinator,
             machServiceContract.registryCoordinator,
-            machServiceContract.stakeRegistry
+            machServiceContract.stakeRegistry,
+            machServiceContract.blsSignatureChecker
         );
 
         bytes memory initcode;

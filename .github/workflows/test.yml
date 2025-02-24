@@ -30,7 +30,7 @@ jobs:
         run: |
           cd contracts
           forge --version
-          forge build --sizes
+          forge build --sizes --optimize --optimizer-runs 200
         id: build
 
       - name: Run Forge tests

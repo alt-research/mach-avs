@@ -17,7 +17,7 @@ import {IPauserRegistry} from "eigenlayer-core/contracts/interfaces/IPauserRegis
 import {IServiceManager, IServiceManagerUI} from "eigenlayer-middleware/interfaces/IServiceManager.sol";
 import {IStakeRegistry} from "eigenlayer-middleware/interfaces/IStakeRegistry.sol";
 import {IRegistryCoordinator} from "eigenlayer-middleware/interfaces/IRegistryCoordinator.sol";
-import {BLSSignatureChecker} from "eigenlayer-middleware/BLSSignatureChecker.sol";
+import {IBLSSignatureChecker} from "eigenlayer-middleware/interfaces/IBLSSignatureChecker.sol";
 import {ServiceManagerBase} from "eigenlayer-middleware/ServiceManagerBase.sol";
 import {MachServiceManagerStorage} from "./MachServiceManagerStorage.sol";
 import {
@@ -49,15 +49,12 @@ import {IMachServiceManager} from "../interfaces/IMachServiceManager.sol";
  * - whitelisting operators
  * - confirming the alert store by the aggregator with inferred aggregated signatures of the quorum
  */
-contract MachServiceManager is
-    IMachServiceManager,
-    MachServiceManagerStorage,
-    ServiceManagerBase,
-    BLSSignatureChecker,
-    Pausable
-{
+contract MachServiceManager is IMachServiceManager, MachServiceManagerStorage, ServiceManagerBase, Pausable {
     using EnumerableSet for EnumerableSet.Bytes32Set;
     using EnumerableSet for EnumerableSet.AddressSet;
+
+    // Add IBLSSignatureChecker as a state variable
+    IBLSSignatureChecker public immutable signatureChecker;
 
     /**
      * @dev Ensures that the function is only callable by the `alertConfirmer`.
@@ -93,11 +90,10 @@ contract MachServiceManager is
         IAVSDirectory __avsDirectory,
         IRewardsCoordinator __rewardsCoordinator,
         IRegistryCoordinator __registryCoordinator,
-        IStakeRegistry __stakeRegistry
-    )
-        BLSSignatureChecker(__registryCoordinator)
-        ServiceManagerBase(__avsDirectory, __rewardsCoordinator, __registryCoordinator, __stakeRegistry)
-    {
+        IStakeRegistry __stakeRegistry,
+        IBLSSignatureChecker __signatureChecker
+    ) ServiceManagerBase(__avsDirectory, __rewardsCoordinator, __registryCoordinator, __stakeRegistry) {
+        signatureChecker = __signatureChecker;
         _disableInitializers();
     }
 
@@ -258,7 +254,7 @@ contract MachServiceManager is
      */
     function confirmAlert(
         AlertHeader calldata alertHeader,
-        NonSignerStakesAndSignature memory nonSignerStakesAndSignature
+        IBLSSignatureChecker.NonSignerStakesAndSignature memory nonSignerStakesAndSignature
     ) external whenNotPaused onlyAlertConfirmer onlyValidRollupChainID(alertHeader.rollupChainID) {
         // make sure the information needed to derive the non-signers and batch is in calldata to avoid emitting events
         if (tx.origin != msg.sender) {
@@ -281,12 +277,9 @@ contract MachServiceManager is
             revert InvalidQuorumParam();
         }
 
-        // check the signature
-        (QuorumStakeTotals memory quorumStakeTotals, /* bytes32 signatoryRecordHash */ ) = checkSignatures(
-            hashedHeader,
-            alertHeader.quorumNumbers, // use list of uint8s instead of uint256 bitmap to not iterate 256 times
-            alertHeader.referenceBlockNumber,
-            nonSignerStakesAndSignature
+        (IBLSSignatureChecker.QuorumStakeTotals memory quorumStakeTotals, /* bytes32 signatoryRecordHash */ ) =
+        signatureChecker.checkSignatures(
+            hashedHeader, alertHeader.quorumNumbers, alertHeader.referenceBlockNumber, nonSignerStakesAndSignature
         );
 
         // check that signatories own at least a threshold percentage of each quourm

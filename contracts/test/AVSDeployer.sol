@@ -37,6 +37,7 @@ import {BLSApkRegistryHarness} from "eigenlayer-middleware-test/harnesses/BLSApk
 import {EmptyContract} from "eigenlayer-contracts/src/test/mocks/EmptyContract.sol";
 
 import {StakeRegistryHarness} from "eigenlayer-middleware-test/harnesses/StakeRegistryHarness.sol";
+import {BLSSignatureChecker} from "eigenlayer-middleware/BLSSignatureChecker.sol";
 
 import "forge-std/Test.sol";
 import "../src/core/MachServiceManager.sol";
@@ -126,6 +127,9 @@ contract AVSDeployer is Test {
     }
 
     uint256 MAX_QUORUM_BITMAP = type(uint192).max;
+
+    // Add BLSSignatureChecker
+    BLSSignatureChecker public signatureChecker;
 
     function _deployMockEigenLayerAndAVS() internal {
         _deployMockEigenLayerAndAVS(numQuorums);
@@ -281,8 +285,15 @@ contract AVSDeployer is Test {
 
         operatorStateRetriever = new OperatorStateRetriever();
 
+        // Deploy BLSSignatureChecker before serviceManager
+        signatureChecker = new BLSSignatureChecker(registryCoordinator);
+
         serviceManagerImplementation = new MachServiceManager(
-            avsDirectoryMock, IRewardsCoordinator(address(rewardsCoordinatorMock)), registryCoordinator, stakeRegistry
+            avsDirectoryMock,
+            IRewardsCoordinator(address(rewardsCoordinatorMock)),
+            registryCoordinator,
+            stakeRegistry,
+            signatureChecker
         );
 
         proxyAdmin.upgrade(

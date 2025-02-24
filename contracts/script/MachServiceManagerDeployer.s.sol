@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.12;
 
+import {SocketRegistry} from "eigenlayer-middleware/SocketRegistry.sol";
 import "eigenlayer-core/test/mocks/EmptyContract.sol";
 import "forge-std/Script.sol";
 import "forge-std/console2.sol";
@@ -44,6 +45,7 @@ contract MachServiceManagerDeployer is Script {
         BLSApkRegistry apkRegistry;
         BLSApkRegistry apkRegistryImplementation;
         OperatorStateRetriever operatorStateRetriever;
+        SocketRegistry socketRegistry;
     }
 
     struct EigenLayerContracts {
@@ -293,7 +295,8 @@ contract MachServiceManagerDeployer is Script {
             IMachServiceManager(address(machServiceContract.machServiceManager)),
             machServiceContract.stakeRegistry,
             machServiceContract.apkRegistry,
-            machServiceContract.indexRegistry
+            machServiceContract.indexRegistry,
+            machServiceContract.socketRegistry
         );
         machServiceContract.operatorStateRetriever = new OperatorStateRetriever();
 

@@ -78,7 +78,7 @@ func (w *AvsWriter) SendConfirmAlert(ctx context.Context,
 	}
 	receipt, err := w.TxMgr.Send(ctx, tx)
 	if err != nil {
-		w.logger.Errorf("Error submitting CreateNewTask tx")
+		w.logger.Errorf("Error submitting respondToTask tx")
 		return nil, err
 	}
 	return receipt, nil

@@ -1,0 +1,21 @@
+
+╭------------------+--------------------------------------+------+--------+-------+--------------------------------------------------------------------------------------╮
+| Name             | Type                                 | Slot | Offset | Bytes | Contract                                                                             |
++========================================================================================================================================================================+
+| l2OutputOracle   | contract IMachOptimismL2OutputOracle | 0    | 0      | 20    | src/core/MachOptimismZkServiceManagerStorage.sol:MachOptimismZkServiceManagerStorage |
+|------------------+--------------------------------------+------+--------+-------+--------------------------------------------------------------------------------------|
+| verifier         | contract IRiscZeroVerifier           | 1    | 0      | 20    | src/core/MachOptimismZkServiceManagerStorage.sol:MachOptimismZkServiceManagerStorage |
+|------------------+--------------------------------------+------+--------+-------+--------------------------------------------------------------------------------------|
+| imageId          | bytes32                              | 2    | 0      | 32    | src/core/MachOptimismZkServiceManagerStorage.sol:MachOptimismZkServiceManagerStorage |
+|------------------+--------------------------------------+------+--------+-------+--------------------------------------------------------------------------------------|
+| l2OutputAlerts   | struct IMachOptimism.L2OutputAlert[] | 3    | 0      | 32    | src/core/MachOptimismZkServiceManagerStorage.sol:MachOptimismZkServiceManagerStorage |
+|------------------+--------------------------------------+------+--------+-------+--------------------------------------------------------------------------------------|
+| provedIndex      | uint256                              | 4    | 0      | 32    | src/core/MachOptimismZkServiceManagerStorage.sol:MachOptimismZkServiceManagerStorage |
+|------------------+--------------------------------------+------+--------+-------+--------------------------------------------------------------------------------------|
+| _operators       | struct EnumerableSet.AddressSet      | 5    | 0      | 64    | src/core/MachOptimismZkServiceManagerStorage.sol:MachOptimismZkServiceManagerStorage |
+|------------------+--------------------------------------+------+--------+-------+--------------------------------------------------------------------------------------|
+| _allowlist       | mapping(address => bool)             | 7    | 0      | 32    | src/core/MachOptimismZkServiceManagerStorage.sol:MachOptimismZkServiceManagerStorage |
+|------------------+--------------------------------------+------+--------+-------+--------------------------------------------------------------------------------------|
+| allowlistEnabled | bool                                 | 8    | 0      | 1     | src/core/MachOptimismZkServiceManagerStorage.sol:MachOptimismZkServiceManagerStorage |
+╰------------------+--------------------------------------+------+--------+-------+--------------------------------------------------------------------------------------╯
+

@@ -1,0 +1,41 @@
+
+╭------------------+--------------------------------------+------+--------+-------+------------------------------------------------------------------------╮
+| Name             | Type                                 | Slot | Offset | Bytes | Contract                                                               |
++==========================================================================================================================================================+
+| l2OutputOracle   | contract IMachOptimismL2OutputOracle | 0    | 0      | 20    | src/core/MachOptimismZkServiceManager.sol:MachOptimismZkServiceManager |
+|------------------+--------------------------------------+------+--------+-------+------------------------------------------------------------------------|
+| verifier         | contract IRiscZeroVerifier           | 1    | 0      | 20    | src/core/MachOptimismZkServiceManager.sol:MachOptimismZkServiceManager |
+|------------------+--------------------------------------+------+--------+-------+------------------------------------------------------------------------|
+| imageId          | bytes32                              | 2    | 0      | 32    | src/core/MachOptimismZkServiceManager.sol:MachOptimismZkServiceManager |
+|------------------+--------------------------------------+------+--------+-------+------------------------------------------------------------------------|
+| l2OutputAlerts   | struct IMachOptimism.L2OutputAlert[] | 3    | 0      | 32    | src/core/MachOptimismZkServiceManager.sol:MachOptimismZkServiceManager |
+|------------------+--------------------------------------+------+--------+-------+------------------------------------------------------------------------|
+| provedIndex      | uint256                              | 4    | 0      | 32    | src/core/MachOptimismZkServiceManager.sol:MachOptimismZkServiceManager |
+|------------------+--------------------------------------+------+--------+-------+------------------------------------------------------------------------|
+| _operators       | struct EnumerableSet.AddressSet      | 5    | 0      | 64    | src/core/MachOptimismZkServiceManager.sol:MachOptimismZkServiceManager |
+|------------------+--------------------------------------+------+--------+-------+------------------------------------------------------------------------|
+| _allowlist       | mapping(address => bool)             | 7    | 0      | 32    | src/core/MachOptimismZkServiceManager.sol:MachOptimismZkServiceManager |
+|------------------+--------------------------------------+------+--------+-------+------------------------------------------------------------------------|
+| allowlistEnabled | bool                                 | 8    | 0      | 1     | src/core/MachOptimismZkServiceManager.sol:MachOptimismZkServiceManager |
+|------------------+--------------------------------------+------+--------+-------+------------------------------------------------------------------------|
+| _initialized     | uint8                                | 8    | 1      | 1     | src/core/MachOptimismZkServiceManager.sol:MachOptimismZkServiceManager |
+|------------------+--------------------------------------+------+--------+-------+------------------------------------------------------------------------|
+| _initializing    | bool                                 | 8    | 2      | 1     | src/core/MachOptimismZkServiceManager.sol:MachOptimismZkServiceManager |
+|------------------+--------------------------------------+------+--------+-------+------------------------------------------------------------------------|
+| __gap            | uint256[50]                          | 9    | 0      | 1600  | src/core/MachOptimismZkServiceManager.sol:MachOptimismZkServiceManager |
+|------------------+--------------------------------------+------+--------+-------+------------------------------------------------------------------------|
+| _owner           | address                              | 59   | 0      | 20    | src/core/MachOptimismZkServiceManager.sol:MachOptimismZkServiceManager |
+|------------------+--------------------------------------+------+--------+-------+------------------------------------------------------------------------|
+| __gap            | uint256[49]                          | 60   | 0      | 1568  | src/core/MachOptimismZkServiceManager.sol:MachOptimismZkServiceManager |
+|------------------+--------------------------------------+------+--------+-------+------------------------------------------------------------------------|
+| rewardsInitiator | address                              | 109  | 0      | 20    | src/core/MachOptimismZkServiceManager.sol:MachOptimismZkServiceManager |
+|------------------+--------------------------------------+------+--------+-------+------------------------------------------------------------------------|
+| __GAP            | uint256[49]                          | 110  | 0      | 1568  | src/core/MachOptimismZkServiceManager.sol:MachOptimismZkServiceManager |
+|------------------+--------------------------------------+------+--------+-------+------------------------------------------------------------------------|
+| pauserRegistry   | contract IPauserRegistry             | 159  | 0      | 20    | src/core/MachOptimismZkServiceManager.sol:MachOptimismZkServiceManager |
+|------------------+--------------------------------------+------+--------+-------+------------------------------------------------------------------------|
+| _paused          | uint256                              | 160  | 0      | 32    | src/core/MachOptimismZkServiceManager.sol:MachOptimismZkServiceManager |
+|------------------+--------------------------------------+------+--------+-------+------------------------------------------------------------------------|
+| __gap            | uint256[48]                          | 161  | 0      | 1536  | src/core/MachOptimismZkServiceManager.sol:MachOptimismZkServiceManager |
+╰------------------+--------------------------------------+------+--------+-------+------------------------------------------------------------------------╯
+

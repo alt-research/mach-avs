@@ -1,0 +1,700 @@
+No files changed, compilation skipped
+Traces:
+  [22583858] MachServiceManagerDeployer::run()
+    ├─ [0] VM::envOr("EIGENLAYER_ADDRESSES_OUTPUT_PATH", "./script/input/parameters.json") [staticcall]
+    │   └─ ← [Return] <env var value>
+    ├─ [0] VM::readFile("./script/input/parameters.json") [staticcall]
+    │   └─ ← [Return] <file>
+    ├─ [0] VM::parseJson("<JSON file>", ".chainIds") [staticcall]
+    │   └─ ← [Return] <encoded JSON value>
+    ├─ [0] VM::parseJson("<JSON file>", ".numQuorum") [staticcall]
+    │   └─ ← [Return] <encoded JSON value>
+    ├─ [0] VM::parseJson("<JSON file>", ".maxOperatorCount") [staticcall]
+    │   └─ ← [Return] <encoded JSON value>
+    ├─ [0] VM::parseJson("<JSON file>", ".minimumStake") [staticcall]
+    │   └─ ← [Return] <encoded JSON value>
+    ├─ [0] VM::parseJson("<JSON file>", ".numStrategies") [staticcall]
+    │   └─ ← [Return] <encoded JSON value>
+    ├─ [0] VM::parseJson("<JSON file>", ".strategyManager") [staticcall]
+    │   └─ ← [Return] <encoded JSON value>
+    ├─ [0] VM::parseJson("<JSON file>", ".avsDirectory") [staticcall]
+    │   └─ ← [Return] <encoded JSON value>
+    ├─ [0] VM::parseJson("<JSON file>", ".delegationManager") [staticcall]
+    │   └─ ← [Return] <encoded JSON value>
+    ├─ [0] VM::parseJson("<JSON file>", ".rewardsCoordinator") [staticcall]
+    │   └─ ← [Return] <encoded JSON value>
+    ├─ [0] VM::parseJson("<JSON file>", ".beaconETH") [staticcall]
+    │   └─ ← [Return] <encoded JSON value>
+    ├─ [0] VM::parseJson("<JSON file>", ".oETH") [staticcall]
+    │   └─ ← [Return] <encoded JSON value>
+    ├─ [0] VM::parseJson("<JSON file>", ".ETHx") [staticcall]
+    │   └─ ← [Return] <encoded JSON value>
+    ├─ [0] VM::parseJson("<JSON file>", ".mETH") [staticcall]
+    │   └─ ← [Return] <encoded JSON value>
+    ├─ [0] VM::parseJson("<JSON file>", ".sfrxETH") [staticcall]
+    │   └─ ← [Return] <encoded JSON value>
+    ├─ [0] VM::parseJson("<JSON file>", ".lsETH") [staticcall]
+    │   └─ ← [Return] <encoded JSON value>
+    ├─ [0] VM::parseJson("<JSON file>", ".cbETH") [staticcall]
+    │   └─ ← [Return] <encoded JSON value>
+    ├─ [0] VM::parseJson("<JSON file>", ".ankrETH") [staticcall]
+    │   └─ ← [Return] <encoded JSON value>
+    ├─ [0] VM::parseJson("<JSON file>", ".stETH") [staticcall]
+    │   └─ ← [Return] <encoded JSON value>
+    ├─ [0] VM::parseJson("<JSON file>", ".osETH") [staticcall]
+    │   └─ ← [Return] <encoded JSON value>
+    ├─ [0] VM::parseJson("<JSON file>", ".wBETH") [staticcall]
+    │   └─ ← [Return] <encoded JSON value>
+    ├─ [0] VM::parseJson("<JSON file>", ".swETH") [staticcall]
+    │   └─ ← [Return] <encoded JSON value>
+    ├─ [0] VM::parseJson("<JSON file>", ".rETH") [staticcall]
+    │   └─ ← [Return] <encoded JSON value>
+    ├─ [0] VM::parseJson("<JSON file>", ".beaconETH_Multiplier") [staticcall]
+    │   └─ ← [Return] <encoded JSON value>
+    ├─ [0] VM::parseJson("<JSON file>", ".oETH_Multiplier") [staticcall]
+    │   └─ ← [Return] <encoded JSON value>
+    ├─ [0] VM::parseJson("<JSON file>", ".ETHx_Multiplier") [staticcall]
+    │   └─ ← [Return] <encoded JSON value>
+    ├─ [0] VM::parseJson("<JSON file>", ".mETH_Multiplier") [staticcall]
+    │   └─ ← [Return] <encoded JSON value>
+    ├─ [0] VM::parseJson("<JSON file>", ".sfrxETH_Multiplier") [staticcall]
+    │   └─ ← [Return] <encoded JSON value>
+    ├─ [0] VM::parseJson("<JSON file>", ".lsETH_Multiplier") [staticcall]
+    │   └─ ← [Return] <encoded JSON value>
+    ├─ [0] VM::parseJson("<JSON file>", ".cbETH_Multiplier") [staticcall]
+    │   └─ ← [Return] <encoded JSON value>
+    ├─ [0] VM::parseJson("<JSON file>", ".ankrETH_Multiplier") [staticcall]
+    │   └─ ← [Return] <encoded JSON value>
+    ├─ [0] VM::parseJson("<JSON file>", ".stETH_Multiplier") [staticcall]
+    │   └─ ← [Return] <encoded JSON value>
+    ├─ [0] VM::parseJson("<JSON file>", ".osETH_Multiplier") [staticcall]
+    │   └─ ← [Return] <encoded JSON value>
+    ├─ [0] VM::parseJson("<JSON file>", ".wBETH_Multiplier") [staticcall]
+    │   └─ ← [Return] <encoded JSON value>
+    ├─ [0] VM::parseJson("<JSON file>", ".swETH_Multiplier") [staticcall]
+    │   └─ ← [Return] <encoded JSON value>
+    ├─ [0] VM::parseJson("<JSON file>", ".rETH_Multiplier") [staticcall]
+    │   └─ ← [Return] <encoded JSON value>
+    ├─ [0] VM::parseJson("<JSON file>", ".owner") [staticcall]
+    │   └─ ← [Return] <encoded JSON value>
+    ├─ [0] VM::parseJson("<JSON file>", ".churner") [staticcall]
+    │   └─ ← [Return] <encoded JSON value>
+    ├─ [0] VM::parseJson("<JSON file>", ".ejector") [staticcall]
+    │   └─ ← [Return] <encoded JSON value>
+    ├─ [0] VM::parseJson("<JSON file>", ".confirmer") [staticcall]
+    │   └─ ← [Return] <encoded JSON value>
+    ├─ [0] VM::parseJson("<JSON file>", ".whitelister") [staticcall]
+    │   └─ ← [Return] <encoded JSON value>
+    ├─ [0] VM::startBroadcast()
+    │   └─ ← [Return] 
+    ├─ [362115] → new ProxyAdmin@0x35a6C67F8a8f812BBc55D1c96e7aE4368D41D0E4
+    │   ├─ emit OwnershipTransferred(previousOwner: 0x0000000000000000000000000000000000000000, newOwner: 0x66234EefaDdB5dA6818BB1266d18094EC117F441)
+    │   └─ ← [Return] 1690 bytes of code
+    ├─ [23875] → new EmptyContract@0xA63A4ba32FaD7C5b1f08d987e2af679d4A8e4444
+    │   └─ ← [Return] 119 bytes of code
+    ├─ [250288] → new PauserRegistry@0xE93Ad70Df0a3159a2E08b4F38bdfeA5532CBb7f7
+    │   ├─ emit PauserStatusChanged(pauser: 0x4e9bB2be300005A6dFd80645afa6be58c4F0A41B, canPause: true)
+    │   ├─ emit UnpauserChanged(previousUnpauser: 0x0000000000000000000000000000000000000000, newUnpauser: 0x4e9bB2be300005A6dFd80645afa6be58c4F0A41B)
+    │   └─ ← [Return] 1009 bytes of code
+    ├─ [479052] → new TransparentUpgradeableProxy@0x8032Be3ed2BE15Ee2FF9553c6D87d5038FB0A14b
+    │   ├─ emit Upgraded(implementation: EmptyContract: [0xA63A4ba32FaD7C5b1f08d987e2af679d4A8e4444])
+    │   ├─ emit AdminChanged(previousAdmin: 0x0000000000000000000000000000000000000000, newAdmin: ProxyAdmin: [0x35a6C67F8a8f812BBc55D1c96e7aE4368D41D0E4])
+    │   └─ ← [Return] 2151 bytes of code
+    ├─ [479052] → new TransparentUpgradeableProxy@0xCD923EFCac76b82686f9729356bC9d88080666A8
+    │   ├─ emit Upgraded(implementation: EmptyContract: [0xA63A4ba32FaD7C5b1f08d987e2af679d4A8e4444])
+    │   ├─ emit AdminChanged(previousAdmin: 0x0000000000000000000000000000000000000000, newAdmin: ProxyAdmin: [0x35a6C67F8a8f812BBc55D1c96e7aE4368D41D0E4])
+    │   └─ ← [Return] 2151 bytes of code
+    ├─ [479052] → new TransparentUpgradeableProxy@0xD3addB95136bD4c55aFb6fd32bd476e71Eacc464
+    │   ├─ emit Upgraded(implementation: EmptyContract: [0xA63A4ba32FaD7C5b1f08d987e2af679d4A8e4444])
+    │   ├─ emit AdminChanged(previousAdmin: 0x0000000000000000000000000000000000000000, newAdmin: ProxyAdmin: [0x35a6C67F8a8f812BBc55D1c96e7aE4368D41D0E4])
+    │   └─ ← [Return] 2151 bytes of code
+    ├─ [479052] → new TransparentUpgradeableProxy@0x2c23CF71C023CBA700E379c8E73f040c70211D67
+    │   ├─ emit Upgraded(implementation: EmptyContract: [0xA63A4ba32FaD7C5b1f08d987e2af679d4A8e4444])
+    │   ├─ emit AdminChanged(previousAdmin: 0x0000000000000000000000000000000000000000, newAdmin: ProxyAdmin: [0x35a6C67F8a8f812BBc55D1c96e7aE4368D41D0E4])
+    │   └─ ← [Return] 2151 bytes of code
+    ├─ [479052] → new TransparentUpgradeableProxy@0x203b9Acb40DfBB911f1e39C784EAB639418dae04
+    │   ├─ emit Upgraded(implementation: EmptyContract: [0xA63A4ba32FaD7C5b1f08d987e2af679d4A8e4444])
+    │   ├─ emit AdminChanged(previousAdmin: 0x0000000000000000000000000000000000000000, newAdmin: ProxyAdmin: [0x35a6C67F8a8f812BBc55D1c96e7aE4368D41D0E4])
+    │   └─ ← [Return] 2151 bytes of code
+    ├─ [269343] → new SocketRegistry@0xdceE5e8AD4D6BCFAD3B77A73b6647EA2cB73Ce22
+    │   └─ ← [Return] 1344 bytes of code
+    ├─ [946889] → new IndexRegistry@0xBeB51414FB4d732643808f9C5c25DE129a781Bb3
+    │   ├─ emit Initialized(version: 255)
+    │   └─ ← [Return] 4611 bytes of code
+    ├─ [3242] ProxyAdmin::upgrade(TransparentUpgradeableProxy: [0x8032Be3ed2BE15Ee2FF9553c6D87d5038FB0A14b], IndexRegistry: [0xBeB51414FB4d732643808f9C5c25DE129a781Bb3])
+    │   ├─ [2268] TransparentUpgradeableProxy::upgradeTo(IndexRegistry: [0xBeB51414FB4d732643808f9C5c25DE129a781Bb3])
+    │   │   ├─ emit Upgraded(implementation: IndexRegistry: [0xBeB51414FB4d732643808f9C5c25DE129a781Bb3])
+    │   │   └─ ← [Stop] 
+    │   └─ ← [Stop] 
+    ├─ [2609860] → new StakeRegistry@0xc7DB8b0a57B4E99E508b7e6ceC647902F2500beD
+    │   └─ ← [Return] 13033 bytes of code
+    ├─ [3242] ProxyAdmin::upgrade(TransparentUpgradeableProxy: [0xCD923EFCac76b82686f9729356bC9d88080666A8], StakeRegistry: [0xc7DB8b0a57B4E99E508b7e6ceC647902F2500beD])
+    │   ├─ [2268] TransparentUpgradeableProxy::upgradeTo(StakeRegistry: [0xc7DB8b0a57B4E99E508b7e6ceC647902F2500beD])
+    │   │   ├─ emit Upgraded(implementation: StakeRegistry: [0xc7DB8b0a57B4E99E508b7e6ceC647902F2500beD])
+    │   │   └─ ← [Stop] 
+    │   └─ ← [Stop] 
+    ├─ [1601779] → new BLSApkRegistry@0x724B682CBe09C1D8BCFC0531f04eaBF55E5BD2C3
+    │   ├─ emit Initialized(version: 255)
+    │   └─ ← [Return] 7882 bytes of code
+    ├─ [3242] ProxyAdmin::upgrade(TransparentUpgradeableProxy: [0xD3addB95136bD4c55aFb6fd32bd476e71Eacc464], BLSApkRegistry: [0x724B682CBe09C1D8BCFC0531f04eaBF55E5BD2C3])
+    │   ├─ [2268] TransparentUpgradeableProxy::upgradeTo(BLSApkRegistry: [0x724B682CBe09C1D8BCFC0531f04eaBF55E5BD2C3])
+    │   │   ├─ emit Upgraded(implementation: BLSApkRegistry: [0x724B682CBe09C1D8BCFC0531f04eaBF55E5BD2C3])
+    │   │   └─ ← [Stop] 
+    │   └─ ← [Stop] 
+    ├─ [4899114] → new RegistryCoordinator@0x52CF55fF9620B45210e59aa66FAB23825278Fa36
+    │   ├─ emit Initialized(version: 255)
+    │   └─ ← [Return] 24341 bytes of code
+    ├─ [1538210] → new OperatorStateRetriever@0x6c07bE0A687F0261BB8Bc6dC76c596E9b09Ec7Aa
+    │   └─ ← [Return] 7683 bytes of code
+    ├─ [1141527] ProxyAdmin::upgradeAndCall(TransparentUpgradeableProxy: [0x2c23CF71C023CBA700E379c8E73f040c70211D67], RegistryCoordinator: [0x52CF55fF9620B45210e59aa66FAB23825278Fa36], 0xdd8283f30000000000000000000000004e9bb2be300005a6dfd80645afa6be58c4f0a41b000000000000000000000000d4b3fea1d17238aee0d49d08423fb468b4a82578000000000000000000000000f9efb987ff52296600bbc75fca30e3689768c47d000000000000000000000000e93ad70df0a3159a2e08b4f38bdfea5532cbb7f700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000018000000000000000000000000000000000000000000000000000000000000001c0000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000640000000000000000000000000000000000000000000000000000000000002af800000000000000000000000000000000000000000000000000000000000003e90000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000d000000000000000000000000beac0eeeeeeeeeeeeeeeeeeeeeeeeeeeeeebeac00000000000000000000000000000000000000000000000000de0b6b3a7640000000000000000000000000000a4c637e0f704745d182e4d38cab7e7485321d0590000000000000000000000000000000000000000000000000dcb1caa2d93b8000000000000000000000000009d7ed45ee2e8fc5482fa2428f15c971e6369011d0000000000000000000000000000000000000000000000000e2c4c3398fcafff000000000000000000000000298afb19a105d59e74658c4c334ff360bade6dd20000000000000000000000000000000000000000000000000e132d2a1dc7c0000000000000000000000000008ca7a5d6f3acd3a7a8bc468a8cd0fb14b6bd28b60000000000000000000000000000000000000000000000000eefde10de953000000000000000000000000000ae60d8180437b5c34bb956822ac27109725844730000000000000000000000000000000000000000000000000e874a2e0af96fff00000000000000000000000054945180db7943c0ed0fee7edab2bd24620256bc0000000000000000000000000000000000000000000000000ec0c79f84bacfff00000000000000000000000013760f50a9d7377e4f20cb8cf9e4c26586c658ff0000000000000000000000000000000000000000000000000fef88f14f32f00000000000000000000000000093c4b944d05dfe6df7645a86cd2206016c51564d0000000000000000000000000000000000000000000000000dd994a09da8340000000000000000000000000057ba429517c3473b6d34ca9acd56c0e735b94c020000000000000000000000000000000000000000000000000e13552eaa2680000000000000000000000000007ca911e83dabf90c90dd3de5411a10f1a61121840000000000000000000000000000000000000000000000000e0e5db56cc120000000000000000000000000000fe4f44bee93503346a3ac9ee5a26b130a5796d60000000000000000000000000000000000000000000000000e916fb25c73f0000000000000000000000000001bee69b7dfffa4e2d53c2a2df135c388ad25dcd20000000000000000000000000000000000000000000000000f5307e1cb8dafff)
+    │   ├─ [1136171] TransparentUpgradeableProxy::upgradeToAndCall(RegistryCoordinator: [0x52CF55fF9620B45210e59aa66FAB23825278Fa36], 0xdd8283f30000000000000000000000004e9bb2be300005a6dfd80645afa6be58c4f0a41b000000000000000000000000d4b3fea1d17238aee0d49d08423fb468b4a82578000000000000000000000000f9efb987ff52296600bbc75fca30e3689768c47d000000000000000000000000e93ad70df0a3159a2e08b4f38bdfea5532cbb7f700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000018000000000000000000000000000000000000000000000000000000000000001c0000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000640000000000000000000000000000000000000000000000000000000000002af800000000000000000000000000000000000000000000000000000000000003e90000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000d000000000000000000000000beac0eeeeeeeeeeeeeeeeeeeeeeeeeeeeeebeac00000000000000000000000000000000000000000000000000de0b6b3a7640000000000000000000000000000a4c637e0f704745d182e4d38cab7e7485321d0590000000000000000000000000000000000000000000000000dcb1caa2d93b8000000000000000000000000009d7ed45ee2e8fc5482fa2428f15c971e6369011d0000000000000000000000000000000000000000000000000e2c4c3398fcafff000000000000000000000000298afb19a105d59e74658c4c334ff360bade6dd20000000000000000000000000000000000000000000000000e132d2a1dc7c0000000000000000000000000008ca7a5d6f3acd3a7a8bc468a8cd0fb14b6bd28b60000000000000000000000000000000000000000000000000eefde10de953000000000000000000000000000ae60d8180437b5c34bb956822ac27109725844730000000000000000000000000000000000000000000000000e874a2e0af96fff00000000000000000000000054945180db7943c0ed0fee7edab2bd24620256bc0000000000000000000000000000000000000000000000000ec0c79f84bacfff00000000000000000000000013760f50a9d7377e4f20cb8cf9e4c26586c658ff0000000000000000000000000000000000000000000000000fef88f14f32f00000000000000000000000000093c4b944d05dfe6df7645a86cd2206016c51564d0000000000000000000000000000000000000000000000000dd994a09da8340000000000000000000000000057ba429517c3473b6d34ca9acd56c0e735b94c020000000000000000000000000000000000000000000000000e13552eaa2680000000000000000000000000007ca911e83dabf90c90dd3de5411a10f1a61121840000000000000000000000000000000000000000000000000e0e5db56cc120000000000000000000000000000fe4f44bee93503346a3ac9ee5a26b130a5796d60000000000000000000000000000000000000000000000000e916fb25c73f0000000000000000000000000001bee69b7dfffa4e2d53c2a2df135c388ad25dcd20000000000000000000000000000000000000000000000000f5307e1cb8dafff)
+    │   │   ├─ emit Upgraded(implementation: RegistryCoordinator: [0x52CF55fF9620B45210e59aa66FAB23825278Fa36])
+    │   │   ├─ [1129464] RegistryCoordinator::initialize(0x4e9bB2be300005A6dFd80645afa6be58c4F0A41B, 0xd4B3FeA1d17238aEE0d49D08423FB468B4a82578, 0xf9EfB987fF52296600bbc75fCA30e3689768c47D, PauserRegistry: [0xE93Ad70Df0a3159a2E08b4F38bdfeA5532CBb7f7], 0, [OperatorSetParam({ maxOperatorCount: 100, kickBIPsOfOperatorStake: 11000 [1.1e4], kickBIPsOfTotalStake: 1001 })], [0], [[StrategyParams({ strategy: 0xbeaC0eeEeeeeEEeEeEEEEeeEEeEeeeEeeEEBEaC0, multiplier: 1000000000000000000 [1e18] }), StrategyParams({ strategy: 0xa4C637e0F704745D182e4D38cAb7E7485321d059, multiplier: 993919660000000000 [9.939e17] }), StrategyParams({ strategy: 0x9d7eD45EE2E8FC5482fa2428f15C971e6369011d, multiplier: 1021274999999999999 [1.021e18] }), StrategyParams({ strategy: 0x298aFB19A105D59E74658C4C334Ff360BadE6dd2, multiplier: 1014204000000000000 [1.014e18] }), StrategyParams({ strategy: 0x8CA7A5d6f3acd3A7A8bC468a8CD0FB14B6BD28b6, multiplier: 1076323000000000000 [1.076e18] }), StrategyParams({ strategy: 0xAe60d8180437b5C34bB956822ac2710972584473, multiplier: 1046886999999999999 [1.046e18] }), StrategyParams({ strategy: 0x54945180dB7943c0ed0FEE7EdaB2Bd24620256bc, multiplier: 1063068999999999999 [1.063e18] }), StrategyParams({ strategy: 0x13760F50a9d7377e4F20CB8CF9e4c26586c658ff, multiplier: 1148287000000000000 [1.148e18] }), StrategyParams({ strategy: 0x93c4b944D05dfe6df7645A86cd2206016c51564D, multiplier: 997992210000000000 [9.979e17] }), StrategyParams({ strategy: 0x57ba429517c3473B6d34CA9aCd56c0e735b94c02, multiplier: 1014248000000000000 [1.014e18] }), StrategyParams({ strategy: 0x7CA911E83dabf90C90dD3De5411a10F1A6112184, multiplier: 1012850000000000000 [1.012e18] }), StrategyParams({ strategy: 0x0Fe4F44beE93503346A3Ac9EE5A26b130a5796d6, multiplier: 1049743000000000000 [1.049e18] }), StrategyParams({ strategy: 0x1BeE69b7dFFfA4E2d53C2a2Df135C388AD25dCD2, multiplier: 1104234999999999999 [1.104e18] })]]) [delegatecall]
+    │   │   │   ├─ emit OwnershipTransferred(previousOwner: 0x0000000000000000000000000000000000000000, newOwner: 0x4e9bB2be300005A6dFd80645afa6be58c4F0A41B)
+    │   │   │   ├─ emit Paused(account: ProxyAdmin: [0x35a6C67F8a8f812BBc55D1c96e7aE4368D41D0E4], newPausedStatus: 0)
+    │   │   │   ├─ emit PauserRegistrySet(pauserRegistry: 0x0000000000000000000000000000000000000000, newPauserRegistry: PauserRegistry: [0xE93Ad70Df0a3159a2E08b4F38bdfeA5532CBb7f7])
+    │   │   │   ├─ emit ChurnApproverUpdated(prevChurnApprover: 0x0000000000000000000000000000000000000000, newChurnApprover: 0xd4B3FeA1d17238aEE0d49D08423FB468B4a82578)
+    │   │   │   ├─ emit EjectorUpdated(prevEjector: 0x0000000000000000000000000000000000000000, newEjector: 0xf9EfB987fF52296600bbc75fCA30e3689768c47D)
+    │   │   │   ├─ emit OperatorSetParamsUpdated(quorumNumber: 0, operatorSetParams: OperatorSetParam({ maxOperatorCount: 100, kickBIPsOfOperatorStake: 11000 [1.1e4], kickBIPsOfTotalStake: 1001 }))
+    │   │   │   ├─ [789148] TransparentUpgradeableProxy::fallback(0, 0, [StrategyParams({ strategy: 0xbeaC0eeEeeeeEEeEeEEEEeeEEeEeeeEeeEEBEaC0, multiplier: 1000000000000000000 [1e18] }), StrategyParams({ strategy: 0xa4C637e0F704745D182e4D38cAb7E7485321d059, multiplier: 993919660000000000 [9.939e17] }), StrategyParams({ strategy: 0x9d7eD45EE2E8FC5482fa2428f15C971e6369011d, multiplier: 1021274999999999999 [1.021e18] }), StrategyParams({ strategy: 0x298aFB19A105D59E74658C4C334Ff360BadE6dd2, multiplier: 1014204000000000000 [1.014e18] }), StrategyParams({ strategy: 0x8CA7A5d6f3acd3A7A8bC468a8CD0FB14B6BD28b6, multiplier: 1076323000000000000 [1.076e18] }), StrategyParams({ strategy: 0xAe60d8180437b5C34bB956822ac2710972584473, multiplier: 1046886999999999999 [1.046e18] }), StrategyParams({ strategy: 0x54945180dB7943c0ed0FEE7EdaB2Bd24620256bc, multiplier: 1063068999999999999 [1.063e18] }), StrategyParams({ strategy: 0x13760F50a9d7377e4F20CB8CF9e4c26586c658ff, multiplier: 1148287000000000000 [1.148e18] }), StrategyParams({ strategy: 0x93c4b944D05dfe6df7645A86cd2206016c51564D, multiplier: 997992210000000000 [9.979e17] }), StrategyParams({ strategy: 0x57ba429517c3473B6d34CA9aCd56c0e735b94c02, multiplier: 1014248000000000000 [1.014e18] }), StrategyParams({ strategy: 0x7CA911E83dabf90C90dD3De5411a10F1A6112184, multiplier: 1012850000000000000 [1.012e18] }), StrategyParams({ strategy: 0x0Fe4F44beE93503346A3Ac9EE5A26b130a5796d6, multiplier: 1049743000000000000 [1.049e18] }), StrategyParams({ strategy: 0x1BeE69b7dFFfA4E2d53C2a2Df135C388AD25dCD2, multiplier: 1104234999999999999 [1.104e18] })])
+    │   │   │   │   ├─ [788160] StakeRegistry::initializeQuorum(0, 0, [StrategyParams({ strategy: 0xbeaC0eeEeeeeEEeEeEEEEeeEEeEeeeEeeEEBEaC0, multiplier: 1000000000000000000 [1e18] }), StrategyParams({ strategy: 0xa4C637e0F704745D182e4D38cAb7E7485321d059, multiplier: 993919660000000000 [9.939e17] }), StrategyParams({ strategy: 0x9d7eD45EE2E8FC5482fa2428f15C971e6369011d, multiplier: 1021274999999999999 [1.021e18] }), StrategyParams({ strategy: 0x298aFB19A105D59E74658C4C334Ff360BadE6dd2, multiplier: 1014204000000000000 [1.014e18] }), StrategyParams({ strategy: 0x8CA7A5d6f3acd3A7A8bC468a8CD0FB14B6BD28b6, multiplier: 1076323000000000000 [1.076e18] }), StrategyParams({ strategy: 0xAe60d8180437b5C34bB956822ac2710972584473, multiplier: 1046886999999999999 [1.046e18] }), StrategyParams({ strategy: 0x54945180dB7943c0ed0FEE7EdaB2Bd24620256bc, multiplier: 1063068999999999999 [1.063e18] }), StrategyParams({ strategy: 0x13760F50a9d7377e4F20CB8CF9e4c26586c658ff, multiplier: 1148287000000000000 [1.148e18] }), StrategyParams({ strategy: 0x93c4b944D05dfe6df7645A86cd2206016c51564D, multiplier: 997992210000000000 [9.979e17] }), StrategyParams({ strategy: 0x57ba429517c3473B6d34CA9aCd56c0e735b94c02, multiplier: 1014248000000000000 [1.014e18] }), StrategyParams({ strategy: 0x7CA911E83dabf90C90dD3De5411a10F1A6112184, multiplier: 1012850000000000000 [1.012e18] }), StrategyParams({ strategy: 0x0Fe4F44beE93503346A3Ac9EE5A26b130a5796d6, multiplier: 1049743000000000000 [1.049e18] }), StrategyParams({ strategy: 0x1BeE69b7dFFfA4E2d53C2a2Df135C388AD25dCD2, multiplier: 1104234999999999999 [1.104e18] })]) [delegatecall]
+    │   │   │   │   │   ├─ emit StrategyAddedToQuorum(quorumNumber: 0, strategy: 0xbeaC0eeEeeeeEEeEeEEEEeeEEeEeeeEeeEEBEaC0)
+    │   │   │   │   │   ├─ emit StrategyMultiplierUpdated(quorumNumber: 0, strategy: 0xbeaC0eeEeeeeEEeEeEEEEeeEEeEeeeEeeEEBEaC0, multiplier: 1000000000000000000 [1e18])
+    │   │   │   │   │   ├─ emit StrategyAddedToQuorum(quorumNumber: 0, strategy: 0xa4C637e0F704745D182e4D38cAb7E7485321d059)
+    │   │   │   │   │   ├─ emit StrategyMultiplierUpdated(quorumNumber: 0, strategy: 0xa4C637e0F704745D182e4D38cAb7E7485321d059, multiplier: 993919660000000000 [9.939e17])
+    │   │   │   │   │   ├─ emit StrategyAddedToQuorum(quorumNumber: 0, strategy: 0x9d7eD45EE2E8FC5482fa2428f15C971e6369011d)
+    │   │   │   │   │   ├─ emit StrategyMultiplierUpdated(quorumNumber: 0, strategy: 0x9d7eD45EE2E8FC5482fa2428f15C971e6369011d, multiplier: 1021274999999999999 [1.021e18])
+    │   │   │   │   │   ├─ emit StrategyAddedToQuorum(quorumNumber: 0, strategy: 0x298aFB19A105D59E74658C4C334Ff360BadE6dd2)
+    │   │   │   │   │   ├─ emit StrategyMultiplierUpdated(quorumNumber: 0, strategy: 0x298aFB19A105D59E74658C4C334Ff360BadE6dd2, multiplier: 1014204000000000000 [1.014e18])
+    │   │   │   │   │   ├─ emit StrategyAddedToQuorum(quorumNumber: 0, strategy: 0x8CA7A5d6f3acd3A7A8bC468a8CD0FB14B6BD28b6)
+    │   │   │   │   │   ├─ emit StrategyMultiplierUpdated(quorumNumber: 0, strategy: 0x8CA7A5d6f3acd3A7A8bC468a8CD0FB14B6BD28b6, multiplier: 1076323000000000000 [1.076e18])
+    │   │   │   │   │   ├─ emit StrategyAddedToQuorum(quorumNumber: 0, strategy: 0xAe60d8180437b5C34bB956822ac2710972584473)
+    │   │   │   │   │   ├─ emit StrategyMultiplierUpdated(quorumNumber: 0, strategy: 0xAe60d8180437b5C34bB956822ac2710972584473, multiplier: 1046886999999999999 [1.046e18])
+    │   │   │   │   │   ├─ emit StrategyAddedToQuorum(quorumNumber: 0, strategy: 0x54945180dB7943c0ed0FEE7EdaB2Bd24620256bc)
+    │   │   │   │   │   ├─ emit StrategyMultiplierUpdated(quorumNumber: 0, strategy: 0x54945180dB7943c0ed0FEE7EdaB2Bd24620256bc, multiplier: 1063068999999999999 [1.063e18])
+    │   │   │   │   │   ├─ emit StrategyAddedToQuorum(quorumNumber: 0, strategy: 0x13760F50a9d7377e4F20CB8CF9e4c26586c658ff)
+    │   │   │   │   │   ├─ emit StrategyMultiplierUpdated(quorumNumber: 0, strategy: 0x13760F50a9d7377e4F20CB8CF9e4c26586c658ff, multiplier: 1148287000000000000 [1.148e18])
+    │   │   │   │   │   ├─ emit StrategyAddedToQuorum(quorumNumber: 0, strategy: 0x93c4b944D05dfe6df7645A86cd2206016c51564D)
+    │   │   │   │   │   ├─ emit StrategyMultiplierUpdated(quorumNumber: 0, strategy: 0x93c4b944D05dfe6df7645A86cd2206016c51564D, multiplier: 997992210000000000 [9.979e17])
+    │   │   │   │   │   ├─ emit StrategyAddedToQuorum(quorumNumber: 0, strategy: 0x57ba429517c3473B6d34CA9aCd56c0e735b94c02)
+    │   │   │   │   │   ├─ emit StrategyMultiplierUpdated(quorumNumber: 0, strategy: 0x57ba429517c3473B6d34CA9aCd56c0e735b94c02, multiplier: 1014248000000000000 [1.014e18])
+    │   │   │   │   │   ├─ emit StrategyAddedToQuorum(quorumNumber: 0, strategy: 0x7CA911E83dabf90C90dD3De5411a10F1A6112184)
+    │   │   │   │   │   ├─ emit StrategyMultiplierUpdated(quorumNumber: 0, strategy: 0x7CA911E83dabf90C90dD3De5411a10F1A6112184, multiplier: 1012850000000000000 [1.012e18])
+    │   │   │   │   │   ├─ emit StrategyAddedToQuorum(quorumNumber: 0, strategy: 0x0Fe4F44beE93503346A3Ac9EE5A26b130a5796d6)
+    │   │   │   │   │   ├─ emit StrategyMultiplierUpdated(quorumNumber: 0, strategy: 0x0Fe4F44beE93503346A3Ac9EE5A26b130a5796d6, multiplier: 1049743000000000000 [1.049e18])
+    │   │   │   │   │   ├─ emit StrategyAddedToQuorum(quorumNumber: 0, strategy: 0x1BeE69b7dFFfA4E2d53C2a2Df135C388AD25dCD2)
+    │   │   │   │   │   ├─ emit StrategyMultiplierUpdated(quorumNumber: 0, strategy: 0x1BeE69b7dFFfA4E2d53C2a2Df135C388AD25dCD2, multiplier: 1104234999999999999 [1.104e18])
+    │   │   │   │   │   ├─ emit MinimumStakeForQuorumUpdated(quorumNumber: 0, minimumStake: 0)
+    │   │   │   │   │   └─ ← [Stop] 
+    │   │   │   │   └─ ← [Return] 
+    │   │   │   ├─ [45908] TransparentUpgradeableProxy::fallback(0)
+    │   │   │   │   ├─ [45092] IndexRegistry::initializeQuorum(0) [delegatecall]
+    │   │   │   │   │   └─ ← [Stop] 
+    │   │   │   │   └─ ← [Return] 
+    │   │   │   ├─ [46050] TransparentUpgradeableProxy::fallback(0)
+    │   │   │   │   ├─ [45234] BLSApkRegistry::initializeQuorum(0) [delegatecall]
+    │   │   │   │   │   └─ ← [Stop] 
+    │   │   │   │   └─ ← [Return] 
+    │   │   │   ├─ emit Initialized(version: 1)
+    │   │   │   └─ ← [Stop] 
+    │   │   └─ ← [Stop] 
+    │   └─ ← [Stop] 
+    ├─ [1992075] → new BLSSignatureChecker@0x85814b3ff84DA95363C15879B605F3C47fA6A762
+    │   ├─ [1122] TransparentUpgradeableProxy::fallback() [staticcall]
+    │   │   ├─ [306] RegistryCoordinator::stakeRegistry() [delegatecall]
+    │   │   │   └─ ← [Return] TransparentUpgradeableProxy: [0xCD923EFCac76b82686f9729356bC9d88080666A8]
+    │   │   └─ ← [Return] TransparentUpgradeableProxy: [0xCD923EFCac76b82686f9729356bC9d88080666A8]
+    │   ├─ [1078] TransparentUpgradeableProxy::fallback() [staticcall]
+    │   │   ├─ [262] RegistryCoordinator::blsApkRegistry() [delegatecall]
+    │   │   │   └─ ← [Return] TransparentUpgradeableProxy: [0xD3addB95136bD4c55aFb6fd32bd476e71Eacc464]
+    │   │   └─ ← [Return] TransparentUpgradeableProxy: [0xD3addB95136bD4c55aFb6fd32bd476e71Eacc464]
+    │   ├─ [1143] TransparentUpgradeableProxy::fallback() [staticcall]
+    │   │   ├─ [327] StakeRegistry::delegation() [delegatecall]
+    │   │   │   └─ ← [Return] 0x39053D51B77DC0d36036Fc1fCc8Cb819df8Ef37A
+    │   │   └─ ← [Return] 0x39053D51B77DC0d36036Fc1fCc8Cb819df8Ef37A
+    │   └─ ← [Return] 9924 bytes of code
+    ├─ [3566259] → new MachServiceManager@0x6D4CD402BE0aF07EB0778B48f80900c76C2152AA
+    │   ├─ emit Initialized(version: 255)
+    │   └─ ← [Return] 17687 bytes of code
+    ├─ [177891] ProxyAdmin::upgradeAndCall(TransparentUpgradeableProxy: [0x203b9Acb40DfBB911f1e39C784EAB639418dae04], MachServiceManager: [0x6D4CD402BE0aF07EB0778B48f80900c76C2152AA], 0x0d1bc893000000000000000000000000e93ad70df0a3159a2e08b4f38bdfea5532cbb7f700000000000000000000000000000000000000000000000000000000000000000000000000000000000000004e9bb2be300005a6dfd80645afa6be58c4f0a41b0000000000000000000000004e9bb2be300005a6dfd80645afa6be58c4f0a41b0000000000000000000000007f1cee69adc8aac5e320ede4eaf08d24829aed900000000000000000000000001bf89a27815bdc2b845d6064dab21b4487f81cc200000000000000000000000000000000000000000000000000000000000000e00000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000074c)
+    │   ├─ [175544] TransparentUpgradeableProxy::upgradeToAndCall(MachServiceManager: [0x6D4CD402BE0aF07EB0778B48f80900c76C2152AA], 0x0d1bc893000000000000000000000000e93ad70df0a3159a2e08b4f38bdfea5532cbb7f700000000000000000000000000000000000000000000000000000000000000000000000000000000000000004e9bb2be300005a6dfd80645afa6be58c4f0a41b0000000000000000000000004e9bb2be300005a6dfd80645afa6be58c4f0a41b0000000000000000000000007f1cee69adc8aac5e320ede4eaf08d24829aed900000000000000000000000001bf89a27815bdc2b845d6064dab21b4487f81cc200000000000000000000000000000000000000000000000000000000000000e00000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000074c)
+    │   │   ├─ emit Upgraded(implementation: MachServiceManager: [0x6D4CD402BE0aF07EB0778B48f80900c76C2152AA])
+    │   │   ├─ [171438] MachServiceManager::initialize(PauserRegistry: [0xE93Ad70Df0a3159a2E08b4F38bdfeA5532CBb7f7], 0, 0x4e9bB2be300005A6dFd80645afa6be58c4F0A41B, 0x4e9bB2be300005A6dFd80645afa6be58c4F0A41B, 0x7F1Cee69ADC8AAC5E320EDe4Eaf08D24829Aed90, 0x1bf89a27815bdc2B845D6064DaB21B4487F81Cc2, [1868]) [delegatecall]
+    │   │   │   ├─ emit Paused(account: ProxyAdmin: [0x35a6C67F8a8f812BBc55D1c96e7aE4368D41D0E4], newPausedStatus: 0)
+    │   │   │   ├─ emit PauserRegistrySet(pauserRegistry: 0x0000000000000000000000000000000000000000, newPauserRegistry: PauserRegistry: [0xE93Ad70Df0a3159a2E08b4F38bdfeA5532CBb7f7])
+    │   │   │   ├─ emit OwnershipTransferred(previousOwner: 0x0000000000000000000000000000000000000000, newOwner: 0x4e9bB2be300005A6dFd80645afa6be58c4F0A41B)
+    │   │   │   ├─ emit RewardsInitiatorUpdated(prevRewardsInitiator: 0x0000000000000000000000000000000000000000, newRewardsInitiator: 0x4e9bB2be300005A6dFd80645afa6be58c4F0A41B)
+    │   │   │   ├─ emit AlertConfirmerChanged(previousAddress: 0x0000000000000000000000000000000000000000, newAddress: 0x7F1Cee69ADC8AAC5E320EDe4Eaf08D24829Aed90)
+    │   │   │   ├─ emit WhitelisterChanged(previousAddress: 0x0000000000000000000000000000000000000000, newAddress: 0x1bf89a27815bdc2B845D6064DaB21B4487F81Cc2)
+    │   │   │   ├─ emit RollupChainIDUpdated(rollupChainId: 1868, status: true)
+    │   │   │   ├─ emit Initialized(version: 1)
+    │   │   │   └─ ← [Stop] 
+    │   │   └─ ← [Stop] 
+    │   └─ ← [Stop] 
+    ├─ [0] VM::stopBroadcast()
+    │   └─ ← [Return] 
+    └─ ← [Stop] 
+
+
+Script ran successfully.
+
+## Setting up 1 EVM.
+==========================
+Simulated On-chain Traces:
+
+  [362115] → new ProxyAdmin@0x35a6C67F8a8f812BBc55D1c96e7aE4368D41D0E4
+    ├─ emit OwnershipTransferred(previousOwner: 0x0000000000000000000000000000000000000000, newOwner: 0x66234EefaDdB5dA6818BB1266d18094EC117F441)
+    └─ ← [Return] 1690 bytes of code
+
+  [23875] → new EmptyContract@0xA63A4ba32FaD7C5b1f08d987e2af679d4A8e4444
+    └─ ← [Return] 119 bytes of code
+
+  [250288] → new PauserRegistry@0xE93Ad70Df0a3159a2E08b4F38bdfeA5532CBb7f7
+    ├─ emit PauserStatusChanged(pauser: 0x4e9bB2be300005A6dFd80645afa6be58c4F0A41B, canPause: true)
+    ├─ emit UnpauserChanged(previousUnpauser: 0x0000000000000000000000000000000000000000, newUnpauser: 0x4e9bB2be300005A6dFd80645afa6be58c4F0A41B)
+    └─ ← [Return] 1009 bytes of code
+
+  [481552] → new TransparentUpgradeableProxy@0x8032Be3ed2BE15Ee2FF9553c6D87d5038FB0A14b
+    ├─ emit Upgraded(implementation: EmptyContract: [0xA63A4ba32FaD7C5b1f08d987e2af679d4A8e4444])
+    ├─ emit AdminChanged(previousAdmin: 0x0000000000000000000000000000000000000000, newAdmin: ProxyAdmin: [0x35a6C67F8a8f812BBc55D1c96e7aE4368D41D0E4])
+    └─ ← [Return] 2151 bytes of code
+
+  [481552] → new TransparentUpgradeableProxy@0xCD923EFCac76b82686f9729356bC9d88080666A8
+    ├─ emit Upgraded(implementation: EmptyContract: [0xA63A4ba32FaD7C5b1f08d987e2af679d4A8e4444])
+    ├─ emit AdminChanged(previousAdmin: 0x0000000000000000000000000000000000000000, newAdmin: ProxyAdmin: [0x35a6C67F8a8f812BBc55D1c96e7aE4368D41D0E4])
+    └─ ← [Return] 2151 bytes of code
+
+  [481552] → new TransparentUpgradeableProxy@0xD3addB95136bD4c55aFb6fd32bd476e71Eacc464
+    ├─ emit Upgraded(implementation: EmptyContract: [0xA63A4ba32FaD7C5b1f08d987e2af679d4A8e4444])
+    ├─ emit AdminChanged(previousAdmin: 0x0000000000000000000000000000000000000000, newAdmin: ProxyAdmin: [0x35a6C67F8a8f812BBc55D1c96e7aE4368D41D0E4])
+    └─ ← [Return] 2151 bytes of code
+
+  [481552] → new TransparentUpgradeableProxy@0x2c23CF71C023CBA700E379c8E73f040c70211D67
+    ├─ emit Upgraded(implementation: EmptyContract: [0xA63A4ba32FaD7C5b1f08d987e2af679d4A8e4444])
+    ├─ emit AdminChanged(previousAdmin: 0x0000000000000000000000000000000000000000, newAdmin: ProxyAdmin: [0x35a6C67F8a8f812BBc55D1c96e7aE4368D41D0E4])
+    └─ ← [Return] 2151 bytes of code
+
+  [481552] → new TransparentUpgradeableProxy@0x203b9Acb40DfBB911f1e39C784EAB639418dae04
+    ├─ emit Upgraded(implementation: EmptyContract: [0xA63A4ba32FaD7C5b1f08d987e2af679d4A8e4444])
+    ├─ emit AdminChanged(previousAdmin: 0x0000000000000000000000000000000000000000, newAdmin: ProxyAdmin: [0x35a6C67F8a8f812BBc55D1c96e7aE4368D41D0E4])
+    └─ ← [Return] 2151 bytes of code
+
+  [269343] → new SocketRegistry@0xdceE5e8AD4D6BCFAD3B77A73b6647EA2cB73Ce22
+    └─ ← [Return] 1344 bytes of code
+
+  [946889] → new IndexRegistry@0xBeB51414FB4d732643808f9C5c25DE129a781Bb3
+    ├─ emit Initialized(version: 255)
+    └─ ← [Return] 4611 bytes of code
+
+  [17042] ProxyAdmin::upgrade(TransparentUpgradeableProxy: [0x8032Be3ed2BE15Ee2FF9553c6D87d5038FB0A14b], IndexRegistry: [0xBeB51414FB4d732643808f9C5c25DE129a781Bb3])
+    ├─ [11568] TransparentUpgradeableProxy::upgradeTo(IndexRegistry: [0xBeB51414FB4d732643808f9C5c25DE129a781Bb3])
+    │   ├─ emit Upgraded(implementation: IndexRegistry: [0xBeB51414FB4d732643808f9C5c25DE129a781Bb3])
+    │   └─ ← [Stop] 
+    └─ ← [Stop] 
+
+  [2609860] → new StakeRegistry@0xc7DB8b0a57B4E99E508b7e6ceC647902F2500beD
+    └─ ← [Return] 13033 bytes of code
+
+  [17042] ProxyAdmin::upgrade(TransparentUpgradeableProxy: [0xCD923EFCac76b82686f9729356bC9d88080666A8], StakeRegistry: [0xc7DB8b0a57B4E99E508b7e6ceC647902F2500beD])
+    ├─ [11568] TransparentUpgradeableProxy::upgradeTo(StakeRegistry: [0xc7DB8b0a57B4E99E508b7e6ceC647902F2500beD])
+    │   ├─ emit Upgraded(implementation: StakeRegistry: [0xc7DB8b0a57B4E99E508b7e6ceC647902F2500beD])
+    │   └─ ← [Stop] 
+    └─ ← [Stop] 
+
+  [1601779] → new BLSApkRegistry@0x724B682CBe09C1D8BCFC0531f04eaBF55E5BD2C3
+    ├─ emit Initialized(version: 255)
+    └─ ← [Return] 7882 bytes of code
+
+  [17042] ProxyAdmin::upgrade(TransparentUpgradeableProxy: [0xD3addB95136bD4c55aFb6fd32bd476e71Eacc464], BLSApkRegistry: [0x724B682CBe09C1D8BCFC0531f04eaBF55E5BD2C3])
+    ├─ [11568] TransparentUpgradeableProxy::upgradeTo(BLSApkRegistry: [0x724B682CBe09C1D8BCFC0531f04eaBF55E5BD2C3])
+    │   ├─ emit Upgraded(implementation: BLSApkRegistry: [0x724B682CBe09C1D8BCFC0531f04eaBF55E5BD2C3])
+    │   └─ ← [Stop] 
+    └─ ← [Stop] 
+
+  [4899114] → new RegistryCoordinator@0x52CF55fF9620B45210e59aa66FAB23825278Fa36
+    ├─ emit Initialized(version: 255)
+    └─ ← [Return] 24341 bytes of code
+
+  [1538210] → new OperatorStateRetriever@0x6c07bE0A687F0261BB8Bc6dC76c596E9b09Ec7Aa
+    └─ ← [Return] 7683 bytes of code
+
+  [1182327] ProxyAdmin::upgradeAndCall(TransparentUpgradeableProxy: [0x2c23CF71C023CBA700E379c8E73f040c70211D67], RegistryCoordinator: [0x52CF55fF9620B45210e59aa66FAB23825278Fa36], 0xdd8283f30000000000000000000000004e9bb2be300005a6dfd80645afa6be58c4f0a41b000000000000000000000000d4b3fea1d17238aee0d49d08423fb468b4a82578000000000000000000000000f9efb987ff52296600bbc75fca30e3689768c47d000000000000000000000000e93ad70df0a3159a2e08b4f38bdfea5532cbb7f700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000018000000000000000000000000000000000000000000000000000000000000001c0000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000640000000000000000000000000000000000000000000000000000000000002af800000000000000000000000000000000000000000000000000000000000003e90000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000d000000000000000000000000beac0eeeeeeeeeeeeeeeeeeeeeeeeeeeeeebeac00000000000000000000000000000000000000000000000000de0b6b3a7640000000000000000000000000000a4c637e0f704745d182e4d38cab7e7485321d0590000000000000000000000000000000000000000000000000dcb1caa2d93b8000000000000000000000000009d7ed45ee2e8fc5482fa2428f15c971e6369011d0000000000000000000000000000000000000000000000000e2c4c3398fcafff000000000000000000000000298afb19a105d59e74658c4c334ff360bade6dd20000000000000000000000000000000000000000000000000e132d2a1dc7c0000000000000000000000000008ca7a5d6f3acd3a7a8bc468a8cd0fb14b6bd28b60000000000000000000000000000000000000000000000000eefde10de953000000000000000000000000000ae60d8180437b5c34bb956822ac27109725844730000000000000000000000000000000000000000000000000e874a2e0af96fff00000000000000000000000054945180db7943c0ed0fee7edab2bd24620256bc0000000000000000000000000000000000000000000000000ec0c79f84bacfff00000000000000000000000013760f50a9d7377e4f20cb8cf9e4c26586c658ff0000000000000000000000000000000000000000000000000fef88f14f32f00000000000000000000000000093c4b944d05dfe6df7645a86cd2206016c51564d0000000000000000000000000000000000000000000000000dd994a09da8340000000000000000000000000057ba429517c3473b6d34ca9acd56c0e735b94c020000000000000000000000000000000000000000000000000e13552eaa2680000000000000000000000000007ca911e83dabf90c90dd3de5411a10f1a61121840000000000000000000000000000000000000000000000000e0e5db56cc120000000000000000000000000000fe4f44bee93503346a3ac9ee5a26b130a5796d60000000000000000000000000000000000000000000000000e916fb25c73f0000000000000000000000000001bee69b7dfffa4e2d53c2a2df135c388ad25dcd20000000000000000000000000000000000000000000000000f5307e1cb8dafff)
+    ├─ [1172471] TransparentUpgradeableProxy::upgradeToAndCall(RegistryCoordinator: [0x52CF55fF9620B45210e59aa66FAB23825278Fa36], 0xdd8283f30000000000000000000000004e9bb2be300005a6dfd80645afa6be58c4f0a41b000000000000000000000000d4b3fea1d17238aee0d49d08423fb468b4a82578000000000000000000000000f9efb987ff52296600bbc75fca30e3689768c47d000000000000000000000000e93ad70df0a3159a2e08b4f38bdfea5532cbb7f700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000018000000000000000000000000000000000000000000000000000000000000001c0000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000640000000000000000000000000000000000000000000000000000000000002af800000000000000000000000000000000000000000000000000000000000003e90000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000d000000000000000000000000beac0eeeeeeeeeeeeeeeeeeeeeeeeeeeeeebeac00000000000000000000000000000000000000000000000000de0b6b3a7640000000000000000000000000000a4c637e0f704745d182e4d38cab7e7485321d0590000000000000000000000000000000000000000000000000dcb1caa2d93b8000000000000000000000000009d7ed45ee2e8fc5482fa2428f15c971e6369011d0000000000000000000000000000000000000000000000000e2c4c3398fcafff000000000000000000000000298afb19a105d59e74658c4c334ff360bade6dd20000000000000000000000000000000000000000000000000e132d2a1dc7c0000000000000000000000000008ca7a5d6f3acd3a7a8bc468a8cd0fb14b6bd28b60000000000000000000000000000000000000000000000000eefde10de953000000000000000000000000000ae60d8180437b5c34bb956822ac27109725844730000000000000000000000000000000000000000000000000e874a2e0af96fff00000000000000000000000054945180db7943c0ed0fee7edab2bd24620256bc0000000000000000000000000000000000000000000000000ec0c79f84bacfff00000000000000000000000013760f50a9d7377e4f20cb8cf9e4c26586c658ff0000000000000000000000000000000000000000000000000fef88f14f32f00000000000000000000000000093c4b944d05dfe6df7645a86cd2206016c51564d0000000000000000000000000000000000000000000000000dd994a09da8340000000000000000000000000057ba429517c3473b6d34ca9acd56c0e735b94c020000000000000000000000000000000000000000000000000e13552eaa2680000000000000000000000000007ca911e83dabf90c90dd3de5411a10f1a61121840000000000000000000000000000000000000000000000000e0e5db56cc120000000000000000000000000000fe4f44bee93503346a3ac9ee5a26b130a5796d60000000000000000000000000000000000000000000000000e916fb25c73f0000000000000000000000000001bee69b7dfffa4e2d53c2a2df135c388ad25dcd20000000000000000000000000000000000000000000000000f5307e1cb8dafff)
+    │   ├─ emit Upgraded(implementation: RegistryCoordinator: [0x52CF55fF9620B45210e59aa66FAB23825278Fa36])
+    │   ├─ [1156464] RegistryCoordinator::initialize(0x4e9bB2be300005A6dFd80645afa6be58c4F0A41B, 0xd4B3FeA1d17238aEE0d49D08423FB468B4a82578, 0xf9EfB987fF52296600bbc75fCA30e3689768c47D, PauserRegistry: [0xE93Ad70Df0a3159a2E08b4F38bdfeA5532CBb7f7], 0, [OperatorSetParam({ maxOperatorCount: 100, kickBIPsOfOperatorStake: 11000 [1.1e4], kickBIPsOfTotalStake: 1001 })], [0], [[StrategyParams({ strategy: 0xbeaC0eeEeeeeEEeEeEEEEeeEEeEeeeEeeEEBEaC0, multiplier: 1000000000000000000 [1e18] }), StrategyParams({ strategy: 0xa4C637e0F704745D182e4D38cAb7E7485321d059, multiplier: 993919660000000000 [9.939e17] }), StrategyParams({ strategy: 0x9d7eD45EE2E8FC5482fa2428f15C971e6369011d, multiplier: 1021274999999999999 [1.021e18] }), StrategyParams({ strategy: 0x298aFB19A105D59E74658C4C334Ff360BadE6dd2, multiplier: 1014204000000000000 [1.014e18] }), StrategyParams({ strategy: 0x8CA7A5d6f3acd3A7A8bC468a8CD0FB14B6BD28b6, multiplier: 1076323000000000000 [1.076e18] }), StrategyParams({ strategy: 0xAe60d8180437b5C34bB956822ac2710972584473, multiplier: 1046886999999999999 [1.046e18] }), StrategyParams({ strategy: 0x54945180dB7943c0ed0FEE7EdaB2Bd24620256bc, multiplier: 1063068999999999999 [1.063e18] }), StrategyParams({ strategy: 0x13760F50a9d7377e4F20CB8CF9e4c26586c658ff, multiplier: 1148287000000000000 [1.148e18] }), StrategyParams({ strategy: 0x93c4b944D05dfe6df7645A86cd2206016c51564D, multiplier: 997992210000000000 [9.979e17] }), StrategyParams({ strategy: 0x57ba429517c3473B6d34CA9aCd56c0e735b94c02, multiplier: 1014248000000000000 [1.014e18] }), StrategyParams({ strategy: 0x7CA911E83dabf90C90dD3De5411a10F1A6112184, multiplier: 1012850000000000000 [1.012e18] }), StrategyParams({ strategy: 0x0Fe4F44beE93503346A3Ac9EE5A26b130a5796d6, multiplier: 1049743000000000000 [1.049e18] }), StrategyParams({ strategy: 0x1BeE69b7dFFfA4E2d53C2a2Df135C388AD25dCD2, multiplier: 1104234999999999999 [1.104e18] })]]) [delegatecall]
+    │   │   ├─ emit OwnershipTransferred(previousOwner: 0x0000000000000000000000000000000000000000, newOwner: 0x4e9bB2be300005A6dFd80645afa6be58c4F0A41B)
+    │   │   ├─ emit Paused(account: ProxyAdmin: [0x35a6C67F8a8f812BBc55D1c96e7aE4368D41D0E4], newPausedStatus: 0)
+    │   │   ├─ emit PauserRegistrySet(pauserRegistry: 0x0000000000000000000000000000000000000000, newPauserRegistry: PauserRegistry: [0xE93Ad70Df0a3159a2E08b4F38bdfeA5532CBb7f7])
+    │   │   ├─ emit ChurnApproverUpdated(prevChurnApprover: 0x0000000000000000000000000000000000000000, newChurnApprover: 0xd4B3FeA1d17238aEE0d49D08423FB468B4a82578)
+    │   │   ├─ emit EjectorUpdated(prevEjector: 0x0000000000000000000000000000000000000000, newEjector: 0xf9EfB987fF52296600bbc75fCA30e3689768c47D)
+    │   │   ├─ emit OperatorSetParamsUpdated(quorumNumber: 0, operatorSetParams: OperatorSetParam({ maxOperatorCount: 100, kickBIPsOfOperatorStake: 11000 [1.1e4], kickBIPsOfTotalStake: 1001 }))
+    │   │   ├─ [795648] TransparentUpgradeableProxy::fallback(0, 0, [StrategyParams({ strategy: 0xbeaC0eeEeeeeEEeEeEEEEeeEEeEeeeEeeEEBEaC0, multiplier: 1000000000000000000 [1e18] }), StrategyParams({ strategy: 0xa4C637e0F704745D182e4D38cAb7E7485321d059, multiplier: 993919660000000000 [9.939e17] }), StrategyParams({ strategy: 0x9d7eD45EE2E8FC5482fa2428f15C971e6369011d, multiplier: 1021274999999999999 [1.021e18] }), StrategyParams({ strategy: 0x298aFB19A105D59E74658C4C334Ff360BadE6dd2, multiplier: 1014204000000000000 [1.014e18] }), StrategyParams({ strategy: 0x8CA7A5d6f3acd3A7A8bC468a8CD0FB14B6BD28b6, multiplier: 1076323000000000000 [1.076e18] }), StrategyParams({ strategy: 0xAe60d8180437b5C34bB956822ac2710972584473, multiplier: 1046886999999999999 [1.046e18] }), StrategyParams({ strategy: 0x54945180dB7943c0ed0FEE7EdaB2Bd24620256bc, multiplier: 1063068999999999999 [1.063e18] }), StrategyParams({ strategy: 0x13760F50a9d7377e4F20CB8CF9e4c26586c658ff, multiplier: 1148287000000000000 [1.148e18] }), StrategyParams({ strategy: 0x93c4b944D05dfe6df7645A86cd2206016c51564D, multiplier: 997992210000000000 [9.979e17] }), StrategyParams({ strategy: 0x57ba429517c3473B6d34CA9aCd56c0e735b94c02, multiplier: 1014248000000000000 [1.014e18] }), StrategyParams({ strategy: 0x7CA911E83dabf90C90dD3De5411a10F1A6112184, multiplier: 1012850000000000000 [1.012e18] }), StrategyParams({ strategy: 0x0Fe4F44beE93503346A3Ac9EE5A26b130a5796d6, multiplier: 1049743000000000000 [1.049e18] }), StrategyParams({ strategy: 0x1BeE69b7dFFfA4E2d53C2a2Df135C388AD25dCD2, multiplier: 1104234999999999999 [1.104e18] })])
+    │   │   │   ├─ [788160] StakeRegistry::initializeQuorum(0, 0, [StrategyParams({ strategy: 0xbeaC0eeEeeeeEEeEeEEEEeeEEeEeeeEeeEEBEaC0, multiplier: 1000000000000000000 [1e18] }), StrategyParams({ strategy: 0xa4C637e0F704745D182e4D38cAb7E7485321d059, multiplier: 993919660000000000 [9.939e17] }), StrategyParams({ strategy: 0x9d7eD45EE2E8FC5482fa2428f15C971e6369011d, multiplier: 1021274999999999999 [1.021e18] }), StrategyParams({ strategy: 0x298aFB19A105D59E74658C4C334Ff360BadE6dd2, multiplier: 1014204000000000000 [1.014e18] }), StrategyParams({ strategy: 0x8CA7A5d6f3acd3A7A8bC468a8CD0FB14B6BD28b6, multiplier: 1076323000000000000 [1.076e18] }), StrategyParams({ strategy: 0xAe60d8180437b5C34bB956822ac2710972584473, multiplier: 1046886999999999999 [1.046e18] }), StrategyParams({ strategy: 0x54945180dB7943c0ed0FEE7EdaB2Bd24620256bc, multiplier: 1063068999999999999 [1.063e18] }), StrategyParams({ strategy: 0x13760F50a9d7377e4F20CB8CF9e4c26586c658ff, multiplier: 1148287000000000000 [1.148e18] }), StrategyParams({ strategy: 0x93c4b944D05dfe6df7645A86cd2206016c51564D, multiplier: 997992210000000000 [9.979e17] }), StrategyParams({ strategy: 0x57ba429517c3473B6d34CA9aCd56c0e735b94c02, multiplier: 1014248000000000000 [1.014e18] }), StrategyParams({ strategy: 0x7CA911E83dabf90C90dD3De5411a10F1A6112184, multiplier: 1012850000000000000 [1.012e18] }), StrategyParams({ strategy: 0x0Fe4F44beE93503346A3Ac9EE5A26b130a5796d6, multiplier: 1049743000000000000 [1.049e18] }), StrategyParams({ strategy: 0x1BeE69b7dFFfA4E2d53C2a2Df135C388AD25dCD2, multiplier: 1104234999999999999 [1.104e18] })]) [delegatecall]
+    │   │   │   │   ├─ emit StrategyAddedToQuorum(quorumNumber: 0, strategy: 0xbeaC0eeEeeeeEEeEeEEEEeeEEeEeeeEeeEEBEaC0)
+    │   │   │   │   ├─ emit StrategyMultiplierUpdated(quorumNumber: 0, strategy: 0xbeaC0eeEeeeeEEeEeEEEEeeEEeEeeeEeeEEBEaC0, multiplier: 1000000000000000000 [1e18])
+    │   │   │   │   ├─ emit StrategyAddedToQuorum(quorumNumber: 0, strategy: 0xa4C637e0F704745D182e4D38cAb7E7485321d059)
+    │   │   │   │   ├─ emit StrategyMultiplierUpdated(quorumNumber: 0, strategy: 0xa4C637e0F704745D182e4D38cAb7E7485321d059, multiplier: 993919660000000000 [9.939e17])
+    │   │   │   │   ├─ emit StrategyAddedToQuorum(quorumNumber: 0, strategy: 0x9d7eD45EE2E8FC5482fa2428f15C971e6369011d)
+    │   │   │   │   ├─ emit StrategyMultiplierUpdated(quorumNumber: 0, strategy: 0x9d7eD45EE2E8FC5482fa2428f15C971e6369011d, multiplier: 1021274999999999999 [1.021e18])
+    │   │   │   │   ├─ emit StrategyAddedToQuorum(quorumNumber: 0, strategy: 0x298aFB19A105D59E74658C4C334Ff360BadE6dd2)
+    │   │   │   │   ├─ emit StrategyMultiplierUpdated(quorumNumber: 0, strategy: 0x298aFB19A105D59E74658C4C334Ff360BadE6dd2, multiplier: 1014204000000000000 [1.014e18])
+    │   │   │   │   ├─ emit StrategyAddedToQuorum(quorumNumber: 0, strategy: 0x8CA7A5d6f3acd3A7A8bC468a8CD0FB14B6BD28b6)
+    │   │   │   │   ├─ emit StrategyMultiplierUpdated(quorumNumber: 0, strategy: 0x8CA7A5d6f3acd3A7A8bC468a8CD0FB14B6BD28b6, multiplier: 1076323000000000000 [1.076e18])
+    │   │   │   │   ├─ emit StrategyAddedToQuorum(quorumNumber: 0, strategy: 0xAe60d8180437b5C34bB956822ac2710972584473)
+    │   │   │   │   ├─ emit StrategyMultiplierUpdated(quorumNumber: 0, strategy: 0xAe60d8180437b5C34bB956822ac2710972584473, multiplier: 1046886999999999999 [1.046e18])
+    │   │   │   │   ├─ emit StrategyAddedToQuorum(quorumNumber: 0, strategy: 0x54945180dB7943c0ed0FEE7EdaB2Bd24620256bc)
+    │   │   │   │   ├─ emit StrategyMultiplierUpdated(quorumNumber: 0, strategy: 0x54945180dB7943c0ed0FEE7EdaB2Bd24620256bc, multiplier: 1063068999999999999 [1.063e18])
+    │   │   │   │   ├─ emit StrategyAddedToQuorum(quorumNumber: 0, strategy: 0x13760F50a9d7377e4F20CB8CF9e4c26586c658ff)
+    │   │   │   │   ├─ emit StrategyMultiplierUpdated(quorumNumber: 0, strategy: 0x13760F50a9d7377e4F20CB8CF9e4c26586c658ff, multiplier: 1148287000000000000 [1.148e18])
+    │   │   │   │   ├─ emit StrategyAddedToQuorum(quorumNumber: 0, strategy: 0x93c4b944D05dfe6df7645A86cd2206016c51564D)
+    │   │   │   │   ├─ emit StrategyMultiplierUpdated(quorumNumber: 0, strategy: 0x93c4b944D05dfe6df7645A86cd2206016c51564D, multiplier: 997992210000000000 [9.979e17])
+    │   │   │   │   ├─ emit StrategyAddedToQuorum(quorumNumber: 0, strategy: 0x57ba429517c3473B6d34CA9aCd56c0e735b94c02)
+    │   │   │   │   ├─ emit StrategyMultiplierUpdated(quorumNumber: 0, strategy: 0x57ba429517c3473B6d34CA9aCd56c0e735b94c02, multiplier: 1014248000000000000 [1.014e18])
+    │   │   │   │   ├─ emit StrategyAddedToQuorum(quorumNumber: 0, strategy: 0x7CA911E83dabf90C90dD3De5411a10F1A6112184)
+    │   │   │   │   ├─ emit StrategyMultiplierUpdated(quorumNumber: 0, strategy: 0x7CA911E83dabf90C90dD3De5411a10F1A6112184, multiplier: 1012850000000000000 [1.012e18])
+    │   │   │   │   ├─ emit StrategyAddedToQuorum(quorumNumber: 0, strategy: 0x0Fe4F44beE93503346A3Ac9EE5A26b130a5796d6)
+    │   │   │   │   ├─ emit StrategyMultiplierUpdated(quorumNumber: 0, strategy: 0x0Fe4F44beE93503346A3Ac9EE5A26b130a5796d6, multiplier: 1049743000000000000 [1.049e18])
+    │   │   │   │   ├─ emit StrategyAddedToQuorum(quorumNumber: 0, strategy: 0x1BeE69b7dFFfA4E2d53C2a2Df135C388AD25dCD2)
+    │   │   │   │   ├─ emit StrategyMultiplierUpdated(quorumNumber: 0, strategy: 0x1BeE69b7dFFfA4E2d53C2a2Df135C388AD25dCD2, multiplier: 1104234999999999999 [1.104e18])
+    │   │   │   │   ├─ emit MinimumStakeForQuorumUpdated(quorumNumber: 0, minimumStake: 0)
+    │   │   │   │   └─ ← [Stop] 
+    │   │   │   └─ ← [Return] 
+    │   │   ├─ [52408] TransparentUpgradeableProxy::fallback(0)
+    │   │   │   ├─ [45092] IndexRegistry::initializeQuorum(0) [delegatecall]
+    │   │   │   │   └─ ← [Stop] 
+    │   │   │   └─ ← [Return] 
+    │   │   ├─ [52550] TransparentUpgradeableProxy::fallback(0)
+    │   │   │   ├─ [45234] BLSApkRegistry::initializeQuorum(0) [delegatecall]
+    │   │   │   │   └─ ← [Stop] 
+    │   │   │   └─ ← [Return] 
+    │   │   ├─ emit Initialized(version: 1)
+    │   │   └─ ← [Stop] 
+    │   └─ ← [Stop] 
+    └─ ← [Stop] 
+
+  [2010075] → new BLSSignatureChecker@0x85814b3ff84DA95363C15879B605F3C47fA6A762
+    ├─ [7622] TransparentUpgradeableProxy::fallback() [staticcall]
+    │   ├─ [306] RegistryCoordinator::stakeRegistry() [delegatecall]
+    │   │   └─ ← [Return] TransparentUpgradeableProxy: [0xCD923EFCac76b82686f9729356bC9d88080666A8]
+    │   └─ ← [Return] TransparentUpgradeableProxy: [0xCD923EFCac76b82686f9729356bC9d88080666A8]
+    ├─ [1078] TransparentUpgradeableProxy::fallback() [staticcall]
+    │   ├─ [262] RegistryCoordinator::blsApkRegistry() [delegatecall]
+    │   │   └─ ← [Return] TransparentUpgradeableProxy: [0xD3addB95136bD4c55aFb6fd32bd476e71Eacc464]
+    │   └─ ← [Return] TransparentUpgradeableProxy: [0xD3addB95136bD4c55aFb6fd32bd476e71Eacc464]
+    ├─ [7643] TransparentUpgradeableProxy::fallback() [staticcall]
+    │   ├─ [327] StakeRegistry::delegation() [delegatecall]
+    │   │   └─ ← [Return] 0x39053D51B77DC0d36036Fc1fCc8Cb819df8Ef37A
+    │   └─ ← [Return] 0x39053D51B77DC0d36036Fc1fCc8Cb819df8Ef37A
+    └─ ← [Return] 9924 bytes of code
+
+  [3566259] → new MachServiceManager@0x6D4CD402BE0aF07EB0778B48f80900c76C2152AA
+    ├─ emit Initialized(version: 255)
+    └─ ← [Return] 17687 bytes of code
+
+  [191691] ProxyAdmin::upgradeAndCall(TransparentUpgradeableProxy: [0x203b9Acb40DfBB911f1e39C784EAB639418dae04], MachServiceManager: [0x6D4CD402BE0aF07EB0778B48f80900c76C2152AA], 0x0d1bc893000000000000000000000000e93ad70df0a3159a2e08b4f38bdfea5532cbb7f700000000000000000000000000000000000000000000000000000000000000000000000000000000000000004e9bb2be300005a6dfd80645afa6be58c4f0a41b0000000000000000000000004e9bb2be300005a6dfd80645afa6be58c4f0a41b0000000000000000000000007f1cee69adc8aac5e320ede4eaf08d24829aed900000000000000000000000001bf89a27815bdc2b845d6064dab21b4487f81cc200000000000000000000000000000000000000000000000000000000000000e00000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000074c)
+    ├─ [184844] TransparentUpgradeableProxy::upgradeToAndCall(MachServiceManager: [0x6D4CD402BE0aF07EB0778B48f80900c76C2152AA], 0x0d1bc893000000000000000000000000e93ad70df0a3159a2e08b4f38bdfea5532cbb7f700000000000000000000000000000000000000000000000000000000000000000000000000000000000000004e9bb2be300005a6dfd80645afa6be58c4f0a41b0000000000000000000000004e9bb2be300005a6dfd80645afa6be58c4f0a41b0000000000000000000000007f1cee69adc8aac5e320ede4eaf08d24829aed900000000000000000000000001bf89a27815bdc2b845d6064dab21b4487f81cc200000000000000000000000000000000000000000000000000000000000000e00000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000074c)
+    │   ├─ emit Upgraded(implementation: MachServiceManager: [0x6D4CD402BE0aF07EB0778B48f80900c76C2152AA])
+    │   ├─ [171438] MachServiceManager::initialize(PauserRegistry: [0xE93Ad70Df0a3159a2E08b4F38bdfeA5532CBb7f7], 0, 0x4e9bB2be300005A6dFd80645afa6be58c4F0A41B, 0x4e9bB2be300005A6dFd80645afa6be58c4F0A41B, 0x7F1Cee69ADC8AAC5E320EDe4Eaf08D24829Aed90, 0x1bf89a27815bdc2B845D6064DaB21B4487F81Cc2, [1868]) [delegatecall]
+    │   │   ├─ emit Paused(account: ProxyAdmin: [0x35a6C67F8a8f812BBc55D1c96e7aE4368D41D0E4], newPausedStatus: 0)
+    │   │   ├─ emit PauserRegistrySet(pauserRegistry: 0x0000000000000000000000000000000000000000, newPauserRegistry: PauserRegistry: [0xE93Ad70Df0a3159a2E08b4F38bdfeA5532CBb7f7])
+    │   │   ├─ emit OwnershipTransferred(previousOwner: 0x0000000000000000000000000000000000000000, newOwner: 0x4e9bB2be300005A6dFd80645afa6be58c4F0A41B)
+    │   │   ├─ emit RewardsInitiatorUpdated(prevRewardsInitiator: 0x0000000000000000000000000000000000000000, newRewardsInitiator: 0x4e9bB2be300005A6dFd80645afa6be58c4F0A41B)
+    │   │   ├─ emit AlertConfirmerChanged(previousAddress: 0x0000000000000000000000000000000000000000, newAddress: 0x7F1Cee69ADC8AAC5E320EDe4Eaf08D24829Aed90)
+    │   │   ├─ emit WhitelisterChanged(previousAddress: 0x0000000000000000000000000000000000000000, newAddress: 0x1bf89a27815bdc2B845D6064DaB21B4487F81Cc2)
+    │   │   ├─ emit RollupChainIDUpdated(rollupChainId: 1868, status: true)
+    │   │   ├─ emit Initialized(version: 1)
+    │   │   └─ ← [Stop] 
+    │   └─ ← [Stop] 
+    └─ ← [Stop] 
+
+
+==========================
+
+Chain 1
+
+Estimated gas price: 0.896807766 gwei
+
+Estimated total gas used for script: 32266451
+
+Estimated amount required: 0.028936803838058466 ETH
+
+==========================
+
+
+==========================
+
+ONCHAIN EXECUTION COMPLETE & SUCCESSFUL.
+##
+Start verification for (16) contracts
+Start verifying contract `0x35a6C67F8a8f812BBc55D1c96e7aE4368D41D0E4` deployed on mainnet
+Compiler version: 0.8.12
+Optimizations:    200
+
+Submitting verification for [lib/eigenlayer-middleware/lib/openzeppelin-contracts/contracts/proxy/transparent/ProxyAdmin.sol:ProxyAdmin] 0x35a6C67F8a8f812BBc55D1c96e7aE4368D41D0E4.
+Submitted contract for verification:
+	Response: `OK`
+	GUID: `fbie86cacx1ef2rmh2kfkhsbn9rjz9k36dc9tswaidhzav2epa`
+	URL: https://etherscan.io/address/0x35a6c67f8a8f812bbc55d1c96e7ae4368d41d0e4
+Contract verification status:
+Response: `NOTOK`
+Details: `Pending in queue`
+Contract verification status:
+Response: `OK`
+Details: `Pass - Verified`
+Contract successfully verified
+Start verifying contract `0xA63A4ba32FaD7C5b1f08d987e2af679d4A8e4444` deployed on mainnet
+Compiler version: 0.8.12
+Optimizations:    200
+
+Submitting verification for [lib/eigenlayer-middleware/lib/eigenlayer-contracts/src/test/mocks/EmptyContract.sol:EmptyContract] 0xA63A4ba32FaD7C5b1f08d987e2af679d4A8e4444.
+Submitted contract for verification:
+	Response: `OK`
+	GUID: `azn6r3w3rh4pgv2vkpzqdbash7zr9fp2ctaemtyf4bujjhebck`
+	URL: https://etherscan.io/address/0xa63a4ba32fad7c5b1f08d987e2af679d4a8e4444
+Contract verification status:
+Response: `NOTOK`
+Details: `Pending in queue`
+Contract verification status:
+Response: `OK`
+Details: `Pass - Verified`
+Contract successfully verified
+Start verifying contract `0xE93Ad70Df0a3159a2E08b4F38bdfeA5532CBb7f7` deployed on mainnet
+Compiler version: 0.8.12
+Optimizations:    200
+Constructor args: 00000000000000000000000000000000000000000000000000000000000000400000000000000000000000004e9bb2be300005a6dfd80645afa6be58c4f0a41b00000000000000000000000000000000000000000000000000000000000000010000000000000000000000004e9bb2be300005a6dfd80645afa6be58c4f0a41b
+
+Submitting verification for [lib/eigenlayer-middleware/lib/eigenlayer-contracts/src/contracts/permissions/PauserRegistry.sol:PauserRegistry] 0xE93Ad70Df0a3159a2E08b4F38bdfeA5532CBb7f7.
+Submitted contract for verification:
+	Response: `OK`
+	GUID: `yp1pl7xv7zg1eyvvfsyvmcrmyebxax1gmwve1knssf8ctq9s7s`
+	URL: https://etherscan.io/address/0xe93ad70df0a3159a2e08b4f38bdfea5532cbb7f7
+Contract verification status:
+Response: `NOTOK`
+Details: `Pending in queue`
+Contract verification status:
+Response: `OK`
+Details: `Pass - Verified`
+Contract successfully verified
+Start verifying contract `0x8032Be3ed2BE15Ee2FF9553c6D87d5038FB0A14b` deployed on mainnet
+Compiler version: 0.8.12
+Optimizations:    200
+Constructor args: 000000000000000000000000a63a4ba32fad7c5b1f08d987e2af679d4a8e444400000000000000000000000035a6c67f8a8f812bbc55d1c96e7ae4368d41d0e400000000000000000000000000000000000000000000000000000000000000600000000000000000000000000000000000000000000000000000000000000000
+
+Submitting verification for [lib/eigenlayer-middleware/lib/openzeppelin-contracts/contracts/proxy/transparent/TransparentUpgradeableProxy.sol:TransparentUpgradeableProxy] 0x8032Be3ed2BE15Ee2FF9553c6D87d5038FB0A14b.
+Submitted contract for verification:
+	Response: `OK`
+	GUID: `x6px8mpdr7xzk9y1eh3hwke7wh4dkhvarjzvipp9qnugvsjyet`
+	URL: https://etherscan.io/address/0x8032be3ed2be15ee2ff9553c6d87d5038fb0a14b
+Contract verification status:
+Response: `NOTOK`
+Details: `Pending in queue`
+Contract verification status:
+Response: `OK`
+Details: `Pass - Verified`
+Contract successfully verified
+Start verifying contract `0xCD923EFCac76b82686f9729356bC9d88080666A8` deployed on mainnet
+Compiler version: 0.8.12
+Optimizations:    200
+Constructor args: 000000000000000000000000a63a4ba32fad7c5b1f08d987e2af679d4a8e444400000000000000000000000035a6c67f8a8f812bbc55d1c96e7ae4368d41d0e400000000000000000000000000000000000000000000000000000000000000600000000000000000000000000000000000000000000000000000000000000000
+
+Submitting verification for [lib/eigenlayer-middleware/lib/openzeppelin-contracts/contracts/proxy/transparent/TransparentUpgradeableProxy.sol:TransparentUpgradeableProxy] 0xCD923EFCac76b82686f9729356bC9d88080666A8.
+Submitted contract for verification:
+	Response: `OK`
+	GUID: `bsprwcsg3ribs9cn9c93iptushrxc3p5zsvelrmnu2mqrevk5z`
+	URL: https://etherscan.io/address/0xcd923efcac76b82686f9729356bc9d88080666a8
+Contract verification status:
+Response: `NOTOK`
+Details: `Pending in queue`
+Contract verification status:
+Response: `NOTOK`
+Details: `Already Verified`
+Contract source code already verified
+Start verifying contract `0xD3addB95136bD4c55aFb6fd32bd476e71Eacc464` deployed on mainnet
+Compiler version: 0.8.12
+Optimizations:    200
+Constructor args: 000000000000000000000000a63a4ba32fad7c5b1f08d987e2af679d4a8e444400000000000000000000000035a6c67f8a8f812bbc55d1c96e7ae4368d41d0e400000000000000000000000000000000000000000000000000000000000000600000000000000000000000000000000000000000000000000000000000000000
+
+Submitting verification for [lib/eigenlayer-middleware/lib/openzeppelin-contracts/contracts/proxy/transparent/TransparentUpgradeableProxy.sol:TransparentUpgradeableProxy] 0xD3addB95136bD4c55aFb6fd32bd476e71Eacc464.
+Submitted contract for verification:
+	Response: `OK`
+	GUID: `ihqbknqwyflu5z2dczdybiplzg243dlxtekgfn89fgtyczwmnd`
+	URL: https://etherscan.io/address/0xd3addb95136bd4c55afb6fd32bd476e71eacc464
+Contract verification status:
+Response: `NOTOK`
+Details: `Pending in queue`
+Contract verification status:
+Response: `NOTOK`
+Details: `Already Verified`
+Contract source code already verified
+Start verifying contract `0x2c23CF71C023CBA700E379c8E73f040c70211D67` deployed on mainnet
+Compiler version: 0.8.12
+Optimizations:    200
+Constructor args: 000000000000000000000000a63a4ba32fad7c5b1f08d987e2af679d4a8e444400000000000000000000000035a6c67f8a8f812bbc55d1c96e7ae4368d41d0e400000000000000000000000000000000000000000000000000000000000000600000000000000000000000000000000000000000000000000000000000000000
+
+Submitting verification for [lib/eigenlayer-middleware/lib/openzeppelin-contracts/contracts/proxy/transparent/TransparentUpgradeableProxy.sol:TransparentUpgradeableProxy] 0x2c23CF71C023CBA700E379c8E73f040c70211D67.
+Submitted contract for verification:
+	Response: `OK`
+	GUID: `xf75qjmw4muvbnedznxtbvrnq8uhenbsuk25rrmdcuypmmntfe`
+	URL: https://etherscan.io/address/0x2c23cf71c023cba700e379c8e73f040c70211d67
+Contract verification status:
+Response: `NOTOK`
+Details: `Pending in queue`
+Contract verification status:
+Response: `NOTOK`
+Details: `Already Verified`
+Contract source code already verified
+Start verifying contract `0x203b9Acb40DfBB911f1e39C784EAB639418dae04` deployed on mainnet
+Compiler version: 0.8.12
+Optimizations:    200
+Constructor args: 000000000000000000000000a63a4ba32fad7c5b1f08d987e2af679d4a8e444400000000000000000000000035a6c67f8a8f812bbc55d1c96e7ae4368d41d0e400000000000000000000000000000000000000000000000000000000000000600000000000000000000000000000000000000000000000000000000000000000
+
+Submitting verification for [lib/eigenlayer-middleware/lib/openzeppelin-contracts/contracts/proxy/transparent/TransparentUpgradeableProxy.sol:TransparentUpgradeableProxy] 0x203b9Acb40DfBB911f1e39C784EAB639418dae04.
+Submitted contract for verification:
+	Response: `OK`
+	GUID: `q2wgcxsatvavyr6t5kprsd3lyxqs9qugkgmsf6aewnzrmsrbgl`
+	URL: https://etherscan.io/address/0x203b9acb40dfbb911f1e39c784eab639418dae04
+Contract verification status:
+Response: `NOTOK`
+Details: `Already Verified`
+Contract source code already verified
+Start verifying contract `0xdceE5e8AD4D6BCFAD3B77A73b6647EA2cB73Ce22` deployed on mainnet
+Compiler version: 0.8.12
+Optimizations:    200
+Constructor args: 0000000000000000000000002c23cf71c023cba700e379c8e73f040c70211d67
+
+Submitting verification for [lib/eigenlayer-middleware/src/SocketRegistry.sol:SocketRegistry] 0xdceE5e8AD4D6BCFAD3B77A73b6647EA2cB73Ce22.
+Submitted contract for verification:
+	Response: `OK`
+	GUID: `fncdpzu4eytiesrtehuqxpwa4kddfdnngwdnyexbfupejukc9f`
+	URL: https://etherscan.io/address/0xdcee5e8ad4d6bcfad3b77a73b6647ea2cb73ce22
+Contract verification status:
+Response: `NOTOK`
+Details: `Pending in queue`
+Contract verification status:
+Response: `OK`
+Details: `Pass - Verified`
+Contract successfully verified
+Start verifying contract `0xBeB51414FB4d732643808f9C5c25DE129a781Bb3` deployed on mainnet
+Compiler version: 0.8.12
+Optimizations:    200
+Constructor args: 0000000000000000000000002c23cf71c023cba700e379c8e73f040c70211d67
+
+Submitting verification for [lib/eigenlayer-middleware/src/IndexRegistry.sol:IndexRegistry] 0xBeB51414FB4d732643808f9C5c25DE129a781Bb3.
+Submitted contract for verification:
+	Response: `OK`
+	GUID: `hfxukmcq5a2pywtrdrmrlbnxhvptphdqgwweqgxtt3bki8vsxg`
+	URL: https://etherscan.io/address/0xbeb51414fb4d732643808f9c5c25de129a781bb3
+Contract verification status:
+Response: `NOTOK`
+Details: `Pending in queue`
+Contract verification status:
+Response: `OK`
+Details: `Pass - Verified`
+Contract successfully verified
+Start verifying contract `0xc7DB8b0a57B4E99E508b7e6ceC647902F2500beD` deployed on mainnet
+Compiler version: 0.8.12
+Optimizations:    200
+Constructor args: 0000000000000000000000002c23cf71c023cba700e379c8e73f040c70211d6700000000000000000000000039053d51b77dc0d36036fc1fcc8cb819df8ef37a
+
+Submitting verification for [lib/eigenlayer-middleware/src/StakeRegistry.sol:StakeRegistry] 0xc7DB8b0a57B4E99E508b7e6ceC647902F2500beD.
+Submitted contract for verification:
+	Response: `OK`
+	GUID: `tvh6xat4d4kktjuebsekypswijqhazkehrkqqmgbnba5nvpz4n`
+	URL: https://etherscan.io/address/0xc7db8b0a57b4e99e508b7e6cec647902f2500bed
+Contract verification status:
+Response: `NOTOK`
+Details: `Pending in queue`
+Contract verification status:
+Response: `OK`
+Details: `Pass - Verified`
+Contract successfully verified
+Start verifying contract `0x724B682CBe09C1D8BCFC0531f04eaBF55E5BD2C3` deployed on mainnet
+Compiler version: 0.8.12
+Optimizations:    200
+Constructor args: 0000000000000000000000002c23cf71c023cba700e379c8e73f040c70211d67
+
+Submitting verification for [lib/eigenlayer-middleware/src/BLSApkRegistry.sol:BLSApkRegistry] 0x724B682CBe09C1D8BCFC0531f04eaBF55E5BD2C3.
+Submitted contract for verification:
+	Response: `OK`
+	GUID: `xc3rlbcaj7ry2tlxrnuwya9c6dguc8y8yusitnijkydzuwihiy`
+	URL: https://etherscan.io/address/0x724b682cbe09c1d8bcfc0531f04eabf55e5bd2c3
+Contract verification status:
+Response: `NOTOK`
+Details: `Pending in queue`
+Contract verification status:
+Response: `OK`
+Details: `Pass - Verified`
+Contract successfully verified
+Start verifying contract `0x52CF55fF9620B45210e59aa66FAB23825278Fa36` deployed on mainnet
+Compiler version: 0.8.12
+Optimizations:    200
+Constructor args: 000000000000000000000000203b9acb40dfbb911f1e39c784eab639418dae04000000000000000000000000cd923efcac76b82686f9729356bc9d88080666a8000000000000000000000000d3addb95136bd4c55afb6fd32bd476e71eacc4640000000000000000000000008032be3ed2be15ee2ff9553c6d87d5038fb0a14b000000000000000000000000dcee5e8ad4d6bcfad3b77a73b6647ea2cb73ce22
+
+Submitting verification for [lib/eigenlayer-middleware/src/RegistryCoordinator.sol:RegistryCoordinator] 0x52CF55fF9620B45210e59aa66FAB23825278Fa36.
+Submitted contract for verification:
+	Response: `OK`
+	GUID: `hdkpcyj7hzgsbtcy9sqhtqybw8zjcs7bupt7ih1dqmbvtr3emc`
+	URL: https://etherscan.io/address/0x52cf55ff9620b45210e59aa66fab23825278fa36
+Contract verification status:
+Response: `NOTOK`
+Details: `Pending in queue`
+Contract verification status:
+Response: `OK`
+Details: `Pass - Verified`
+Contract successfully verified
+Start verifying contract `0x6c07bE0A687F0261BB8Bc6dC76c596E9b09Ec7Aa` deployed on mainnet
+Compiler version: 0.8.12
+Optimizations:    200
+
+Submitting verification for [lib/eigenlayer-middleware/src/OperatorStateRetriever.sol:OperatorStateRetriever] 0x6c07bE0A687F0261BB8Bc6dC76c596E9b09Ec7Aa.
+Submitted contract for verification:
+	Response: `OK`
+	GUID: `hm9gnsj2aumrq1bv29e4u1khau1frab2uzk1dzgm4v5wqq5n4n`
+	URL: https://etherscan.io/address/0x6c07be0a687f0261bb8bc6dc76c596e9b09ec7aa
+Contract verification status:
+Response: `NOTOK`
+Details: `Pending in queue`
+Contract verification status:
+Response: `OK`
+Details: `Pass - Verified`
+Contract successfully verified
+Start verifying contract `0x85814b3ff84DA95363C15879B605F3C47fA6A762` deployed on mainnet
+Compiler version: 0.8.12
+Optimizations:    200
+Constructor args: 0000000000000000000000002c23cf71c023cba700e379c8e73f040c70211d67
+
+Submitting verification for [lib/eigenlayer-middleware/src/BLSSignatureChecker.sol:BLSSignatureChecker] 0x85814b3ff84DA95363C15879B605F3C47fA6A762.
+Submitted contract for verification:
+	Response: `OK`
+	GUID: `iypwdhtzcfxjanwd8b1ebwukyj1cf9awwyzf1jjflq5iwatnpg`
+	URL: https://etherscan.io/address/0x85814b3ff84da95363c15879b605f3c47fa6a762
+Contract verification status:
+Response: `NOTOK`
+Details: `Pending in queue`
+Contract verification status:
+Response: `OK`
+Details: `Pass - Verified`
+Contract successfully verified
+Start verifying contract `0x6D4CD402BE0aF07EB0778B48f80900c76C2152AA` deployed on mainnet
+Compiler version: 0.8.12
+Optimizations:    200
+Constructor args: 000000000000000000000000135dda560e946695d6f155dacafc6f1f25c1f5af0000000000000000000000007750d328b314effa365a0402ccfd489b80b0adda0000000000000000000000002c23cf71c023cba700e379c8e73f040c70211d67000000000000000000000000cd923efcac76b82686f9729356bc9d88080666a800000000000000000000000085814b3ff84da95363c15879b605f3c47fa6a762
+
+Submitting verification for [src/core/MachServiceManager.sol:MachServiceManager] 0x6D4CD402BE0aF07EB0778B48f80900c76C2152AA.
+Submitted contract for verification:
+	Response: `OK`
+	GUID: `1jshgm54ytggk3f1m3ngcnhkukslqphdny9f4esdbxmrzvv23u`
+	URL: https://etherscan.io/address/0x6d4cd402be0af07eb0778b48f80900c76c2152aa
+Contract verification status:
+Response: `NOTOK`
+Details: `Pending in queue`
+Contract verification status:
+Response: `OK`
+Details: `Pass - Verified`
+Contract successfully verified
+All (16) contracts were verified!
+
+Transactions saved to: /home/x/z/mach-avs/contracts/broadcast/MachServiceManagerDeployer.s.sol/1/run-latest.json
+
+Sensitive values saved to: /home/x/z/mach-avs/contracts/cache/MachServiceManagerDeployer.s.sol/1/run-latest.json
+

@@ -42,6 +42,12 @@ import {
 } from "../error/Errors.sol";
 import {IMachServiceManager} from "../interfaces/IMachServiceManager.sol";
 
+contract ReservedStorageGap {
+    // This is a placeholder to ensure that the storage layout of the contract
+    // is compatible with the original contract.
+    uint256[50] private __GAP;
+}
+
 /**
  * @title Primary entrypoint for procuring services from Altlayer Mach Service.
  * @author Altlayer, Inc.
@@ -49,7 +55,13 @@ import {IMachServiceManager} from "../interfaces/IMachServiceManager.sol";
  * - whitelisting operators
  * - confirming the alert store by the aggregator with inferred aggregated signatures of the quorum
  */
-contract MachServiceManager is IMachServiceManager, MachServiceManagerStorage, ServiceManagerBase, Pausable {
+contract MachServiceManager is
+    IMachServiceManager,
+    MachServiceManagerStorage,
+    ServiceManagerBase,
+    ReservedStorageGap,
+    Pausable
+{
     using EnumerableSet for EnumerableSet.Bytes32Set;
     using EnumerableSet for EnumerableSet.AddressSet;
 

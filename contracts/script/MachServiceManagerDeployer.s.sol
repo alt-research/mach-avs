@@ -273,6 +273,12 @@ contract MachServiceManagerDeployer is Script {
             address(new TransparentUpgradeableProxy(address(emptyContract), address(machAVSProxyAdmin), ""))
         );
 
+        // Deploy socketRegistry before registryCoordinator implementation
+        machServiceContract.socketRegistry = new SocketRegistry(machServiceContract.registryCoordinator);
+        
+        // Deploy BLSSignatureChecker before it's used in MachServiceManager constructor
+        machServiceContract.blsSignatureChecker = new BLSSignatureChecker(machServiceContract.registryCoordinator);
+
         // Second, deploy the *implementation* contracts, using the *proxy contracts* as inputs
         machServiceContract.indexRegistryImplementation = new IndexRegistry(machServiceContract.registryCoordinator);
         machAVSProxyAdmin.upgrade(

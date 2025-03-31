@@ -9,6 +9,7 @@ import {IRegistryCoordinator} from "eigenlayer-middleware/interfaces/IRegistryCo
 import {IPauserRegistry} from "eigenlayer-core/contracts/interfaces/IPauserRegistry.sol";
 import {IAVSDirectory} from "eigenlayer-core/contracts/interfaces/IAVSDirectory.sol";
 import {IRewardsCoordinator} from "eigenlayer-core/contracts/interfaces/IRewardsCoordinator.sol";
+import {IBLSSignatureChecker} from "eigenlayer-middleware/interfaces/IBLSSignatureChecker.sol";
 
 contract MachServiceManagerImplDeployer is Script {
     function run() external {
@@ -16,6 +17,7 @@ contract MachServiceManagerImplDeployer is Script {
         address registryCoordinator = vm.envAddress("REGISTRY_COORDINATOR");
         address stakeRegistry = vm.envAddress("STAKE_REGISTRY");
         address rewardsCoordinator = vm.envAddress("REWARDS_COORDINATOR");
+        address signatureChecker = vm.envAddress("BLS_SIGNATURE_CHECKER");
 
         vm.startBroadcast();
         // 1. deploy new implementation contract
@@ -23,7 +25,8 @@ contract MachServiceManagerImplDeployer is Script {
             IAVSDirectory(avsDirectory),
             IRewardsCoordinator(rewardsCoordinator),
             IRegistryCoordinator(registryCoordinator),
-            IStakeRegistry(stakeRegistry)
+            IStakeRegistry(stakeRegistry),
+            IBLSSignatureChecker(signatureChecker)
         );
         vm.stopBroadcast();
     }

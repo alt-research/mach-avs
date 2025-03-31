@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.12;
 
+import {SocketRegistry} from "eigenlayer-middleware/SocketRegistry.sol";
 import "eigenlayer-core/test/mocks/EmptyContract.sol";
 import "forge-std/Script.sol";
 import "forge-std/console2.sol";
@@ -25,12 +26,13 @@ import {BLSApkRegistry} from "eigenlayer-middleware/BLSApkRegistry.sol";
 import {OperatorStateRetriever} from "eigenlayer-middleware/OperatorStateRetriever.sol";
 import {MachServiceManager} from "../src/core/MachServiceManager.sol";
 import {IMachServiceManager} from "../src/interfaces/IMachServiceManager.sol";
-
+import {BLSSignatureChecker} from "eigenlayer-middleware/BLSSignatureChecker.sol";
 // forge script ./script/MachServiceManagerDeployer.s.sol \
 //     --private-key $PK \
 //     --rpc-url $URL \
 //     --etherscan-api-key $API_KEY \
 //     --broadcast -vvvv --slow --verify
+
 contract MachServiceManagerDeployer is Script {
     struct MachServiceContract {
         MachServiceManager machServiceManager;
@@ -44,6 +46,8 @@ contract MachServiceManagerDeployer is Script {
         BLSApkRegistry apkRegistry;
         BLSApkRegistry apkRegistryImplementation;
         OperatorStateRetriever operatorStateRetriever;
+        SocketRegistry socketRegistry;
+        BLSSignatureChecker blsSignatureChecker;
     }
 
     struct EigenLayerContracts {
@@ -269,6 +273,12 @@ contract MachServiceManagerDeployer is Script {
             address(new TransparentUpgradeableProxy(address(emptyContract), address(machAVSProxyAdmin), ""))
         );
 
+        // Deploy socketRegistry before registryCoordinator implementation
+        machServiceContract.socketRegistry = new SocketRegistry(machServiceContract.registryCoordinator);
+        
+        // Deploy BLSSignatureChecker before it's used in MachServiceManager constructor
+        machServiceContract.blsSignatureChecker = new BLSSignatureChecker(machServiceContract.registryCoordinator);
+
         // Second, deploy the *implementation* contracts, using the *proxy contracts* as inputs
         machServiceContract.indexRegistryImplementation = new IndexRegistry(machServiceContract.registryCoordinator);
         machAVSProxyAdmin.upgrade(
@@ -293,7 +303,8 @@ contract MachServiceManagerDeployer is Script {
             IMachServiceManager(address(machServiceContract.machServiceManager)),
             machServiceContract.stakeRegistry,
             machServiceContract.apkRegistry,
-            machServiceContract.indexRegistry
+            machServiceContract.indexRegistry,
+            machServiceContract.socketRegistry
         );
         machServiceContract.operatorStateRetriever = new OperatorStateRetriever();
 
@@ -353,7 +364,8 @@ contract MachServiceManagerDeployer is Script {
             IAVSDirectory(deploymentConfig.avsDirectory),
             eigenLayerContracts.rewardsCoordinator,
             machServiceContract.registryCoordinator,
-            machServiceContract.stakeRegistry
+            machServiceContract.stakeRegistry,
+            machServiceContract.blsSignatureChecker
         );
         // Third, upgrade the proxy contracts to use the correct implementation contracts and initialize them.
         machAVSProxyAdmin.upgradeAndCall(

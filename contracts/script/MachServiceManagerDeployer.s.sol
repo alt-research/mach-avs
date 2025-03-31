@@ -31,7 +31,7 @@ import {BLSSignatureChecker} from "eigenlayer-middleware/BLSSignatureChecker.sol
 //     --private-key $PK \
 //     --rpc-url $URL \
 //     --etherscan-api-key $API_KEY \
-//     --broadcast -vvvv --slow --verify
+//     --broadcast -vvvv --slow --verify | tee DeployerMainnet.log
 
 contract MachServiceManagerDeployer is Script {
     struct MachServiceContract {
@@ -275,9 +275,6 @@ contract MachServiceManagerDeployer is Script {
 
         // Deploy socketRegistry before registryCoordinator implementation
         machServiceContract.socketRegistry = new SocketRegistry(machServiceContract.registryCoordinator);
-        
-        // Deploy BLSSignatureChecker before it's used in MachServiceManager constructor
-        machServiceContract.blsSignatureChecker = new BLSSignatureChecker(machServiceContract.registryCoordinator);
 
         // Second, deploy the *implementation* contracts, using the *proxy contracts* as inputs
         machServiceContract.indexRegistryImplementation = new IndexRegistry(machServiceContract.registryCoordinator);
@@ -360,6 +357,10 @@ contract MachServiceManagerDeployer is Script {
                 )
             );
         }
+
+        // Deploy BLSSignatureChecker before it's used in MachServiceManager constructor
+        machServiceContract.blsSignatureChecker = new BLSSignatureChecker(machServiceContract.registryCoordinator);
+
         machServiceContract.machServiceManagerImplementation = new MachServiceManager(
             IAVSDirectory(deploymentConfig.avsDirectory),
             eigenLayerContracts.rewardsCoordinator,
@@ -367,19 +368,25 @@ contract MachServiceManagerDeployer is Script {
             machServiceContract.stakeRegistry,
             machServiceContract.blsSignatureChecker
         );
-        // Third, upgrade the proxy contracts to use the correct implementation contracts and initialize them.
-        machAVSProxyAdmin.upgradeAndCall(
-            TransparentUpgradeableProxy(payable(address(machServiceContract.machServiceManager))),
-            address(machServiceContract.machServiceManagerImplementation),
-            abi.encodeWithSelector(
+
+        bytes memory initcode;
+        {
+            initcode = abi.encodeWithSelector(
                 MachServiceManager.initialize.selector,
                 IPauserRegistry(pauserRegistry),
                 0,
                 deploymentConfig.machAVSCommunityMultisig,
+                deploymentConfig.machAVSCommunityMultisig,
                 deploymentConfig.confirmer,
                 deploymentConfig.whitelister,
                 deploymentConfig.chainIds
-            )
+            );
+        }
+        // Third, upgrade the proxy contracts to use the correct implementation contracts and initialize them.
+        machAVSProxyAdmin.upgradeAndCall(
+            TransparentUpgradeableProxy(payable(address(machServiceContract.machServiceManager))),
+            address(machServiceContract.machServiceManagerImplementation),
+            initcode
         );
         vm.stopBroadcast();
     }

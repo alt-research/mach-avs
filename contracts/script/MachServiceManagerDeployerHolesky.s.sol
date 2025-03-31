@@ -208,9 +208,6 @@ contract MachServiceManagerDeployerHolesky is Script {
 
         // Deploy socketRegistry before registryCoordinator implementation
         machServiceContract.socketRegistry = new SocketRegistry(machServiceContract.registryCoordinator);
-        
-        // Deploy BLSSignatureChecker before it's used in MachServiceManager constructor
-        machServiceContract.blsSignatureChecker = new BLSSignatureChecker(machServiceContract.registryCoordinator);
 
         // Second, deploy the *implementation* contracts, using the *proxy contracts* as inputs
         machServiceContract.indexRegistryImplementation = new IndexRegistry(machServiceContract.registryCoordinator);
@@ -293,6 +290,10 @@ contract MachServiceManagerDeployerHolesky is Script {
                 )
             );
         }
+
+        // Deploy BLSSignatureChecker before it's used in MachServiceManager constructor
+        machServiceContract.blsSignatureChecker = new BLSSignatureChecker(machServiceContract.registryCoordinator);
+
         machServiceContract.machServiceManagerImplementation = new MachServiceManager(
             IAVSDirectory(deploymentConfig.avsDirectory),
             eigenLayerContracts.rewardsCoordinator,

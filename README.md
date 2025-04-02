@@ -66,7 +66,7 @@ For each contract, call `upgradeAndCall` function on the ProxyAdmin to point to 
 
 ```sh
 # Example for upgrade without initialization:
-cast cast --rpc-url $RPC_URL --private-key $PRIVATE_KEY 0xYourProxyAdmin "upgradeAndCall(address,address,bytes)" 0xYourProxy 0xYourNewImplementation 0x
+cast calldata --rpc-url $RPC_URL --private-key $PRIVATE_KEY 0xYourProxyAdmin "upgradeAndCall(address,address,bytes)" 0xYourProxy 0xYourNewImplementation 0x
 ```
 
 #### Upgrade the following contracts in this order:
@@ -85,7 +85,7 @@ To find the implementation address behind the proxy:
 cast storage 0xYourProxy 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc --rpc-url $RPC_URL
 ```
 
-This is determined by the keccak-256 hash of "eip1967.proxy.implementation," subtracted by 1.
+This is determined by the keccak-256 hash of "eip1967.proxy.implementation" subtracted by 1.
 
 To find the proxy admin address:
 
@@ -93,7 +93,7 @@ To find the proxy admin address:
 cast storage 0xYourProxy 0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103 --rpc-url $RPC_URL
 ```
 
-This is determined by the keccak-256 hash of "eip1967.proxy.admin," subtracted by 1.
+This is determined by the keccak-256 hash of "eip1967.proxy.admin" subtracted by 1.
 
 ## Audits
 

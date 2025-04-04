@@ -11,6 +11,90 @@ AltLayer Mach AVS is a fast finality layer for Ethereum rollups. In Mach AVS , o
 
 - [Mach AVS contracts](docs/Deployments.md)
 
+## Upgrade
+
+### 0. Check storage collision
+
+Check if storage collision is possible by running the following command:
+
+```sh
+make storage-report
+```
+
+This will generate a report in the `storage-report` folder. Review the report to ensure there are no storage collisions before proceeding with the upgrade.
+
+### 1. Deploy New Implementation Contracts
+
+Make sure your `proxies.json` file contains all the necessary addresses:
+
+```json
+{
+  "AVS_DIRECTORY": "0x...",
+  "REGISTRY_COORDINATOR": "0x...",
+  "STAKE_REGISTRY": "0x...",
+  "REWARDS_COORDINATOR": "0x...",
+  "BLS_SIGNATURE_CHECKER": "0x...",
+  "DELEGATION_MANAGER": "0x...",
+  "MACH_SERVICE_MANAGER": "0x...",
+  "APK_REGISTRY": "0x...",
+  "INDEX_REGISTRY": "0x..."
+}
+```
+
+You can deploy all the new implementation contracts at once using the `MachServiceManagerImplDeployer` script:
+
+```sh
+# Set environment variables
+export PK="your-private-key"
+export URL="your-rpc-url"
+export API_KEY="your-etherscan-api-key"
+
+forge script script/MachServiceManagerImplDeployer.s.sol \
+     --private-key $PK \
+     --rpc-url $URL \
+     --etherscan-api-key $API_KEY \
+     --broadcast -vvvv --slow --verify | tee MachServiceManagerImplDeployer.log
+```
+
+This script will deploy the new implementation contracts and verify them on Etherscan. Make sure to replace `your-private-key`, `your-rpc-url`, and `your-etherscan-api-key` with your actual values.
+
+The script will deploy all implementation contracts and output their addresses in the console.
+
+### 2. Upgrade Proxy Contracts
+
+For each contract, call `upgradeAndCall` function on the ProxyAdmin to point to the new implementations.
+
+```sh
+# Example for upgrade without initialization:
+cast calldata --rpc-url $RPC_URL --private-key $PRIVATE_KEY 0xYourProxyAdmin "upgradeAndCall(address,address,bytes)" 0xYourProxy 0xYourNewImplementation 0x
+```
+
+#### Upgrade the following contracts in this order:
+
+1. RegistryCoordinator
+2. BLSApkRegistry
+3. StakeRegistry
+4. IndexRegistry
+5. MachServiceManager
+
+### 3. Verify Upgrades
+
+To find the implementation address behind the proxy:
+
+```sh
+cast storage 0xYourProxy 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc --rpc-url $RPC_URL
+```
+
+This is determined by the keccak-256 hash of "eip1967.proxy.implementation" subtracted by 1.
+
+To find the proxy admin address:
+
+```sh
+cast storage 0xYourProxy 0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103 --rpc-url $RPC_URL
+```
+
+This is determined by the keccak-256 hash of "eip1967.proxy.admin" subtracted by 1.
+
 ## Audits
 
 - [PeckShield-Audit-Report-AltLayer-MACH-AVS-v1.0.pdf](audits/PeckShield-Audit-Report-AltLayer-MACH-AVS-v1.0.pdf)
@@ -27,8 +111,7 @@ Mach AVS consists of the following component:
 
 ## Architecture
 
-![Overview](<docs/images/EigenlayerMachAVSOverview.png>)
-
+![Overview](docs/images/EigenlayerMachAVSOverview.png)
 
 ### BLS Signature Aggregation Mode
 

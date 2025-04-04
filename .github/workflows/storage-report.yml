@@ -1,0 +1,56 @@
+name: Storage Report
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+env:
+  FOUNDRY_PROFILE: ci
+
+jobs:
+  check:
+    strategy:
+      fail-fast: true
+
+    name: Foundry project
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Detect storage layout changes
+        run: |
+          cd contracts
+          
+          # Set directories for reports
+          PR_DIR="pr"
+          TARGET_DIR="target"
+
+          # Generate storage report for the current PR branch
+          echo "Generating storage layout report for the PR branch..."
+          ./lib/storage-layout-reporter/report.sh --output=$PR_DIR --source="src" --exclude="src/interfaces"
+
+          # Fetch and check out the target branch
+          echo "Fetching and checking out the target branch..."
+          git fetch origin $TARGET
+          git checkout $TARGET
+
+          # Generate storage report for the target branch
+          echo "Generating storage layout report for the target branch..."
+          ./lib/storage-layout-reporter/report.sh --output=$TARGET_DIR --source="src" --exclude="src/interfaces"
+
+          # Compare the storage layouts of the PR and target branches
+          echo "Comparing storage layouts..."
+          if diff --unified $PR_DIR $TARGET_DIR; then
+            echo "No differences found in storage layouts."
+          else
+            echo "::error::Storage layout changes detected. Review changes carefully as they may impact contract upgrades."
+            exit 1
+          fi
+        env:
+          TARGET: ${{ github.event.pull_request.base.sha }}

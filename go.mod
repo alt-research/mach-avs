@@ -5,7 +5,7 @@ go 1.21.13
 toolchain go1.22.10
 
 require (
-	github.com/Layr-Labs/eigensdk-go v0.2.0-beta.1
+	github.com/Layr-Labs/eigensdk-go v0.2.0
 	github.com/alt-research/avs-generic-aggregator v0.3.0-beta
 	github.com/ethereum/go-ethereum v1.14.3
 	github.com/pkg/errors v0.9.1
@@ -14,7 +14,7 @@ require (
 	github.com/urfave/cli v1.22.15
 	go.uber.org/mock v0.4.0
 	go.uber.org/zap v1.27.0
-	golang.org/x/crypto v0.23.0
+	golang.org/x/crypto v0.31.0
 	google.golang.org/grpc v1.63.2
 	google.golang.org/protobuf v1.34.1
 	gopkg.in/yaml.v3 v3.0.1
@@ -41,6 +41,7 @@ require (
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.3 // indirect
 	github.com/carlmjohnson/versioninfo v0.22.5 // indirect
+	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cockroachdb/errors v1.11.1 // indirect
 	github.com/cockroachdb/logtags v0.0.0-20230118201751-21c54148d20b // indirect
@@ -106,9 +107,9 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/exp v0.0.0-20240506185415-9bf2ced13842 // indirect
 	golang.org/x/net v0.25.0 // indirect
-	golang.org/x/sync v0.7.0 // indirect
-	golang.org/x/sys v0.20.0 // indirect
-	golang.org/x/text v0.15.0 // indirect
+	golang.org/x/sync v0.10.0 // indirect
+	golang.org/x/sys v0.28.0 // indirect
+	golang.org/x/text v0.21.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240509183442-62759503f434 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	mellium.im/sasl v0.3.1 // indirect

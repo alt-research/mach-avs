@@ -14,11 +14,11 @@ import (
 type AvsManagersBindings struct {
 	ServiceManager      *csservicemanager.ContractMachServiceManager
 	RegistryCoordinator *regcoord.ContractRegistryCoordinator
-	ethClient           eth.Client
+	ethClient           eth.HttpBackend
 	logger              logging.Logger
 }
 
-func NewAvsManagersBindings(registryCoordinatorAddr, operatorStateRetrieverAddr gethcommon.Address, ethclient eth.Client, logger logging.Logger) (*AvsManagersBindings, error) {
+func NewAvsManagersBindings(registryCoordinatorAddr, operatorStateRetrieverAddr gethcommon.Address, ethclient eth.HttpBackend, logger logging.Logger) (*AvsManagersBindings, error) {
 	contractRegistryCoordinator, err := regcoord.NewContractRegistryCoordinator(registryCoordinatorAddr, ethclient)
 	if err != nil {
 		return nil, err

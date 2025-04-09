@@ -17,7 +17,15 @@ import (
 )
 
 type AvsReaderer interface {
-	sdkavsregistry.AvsRegistryReader
+	IsOperatorRegistered(
+		opts *bind.CallOpts,
+		operatorAddress gethcommon.Address,
+	) (bool, error)
+
+	GetOperatorFromId(
+		opts *bind.CallOpts,
+		operatorId sdktypes.OperatorId,
+	) (gethcommon.Address, error)
 
 	CheckSignatures(
 		ctx context.Context, msgHash [32]byte, quorumNumbers []byte, referenceBlockNumber uint32, nonSignerStakesAndSignature csservicemanager.IBLSSignatureCheckerNonSignerStakesAndSignature,
@@ -33,7 +41,7 @@ type AvsReaderer interface {
 }
 
 type AvsReader struct {
-	sdkavsregistry.AvsRegistryReader
+	*sdkavsregistry.ChainReader
 	AvsServiceBindings *AvsManagersBindings
 	logger             logging.Logger
 }
@@ -43,7 +51,7 @@ var _ AvsReaderer = (*AvsReader)(nil)
 func BuildAvsReaderFromConfig(c *config.Config) (*AvsReader, error) {
 	return BuildAvsReader(c.RegistryCoordinatorAddr, c.OperatorStateRetrieverAddr, c.EthHttpClient, c.Logger)
 }
-func BuildAvsReader(registryCoordinatorAddr, operatorStateRetrieverAddr gethcommon.Address, ethHttpClient eth.Client, logger logging.Logger) (*AvsReader, error) {
+func BuildAvsReader(registryCoordinatorAddr, operatorStateRetrieverAddr gethcommon.Address, ethHttpClient eth.HttpBackend, logger logging.Logger) (*AvsReader, error) {
 	avsManagersBindings, err := NewAvsManagersBindings(registryCoordinatorAddr, operatorStateRetrieverAddr, ethHttpClient, logger)
 	if err != nil {
 		return nil, err
@@ -54,9 +62,9 @@ func BuildAvsReader(registryCoordinatorAddr, operatorStateRetrieverAddr gethcomm
 	}
 	return NewAvsReader(avsRegistryReader, avsManagersBindings, logger)
 }
-func NewAvsReader(avsRegistryReader sdkavsregistry.AvsRegistryReader, avsServiceBindings *AvsManagersBindings, logger logging.Logger) (*AvsReader, error) {
+func NewAvsReader(avsRegistryReader *sdkavsregistry.ChainReader, avsServiceBindings *AvsManagersBindings, logger logging.Logger) (*AvsReader, error) {
 	return &AvsReader{
-		AvsRegistryReader:  avsRegistryReader,
+		ChainReader:        avsRegistryReader,
 		AvsServiceBindings: avsServiceBindings,
 		logger:             logger,
 	}, nil
@@ -86,7 +94,7 @@ func (r *AvsReader) IsAlertContains(ctx context.Context, messageHash [32]byte) (
 }
 
 func (r *AvsReader) GetQuorumsByBlockNumber(ctx context.Context, blockNumber uint32) (sdktypes.QuorumNums, error) {
-	quorumCount, err := r.AvsRegistryReader.GetQuorumCount(&bind.CallOpts{
+	quorumCount, err := r.ChainReader.GetQuorumCount(&bind.CallOpts{
 		Context:     ctx,
 		BlockNumber: big.NewInt(int64(blockNumber)),
 	})

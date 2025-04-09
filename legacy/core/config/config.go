@@ -3,13 +3,18 @@ package config
 import (
 	"context"
 	"crypto/ecdsa"
+	"encoding/json"
 	"fmt"
+	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
+	"gopkg.in/yaml.v3"
 
 	"github.com/Layr-Labs/eigensdk-go/chainio/clients/eth"
 	"github.com/Layr-Labs/eigensdk-go/chainio/clients/wallet"
@@ -33,8 +38,8 @@ type Config struct {
 	// only take an ethclient or an rpcUrl (and build the ethclient at each constructor site)
 	EthHttpRpcUrl                     string
 	EthWsRpcUrl                       string
-	EthHttpClient                     eth.Client
-	EthWsClient                       eth.Client
+	EthHttpClient                     eth.HttpBackend
+	EthWsClient                       eth.HttpBackend
 	OperatorStateRetrieverAddr        common.Address
 	RegistryCoordinatorAddr           common.Address
 	AggregatorServerIpPortAddr        string
@@ -81,7 +86,7 @@ func NewConfig(ctx *cli.Context) (*Config, error) {
 	var configRaw ConfigRaw
 	configFilePath := ctx.GlobalString(ConfigFileFlag.Name)
 	if configFilePath != "" {
-		err := sdkutils.ReadYamlConfig(configFilePath, &configRaw)
+		err := ReadYamlConfig(configFilePath, &configRaw)
 		if err != nil {
 			return nil, err
 		}
@@ -129,7 +134,7 @@ func NewConfig(ctx *cli.Context) (*Config, error) {
 		if _, err := os.Stat(deploymentFilePath); errors.Is(err, os.ErrNotExist) {
 			panic("Path " + deploymentFilePath + " does not exist")
 		}
-		if err := sdkutils.ReadJsonConfig(deploymentFilePath, &deploymentRaw); err != nil {
+		if err := ReadJsonConfig(deploymentFilePath, &deploymentRaw); err != nil {
 			panic(err)
 		}
 	}
@@ -139,7 +144,7 @@ func NewConfig(ctx *cli.Context) (*Config, error) {
 		return nil, err
 	}
 
-	ethRpcClient, err := eth.NewClient(configRaw.EthRpcUrl)
+	ethRpcClient, err := ethclient.Dial(configRaw.EthRpcUrl)
 	if err != nil {
 		logger.Errorf("Cannot create http ethclient", "err", err)
 		return nil, err
@@ -156,7 +161,7 @@ func NewConfig(ctx *cli.Context) (*Config, error) {
 		return nil, fmt.Errorf("layer1 chain id not expect")
 	}
 
-	ethWsClient, err := eth.NewClient(configRaw.EthWsUrl)
+	ethWsClient, err := ethclient.Dial(configRaw.EthWsUrl)
 	if err != nil {
 		logger.Errorf("Cannot create ws ethclient", "err", err)
 		return nil, err
@@ -281,3 +286,42 @@ func init() {
 
 // Flags contains the list of configuration options available to the binary.
 var Flags []cli.Flag
+
+func ReadFile(path string) ([]byte, error) {
+	b, err := os.ReadFile(filepath.Clean(path))
+	if err != nil {
+		return nil, err
+	}
+	return b, nil
+}
+
+func ReadYamlConfig(path string, o interface{}) error {
+	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
+		log.Fatal("Path ", path, " does not exist")
+	}
+	b, err := ReadFile(path)
+	if err != nil {
+		return err
+	}
+
+	err = yaml.Unmarshal(b, o)
+	if err != nil {
+		log.Fatalf("unable to parse file with error %#v", err)
+	}
+
+	return nil
+}
+
+func ReadJsonConfig(path string, o interface{}) error {
+	b, err := ReadFile(path)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(b, o)
+	if err != nil {
+		log.Fatalf("unable to parse file with error %#v", err)
+	}
+
+	return nil
+}

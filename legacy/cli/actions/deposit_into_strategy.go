@@ -6,7 +6,6 @@ import (
 	"log"
 	"math/big"
 
-	sdkutils "github.com/Layr-Labs/eigensdk-go/utils"
 	"github.com/alt-research/avs/legacy/core/config"
 	"github.com/alt-research/avs/legacy/operator"
 	"github.com/ethereum/go-ethereum/common"
@@ -19,7 +18,7 @@ func DepositIntoStrategy(ctx *cli.Context) error {
 	nodeConfig := config.NodeConfig{}
 
 	if configPath != "" {
-		err := sdkutils.ReadYamlConfig(configPath, &nodeConfig)
+		err := config.ReadYamlConfig(configPath, &nodeConfig)
 		if err != nil {
 			return err
 		}

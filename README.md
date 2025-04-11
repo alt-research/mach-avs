@@ -9,7 +9,24 @@ AltLayer Mach AVS is a fast finality layer for Ethereum rollups. In Mach AVS , o
 
 ## Deployments
 
-- [Mach AVS contracts](docs/Deployments.md)
+| Name                          | Network | Details                                                                                              |
+| ----------------------------- | ------- | ---------------------------------------------------------------------------------------------------- |
+| AltLayer                      | Mainnet | [View Details](docs/avs-details/mainnet/altlayer.md)                                                 |
+| Xterio                        | Mainnet | [View Details](docs/avs-details/mainnet/xterio.md)                                                   |
+| DODOchain                     | Mainnet | [View Details](docs/avs-details/mainnet/dodochain.md)                                                |
+| Cyber                         | Mainnet | [View Details](docs/avs-details/mainnet/cyber.md)                                                    |
+| GM Network                    | Mainnet | [View Details](docs/avs-details/mainnet/gm-network.md)                                               |
+| Soneium                       | Mainnet | [View Details](docs/avs-details/mainnet/soneium.md)                                                  |
+| MACH Service Manager Registry | Mainnet | [View on Etherscan](https://etherscan.io/address/0x289dbe6573d6a1daf00110b5b1b2d8f0a34099c2)         |
+| AltLayer                      | Holesky | [View Details](docs/avs-details/holesky/altlayer.md)                                                 |
+| MACH Service Manager Registry | Holesky | [View on Etherscan](https://holesky.etherscan.io/address/0x5c36928d11d7a39641ed520d2213afc9ec806d71) |
+
+#### Rollup Chain IDs
+
+- AltLayer:
+  - `11155420` OP sep
+  - `421614` Arb sep
+- Xterio: `1637450`
 
 ## Upgrade
 

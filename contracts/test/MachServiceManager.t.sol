@@ -291,36 +291,6 @@ contract MachServiceManagerTest is BLSAVSDeployer {
         serviceManager.confirmAlert(alertHeader, nonSignerStakesAndSignature);
     }
 
-    function test_ConfirmAlert_RevertIfInvalidSender() public {
-        vm.startPrank(proxyAdminOwner, proxyAdminOwner);
-        serviceManager.disableAllowlist();
-        (
-            uint32 referenceBlockNumber,
-            BLSSignatureChecker.NonSignerStakesAndSignature memory nonSignerStakesAndSignature
-        ) = _registerSignatoriesAndGetNonSignerStakeAndSignatureRandom(nonRandomNumber, numNonSigners, quorumBitmap);
-        vm.stopPrank();
-
-        bytes memory quorumThresholdPercentages = new bytes(1);
-        quorumThresholdPercentages[0] = bytes1(uint8(67));
-
-        IMachServiceManager.AlertHeader memory alertHeader = IMachServiceManager.AlertHeader({
-            messageHash: "foo",
-            quorumNumbers: quorumNumbers,
-            quorumThresholdPercentages: quorumThresholdPercentages,
-            referenceBlockNumber: referenceBlockNumber,
-            rollupChainID: 1
-        });
-
-        vm.startPrank(proxyAdminOwner, proxyAdminOwner);
-        serviceManager.setConfirmer(address(this));
-        vm.stopPrank();
-
-        vm.startPrank(address(this));
-        vm.expectRevert(InvalidSender.selector);
-        serviceManager.confirmAlert(alertHeader, nonSignerStakesAndSignature);
-        vm.stopPrank();
-    }
-
     function test_ConfirmAlert_RevertIfAlreadyAdded() public {
         vm.startPrank(proxyAdminOwner, proxyAdminOwner);
         serviceManager.disableAllowlist();

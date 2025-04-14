@@ -268,11 +268,6 @@ contract MachServiceManager is
         AlertHeader calldata alertHeader,
         IBLSSignatureChecker.NonSignerStakesAndSignature memory nonSignerStakesAndSignature
     ) external whenNotPaused onlyAlertConfirmer onlyValidRollupChainID(alertHeader.rollupChainID) {
-        // make sure the information needed to derive the non-signers and batch is in calldata to avoid emitting events
-        if (tx.origin != msg.sender) {
-            revert InvalidSender();
-        }
-
         // check is it is the resolved alert before
         if (_resolvedMessageHashes[alertHeader.rollupChainID].contains(alertHeader.messageHash)) {
             revert ResolvedAlert();

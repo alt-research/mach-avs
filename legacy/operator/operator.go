@@ -159,6 +159,11 @@ func withEnvConfig(c config.NodeConfig) config.NodeConfig {
 		c.OperatorStateRetrieverAddress = operatorStateRetrieverAddress
 	}
 
+	serviceManagerAddress, ok := os.LookupEnv("SERVICE_MANAGER_ADDRESS")
+	if ok && serviceManagerAddress != "" {
+		c.ServiceManagerAddress = serviceManagerAddress
+	}
+
 	operatorServerIpPortAddr, ok := os.LookupEnv("OPERATOR_SERVER_URL")
 	if ok && operatorServerIpPortAddr != "" {
 		c.OperatorServerIpPortAddr = operatorServerIpPortAddr
@@ -290,7 +295,9 @@ func NewOperatorFromConfig(cfg config.NodeConfig, isUseEcdsaKey bool) (*Operator
 
 		avsWriter, err = chainio.BuildAvsWriter(
 			txMgr, common.HexToAddress(c.AVSRegistryCoordinatorAddress),
-			common.HexToAddress(c.OperatorStateRetrieverAddress), ethRpcClient, logger,
+			common.HexToAddress(c.OperatorStateRetrieverAddress),
+			common.HexToAddress(c.ServiceManagerAddress),
+			ethRpcClient, logger,
 		)
 		if err != nil {
 			logger.Error("Cannot create AvsWriter", "err", err)
@@ -328,6 +335,7 @@ func NewOperatorFromConfig(cfg config.NodeConfig, isUseEcdsaKey bool) (*Operator
 		EthWsUrl:                   c.EthWsUrl,
 		RegistryCoordinatorAddr:    c.AVSRegistryCoordinatorAddress,
 		OperatorStateRetrieverAddr: c.OperatorStateRetrieverAddress,
+		ServiceManagerAddress:      c.ServiceManagerAddress,
 		AvsName:                    AVS_NAME,
 		PromMetricsIpPortAddress:   c.EigenMetricsIpPortAddress,
 	}
@@ -349,6 +357,7 @@ func NewOperatorFromConfig(cfg config.NodeConfig, isUseEcdsaKey bool) (*Operator
 	avsReader, err := chainio.BuildAvsReader(
 		common.HexToAddress(c.AVSRegistryCoordinatorAddress),
 		common.HexToAddress(c.OperatorStateRetrieverAddress),
+		common.HexToAddress(c.ServiceManagerAddress),
 		ethClient, logger)
 	if err != nil {
 		logger.Error("Cannot create AvsReader", "err", err)

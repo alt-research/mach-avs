@@ -49,14 +49,20 @@ type AvsReader struct {
 var _ AvsReaderer = (*AvsReader)(nil)
 
 func BuildAvsReaderFromConfig(c *config.Config) (*AvsReader, error) {
-	return BuildAvsReader(c.RegistryCoordinatorAddr, c.OperatorStateRetrieverAddr, c.EthHttpClient, c.Logger)
+	return BuildAvsReader(c.RegistryCoordinatorAddr, c.OperatorStateRetrieverAddr, c.ServiceManagerAddress, c.EthHttpClient, c.Logger)
 }
-func BuildAvsReader(registryCoordinatorAddr, operatorStateRetrieverAddr gethcommon.Address, ethHttpClient eth.HttpBackend, logger logging.Logger) (*AvsReader, error) {
+func BuildAvsReader(registryCoordinatorAddr, operatorStateRetrieverAddr, serviceManagerAddress gethcommon.Address, ethHttpClient eth.HttpBackend, logger logging.Logger) (*AvsReader, error) {
 	avsManagersBindings, err := NewAvsManagersBindings(registryCoordinatorAddr, operatorStateRetrieverAddr, ethHttpClient, logger)
 	if err != nil {
 		return nil, err
 	}
-	avsRegistryReader, err := sdkavsregistry.BuildAvsRegistryChainReader(registryCoordinatorAddr, operatorStateRetrieverAddr, ethHttpClient, logger)
+	avsRegistryReader, err := sdkavsregistry.NewReaderFromConfig(
+		sdkavsregistry.Config{
+			RegistryCoordinatorAddress:    registryCoordinatorAddr,
+			OperatorStateRetrieverAddress: operatorStateRetrieverAddr,
+			ServiceManagerAddress:         serviceManagerAddress,
+		},
+		ethHttpClient, logger)
 	if err != nil {
 		return nil, err
 	}

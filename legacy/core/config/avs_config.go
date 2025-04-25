@@ -5,6 +5,7 @@ type NodeConfig struct {
 	Production                        bool   `yaml:"production"`
 	OperatorStateRetrieverAddress     string `yaml:"operator_state_retriever_address"`
 	AVSRegistryCoordinatorAddress     string `yaml:"avs_registry_coordinator_address"`
+	ServiceManagerAddress             string `yaml:"service_manager_address"`
 	EthRpcUrl                         string `yaml:"eth_rpc_url"`
 	EthWsUrl                          string `yaml:"eth_ws_url"`
 	BlsPrivateKeyStorePath            string `yaml:"bls_private_key_store_path"`

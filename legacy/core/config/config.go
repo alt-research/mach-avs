@@ -42,6 +42,7 @@ type Config struct {
 	EthWsClient                       eth.HttpBackend
 	OperatorStateRetrieverAddr        common.Address
 	RegistryCoordinatorAddr           common.Address
+	ServiceManagerAddress             common.Address
 	AggregatorServerIpPortAddr        string
 	AggregatorGRPCServerIpPortAddr    string
 	AggregatorJSONRPCServerIpPortAddr string
@@ -76,6 +77,7 @@ type ConfigRaw struct {
 type MachAvsDeploymentRaw struct {
 	RegistryCoordinatorAddr    string `json:"registryCoordinator"`
 	OperatorStateRetrieverAddr string `json:"operatorStateRetriever"`
+	ServiceManagerAddr         string `json:"serviceManager"`
 }
 
 // NewConfig parses config file to read from from flags or environment variables
@@ -224,6 +226,7 @@ func NewConfig(ctx *cli.Context) (*Config, error) {
 		EthWsClient:                       ethWsClient,
 		OperatorStateRetrieverAddr:        common.HexToAddress(deploymentRaw.OperatorStateRetrieverAddr),
 		RegistryCoordinatorAddr:           common.HexToAddress(deploymentRaw.RegistryCoordinatorAddr),
+		ServiceManagerAddress:             common.HexToAddress(deploymentRaw.ServiceManagerAddr),
 		AggregatorServerIpPortAddr:        configRaw.AggregatorServerIpPortAddr,
 		AggregatorGRPCServerIpPortAddr:    configRaw.AggregatorGRPCServerIpPortAddr,
 		AggregatorJSONRPCServerIpPortAddr: configRaw.AggregatorJSONRPCServerIpPortAddr,
@@ -248,6 +251,9 @@ func (c *Config) validate() {
 	}
 	if c.RegistryCoordinatorAddr == common.HexToAddress("") {
 		panic("Config: RegistryCoordinatorAddr is required")
+	}
+	if c.ServiceManagerAddress == common.HexToAddress("") {
+		panic("Config: ServiceManagerAddress is required")
 	}
 }
 

@@ -33,10 +33,10 @@ type AvsWriter struct {
 var _ AvsWriterer = (*AvsWriter)(nil)
 
 func BuildAvsWriterFromConfig(c *config.Config) (*AvsWriter, error) {
-	return BuildAvsWriter(c.TxMgr, c.RegistryCoordinatorAddr, c.OperatorStateRetrieverAddr, c.EthHttpClient, c.Logger)
+	return BuildAvsWriter(c.TxMgr, c.RegistryCoordinatorAddr, c.OperatorStateRetrieverAddr, c.ServiceManagerAddress, c.EthHttpClient, c.Logger)
 }
 
-func BuildAvsWriter(txMgr txmgr.TxManager, registryCoordinatorAddr, operatorStateRetrieverAddr gethcommon.Address, ethHttpClient eth.HttpBackend, logger logging.Logger) (*AvsWriter, error) {
+func BuildAvsWriter(txMgr txmgr.TxManager, registryCoordinatorAddr, operatorStateRetrieverAddr, serviceManagerAddr gethcommon.Address, ethHttpClient eth.HttpBackend, logger logging.Logger) (*AvsWriter, error) {
 	avsServiceBindings, err := NewAvsManagersBindings(registryCoordinatorAddr, operatorStateRetrieverAddr, ethHttpClient, logger)
 	if err != nil {
 		logger.Error("Failed to create contract bindings", "err", err)
@@ -45,7 +45,11 @@ func BuildAvsWriter(txMgr txmgr.TxManager, registryCoordinatorAddr, operatorStat
 
 	logger.Info("build avs", "registryCoordinatorAddr", registryCoordinatorAddr, "operatorStateRetrieverAddr", operatorStateRetrieverAddr)
 
-	avsRegistryWriter, err := avsregistry.BuildAvsRegistryChainWriter(registryCoordinatorAddr, operatorStateRetrieverAddr, logger, ethHttpClient, txMgr)
+	avsRegistryWriter, err := avsregistry.NewWriterFromConfig(avsregistry.Config{
+		RegistryCoordinatorAddress:    registryCoordinatorAddr,
+		OperatorStateRetrieverAddress: operatorStateRetrieverAddr,
+		ServiceManagerAddress:         serviceManagerAddr,
+	}, ethHttpClient, txMgr, logger)
 	if err != nil {
 		return nil, err
 	}

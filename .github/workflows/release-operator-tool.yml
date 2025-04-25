@@ -61,7 +61,6 @@ jobs:
           GIT_BRANCH=$(git branch --show-current)
           echo "GIT_BRANCH=$GIT_BRANCH" | tee -a $GITHUB_ENV
           echo "REF_NAME=$(echo ${GIT_TAG:-$GITHUB_REF_NAME} | sed 's/[^a-zA-Z0-9._]/-/g')" | tee -a $GITHUB_ENV
-      - run: cat $HOME/.gitconfig && cat $XDG_CONFIG_HOME/git/credentials
 
       - name: Extract operator metadata (tags, labels) for Docker
         id: operator-meta

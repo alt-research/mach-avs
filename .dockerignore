@@ -1,0 +1,18 @@
+# Version control
+.git
+.gitignore
+.gitattributes
+.github
+.gitlab
+
+# Environment and secrets
+.env
+.env.*
+*.env
+secrets/
+credentials/
+config.local.json
+*.pem
+*.key
+*.cert
+*.crt

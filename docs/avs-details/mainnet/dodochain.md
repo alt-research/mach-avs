@@ -1,7 +1,7 @@
 <!-- filepath: ../docs/avs-details/mainnet/dodochain.md -->
 # AVS Configuration Details
 
-*Generated at block `22244692` (`2025-04-11T09:05:59.000Z`) on `Ethereum Mainnet` (Chain ID: `1`)*
+*Generated at block `22395872` (`2025-05-02T11:38:23.000Z`) on `Ethereum Mainnet` (Chain ID: `1`)*
 
 ## Contract Addresses
 

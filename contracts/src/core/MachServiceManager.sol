@@ -45,7 +45,8 @@ import {IMachServiceManager} from "../interfaces/IMachServiceManager.sol";
 contract ReservedStorageGap {
     // This is a placeholder to ensure that the storage layout of the contract
     // is compatible with the original contract.
-    uint256[50] private __GAP;
+    uint256 private __DEPRECATED_SLOT204;
+    uint256[49] private __GAP;
 }
 
 /**

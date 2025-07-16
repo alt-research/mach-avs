@@ -1,7 +1,7 @@
 <!-- filepath: ../docs/avs-details/mainnet/altlayer.md -->
 # AVS Configuration Details
 
-*Generated at block `22244692` (`2025-04-11T09:05:59.000Z`) on `Ethereum Mainnet` (Chain ID: `1`)*
+*Generated at block `22929996` (`2025-07-16T06:36:11.000Z`) on `Ethereum Mainnet` (Chain ID: `1`)*
 
 ## Contract Addresses
 

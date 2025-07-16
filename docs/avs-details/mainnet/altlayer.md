@@ -7,11 +7,11 @@
 
 | Contract | Proxy | Implementation |
 | -------- | ------- | -------------- |
-| Registry Coordinator | [`0x561be1AB42170a19f31645F774e6e3862B2139AA`](https://etherscan.io/address/0x561be1AB42170a19f31645F774e6e3862B2139AA) | [`0xda56eda81c49e24a27a21626b3f3795bba531a57`](https://etherscan.io/address/0xda56eda81c49e24a27a21626b3f3795bba531a57) |
-| Service Manager | [`0x71a77037870169d47aad6c2C9360861A4C0df2bF`](https://etherscan.io/address/0x71a77037870169d47aad6c2C9360861A4C0df2bF) | [`0x00f6dd9a3abe4b64988c007f9eaa188e3971ad7b`](https://etherscan.io/address/0x00f6dd9a3abe4b64988c007f9eaa188e3971ad7b) |
-| Stake Registry | [`0x49296A7D4a76888370CB377CD909Cc73a2f71289`](https://etherscan.io/address/0x49296A7D4a76888370CB377CD909Cc73a2f71289) | [`0xfbf8ef9fe3c96434eb2e09ebef0b15f74427a051`](https://etherscan.io/address/0xfbf8ef9fe3c96434eb2e09ebef0b15f74427a051) |
-| Index Registry | [`0x1BE83d6CE83bC516630afE535F36652A1511779B`](https://etherscan.io/address/0x1BE83d6CE83bC516630afE535F36652A1511779B) | [`0x134c2650a23a84e06ca53c46c1449ac52dc8c6dc`](https://etherscan.io/address/0x134c2650a23a84e06ca53c46c1449ac52dc8c6dc) |
-| BLS APK Registry | [`0xF9f34Bc6309A52c266881066e8c58fbF562D442c`](https://etherscan.io/address/0xF9f34Bc6309A52c266881066e8c58fbF562D442c) | [`0xde79553095b6d8abaa46161381606c4f82f1a7f7`](https://etherscan.io/address/0xde79553095b6d8abaa46161381606c4f82f1a7f7) |
+| Registry Coordinator | [`0x561be1AB42170a19f31645F774e6e3862B2139AA`](https://etherscan.io/address/0x561be1AB42170a19f31645F774e6e3862B2139AA) | [`0xa32a652cac2d4688066503be4e24215e6848d013`](https://etherscan.io/address/0xa32a652cac2d4688066503be4e24215e6848d013) |
+| Service Manager | [`0x71a77037870169d47aad6c2C9360861A4C0df2bF`](https://etherscan.io/address/0x71a77037870169d47aad6c2C9360861A4C0df2bF) | [`0x44fab641a5d5fdb61198251da8098520998326f0`](https://etherscan.io/address/0x44fab641a5d5fdb61198251da8098520998326f0) |
+| Stake Registry | [`0x49296A7D4a76888370CB377CD909Cc73a2f71289`](https://etherscan.io/address/0x49296A7D4a76888370CB377CD909Cc73a2f71289) | [`0x81650f55bf19b2616ed1315c469380cbafff5656`](https://etherscan.io/address/0x81650f55bf19b2616ed1315c469380cbafff5656) |
+| Index Registry | [`0x1BE83d6CE83bC516630afE535F36652A1511779B`](https://etherscan.io/address/0x1BE83d6CE83bC516630afE535F36652A1511779B) | [`0xaf4d199001cfd402500202f4d60749acacf78d41`](https://etherscan.io/address/0xaf4d199001cfd402500202f4d60749acacf78d41) |
+| BLS APK Registry | [`0xF9f34Bc6309A52c266881066e8c58fbF562D442c`](https://etherscan.io/address/0xF9f34Bc6309A52c266881066e8c58fbF562D442c) | [`0xad918b4446e19fb87d38eb8dab4846031c32f0e5`](https://etherscan.io/address/0xad918b4446e19fb87d38eb8dab4846031c32f0e5) |
 | Pauser Registry | [`0xcCC62915256c7137aaD62d5E4385fc737264D2B1`](https://etherscan.io/address/0xcCC62915256c7137aaD62d5E4385fc737264D2B1) | - |
 | Proxy Admin | [`0xba9ac2c9d1fc2ba22f3709ec073757777447bb5b`](https://etherscan.io/address/0xba9ac2c9d1fc2ba22f3709ec073757777447bb5b) | - |
 

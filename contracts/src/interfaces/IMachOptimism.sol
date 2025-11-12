@@ -8,9 +8,6 @@
 
 pragma solidity ^0.8.12;
 
-import {IRiscZeroVerifier} from "./IRiscZeroVerifier.sol";
-import {CallbackAuthorization} from "./IBonsaiRelay.sol";
-
 /// @title IMachOptimism
 /// @notice The Interface for a Mach optimism contract.
 interface IMachOptimism {

@@ -3,7 +3,6 @@ pragma solidity =0.8.12;
 
 import {IServiceManager} from "eigenlayer-middleware/interfaces/IServiceManager.sol";
 import {BLSSignatureChecker} from "eigenlayer-middleware/BLSSignatureChecker.sol";
-import {IMachOptimism} from "../interfaces/IMachOptimism.sol";
 
 interface ITotalAlertsLegacy {
     // Legacy

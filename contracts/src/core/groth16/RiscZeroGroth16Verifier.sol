@@ -19,7 +19,6 @@ pragma solidity ^0.8.9;
 
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
-import {ControlID} from "./ControlID.sol";
 import {Groth16Verifier} from "./Groth16Verifier.sol";
 import {
     ExitCode,
@@ -63,6 +62,7 @@ function reverseByteOrderUint256(uint256 input) pure returns (uint256 v) {
 /// @dev Soldity uses a big-endian ABI encoding. Reversing the byte order before encoding
 /// ensure that the encoded value will be little-endian.
 /// Written by k06a. https://ethereum.stackexchange.com/a/83627
+// slither-disable-next-line dead-code
 function reverseByteOrderUint32(uint32 input) pure returns (uint32 v) {
     v = input;
 
@@ -133,6 +133,6 @@ contract RiscZeroGroth16Verifier is IRiscZeroVerifier, Groth16Verifier {
     function verify_integrity(Receipt memory receipt) public view returns (bool) {
         (uint256 claim0, uint256 claim1) = splitDigest(receipt.claim.digest());
         Seal memory seal = abi.decode(receipt.seal, (Seal));
-        return this.verifyProof(seal.a, seal.b, seal.c, [CONTROL_ID_0, CONTROL_ID_1, claim0, claim1]);
+        return verifyProof(seal.a, seal.b, seal.c, [CONTROL_ID_0, CONTROL_ID_1, claim0, claim1]);
     }
 }

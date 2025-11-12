@@ -188,6 +188,7 @@ contract MachServiceManager is
     /**
      * @inheritdoc IMachServiceManager
      */
+    // slither-disable-next-line shadowing-local
     function setWhitelister(address whitelister) external onlyOwner {
         _setWhitelister(whitelister);
     }

@@ -9,18 +9,16 @@
 pragma solidity ^0.8.12;
 
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-import {OwnableUpgradeable} from "@openzeppelin-upgrades/contracts/access/OwnableUpgradeable.sol";
-import {ISlasher} from "eigenlayer-core/contracts/interfaces/ISlasher.sol";
 import {ISignatureUtils} from "eigenlayer-core/contracts/interfaces/ISignatureUtils.sol";
 import {Pausable} from "eigenlayer-core/contracts/permissions/Pausable.sol";
-import {IDelegationManager} from "eigenlayer-core/contracts/interfaces/IDelegationManager.sol";
 import {IAVSDirectory} from "eigenlayer-core/contracts/interfaces/IAVSDirectory.sol";
 import {IStakeRegistry} from "eigenlayer-middleware/interfaces/IStakeRegistry.sol";
-import {IServiceManager} from "eigenlayer-middleware/interfaces/IServiceManager.sol";
 import {ServiceManagerBase, IRegistryCoordinator, IStakeRegistry} from "eigenlayer-middleware/ServiceManagerBase.sol";
 import {IBLSApkRegistry} from "eigenlayer-middleware/interfaces/IRegistryCoordinator.sol";
 import {MachOptimismZkServiceManagerStorage} from "./MachOptimismZkServiceManagerStorage.sol";
-import {IMachOptimism, CallbackAuthorization, IRiscZeroVerifier} from "../interfaces/IMachOptimism.sol";
+import {IMachOptimism} from "../interfaces/IMachOptimism.sol";
+import {CallbackAuthorization} from "../interfaces/IBonsaiRelay.sol";
+import {IRiscZeroVerifier} from "../interfaces/IRiscZeroVerifier.sol";
 import {IMachOptimismL2OutputOracle} from "../interfaces/IMachOptimismL2OutputOracle.sol";
 import {IRewardsCoordinator} from "eigenlayer-core/contracts/interfaces/IRewardsCoordinator.sol";
 import "../error/Errors.sol";
@@ -101,6 +99,7 @@ contract MachOptimismZkServiceManager is
     }
 
     /// @notice Clear block alerts up to a specific number.
+    // slither-disable-next-line costly-loop
     function clearBlockAlertsUpTo(uint256 l2BlockNumber) external onlyOwner {
         require(l2BlockNumber > 0, "Invalid l2BlockNumber");
 
@@ -182,6 +181,7 @@ contract MachOptimismZkServiceManager is
      * @param operator The address of the operator to register.
      * @param operatorSignature The signature, salt, and expiry of the operator's signature.
      */
+    // slither-disable-next-line reentrancy-events
     function registerOperatorToAVS(
         address operator,
         ISignatureUtils.SignatureWithSaltAndExpiry memory operatorSignature
@@ -199,6 +199,7 @@ contract MachOptimismZkServiceManager is
      * @notice Deregister an operator from the AVS. Forwards a call to EigenLayer's AVSDirectory.
      * @param operator The address of the operator to register.
      */
+    // slither-disable-next-line reentrancy-events
     function deregisterOperatorFromAVS(address operator)
         public
         override(ServiceManagerBase)

@@ -38,3 +38,17 @@ jobs:
           cd contracts
           forge test -vvv
         id: test
+
+      - name: Set up Python for Slither
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Slither
+        run: |
+          pip install slither-analyzer==0.10.3
+
+      - name: Run Slither static analysis
+        run: |
+          cd contracts
+          slither . --config-file slither.config.json --fail-high

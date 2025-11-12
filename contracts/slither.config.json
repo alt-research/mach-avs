@@ -1,0 +1,10 @@
+{
+  "detectors_to_run": "all",
+  "detectors_to_exclude": "assembly-usage,naming-convention,solc-version,uninitialized-local,timestamp,low-level-calls,too-many-digits,similar-names,incorrect-equality,unused-return,cyclomatic-complexity",
+  "exclude_informational": false,
+  "exclude_optimization": false,
+  "exclude_low": false,
+  "exclude_medium": false,
+  "exclude_high": false,
+  "filter_paths": "lib|test|script"
+}

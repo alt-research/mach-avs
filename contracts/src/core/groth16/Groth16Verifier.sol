@@ -22,6 +22,7 @@ pragma solidity >=0.7.0 <0.9.0;
 
 contract Groth16Verifier {
     // Scalar field size
+    // slither-disable-next-line unused-state
     uint256 constant r = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
     // Base field size
     uint256 constant q = 21888242871839275222246405745257275088696311157297823662689037894645226208583;
@@ -63,12 +64,14 @@ contract Groth16Verifier {
 
     uint16 constant pLastMem = 896;
 
+    // slither-disable-next-line assembly
     function verifyProof(
         uint256[2] calldata _pA,
         uint256[2][2] calldata _pB,
         uint256[2] calldata _pC,
         uint256[4] calldata _pubSignals
     ) public view returns (bool) {
+        // slither-disable-start incorrect-return,dead-code
         assembly {
             function checkField(v) {
                 if iszero(lt(v, q)) {
@@ -186,5 +189,6 @@ contract Groth16Verifier {
             mstore(0, isValid)
             return(0, 0x20)
         }
+        // slither-disable-end incorrect-return,dead-code
     }
 }

@@ -4,7 +4,7 @@ go 1.24.0
 
 require (
 	github.com/Layr-Labs/eigensdk-go v0.2.0
-	github.com/ethereum/go-ethereum v1.15.5
+	github.com/ethereum/go-ethereum v1.16.8
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.19.1
 	github.com/sourcegraph/jsonrpc2 v0.2.0

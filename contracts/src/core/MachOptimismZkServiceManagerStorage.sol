@@ -10,7 +10,7 @@ pragma solidity ^0.8.12;
 
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {IMachOptimismL2OutputOracle} from "../interfaces/IMachOptimismL2OutputOracle.sol";
-import {IRiscZeroVerifier} from "../interfaces/IMachOptimism.sol";
+import {IRiscZeroVerifier} from "../interfaces/IRiscZeroVerifier.sol";
 import {IMachOptimism} from "../interfaces/IMachOptimism.sol";
 
 contract MachOptimismZkServiceManagerStorage {

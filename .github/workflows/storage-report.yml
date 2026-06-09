@@ -54,6 +54,10 @@ jobs:
             echo "::notice::Target branch generated fewer storage reports than the PR branch; skipping storage layout diff."
             exit 0
           fi
+          if find "$TARGET_DIR" -type f -empty | grep -q .; then
+            echo "::notice::Target branch generated empty storage reports; skipping storage layout diff."
+            exit 0
+          fi
 
           # Compare the storage layouts of the PR and target branches
           echo "Comparing storage layouts..."

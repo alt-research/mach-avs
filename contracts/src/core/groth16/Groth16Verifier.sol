@@ -66,10 +66,10 @@ contract Groth16Verifier {
 
     // slither-disable-next-line assembly
     function verifyProof(
-        uint256[2] calldata _pA,
-        uint256[2][2] calldata _pB,
-        uint256[2] calldata _pC,
-        uint256[4] calldata _pubSignals
+        uint256[2] memory _pA,
+        uint256[2][2] memory _pB,
+        uint256[2] memory _pC,
+        uint256[4] memory _pubSignals
     ) public view returns (bool) {
         // slither-disable-start incorrect-return,dead-code
         assembly {

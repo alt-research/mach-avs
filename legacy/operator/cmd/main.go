@@ -39,7 +39,7 @@ func operatorMain(ctx *cli.Context) error {
 		}
 		configJson, err := json.MarshalIndent(nodeConfig, "", "  ")
 		if err != nil {
-			log.Fatalf(err.Error())
+			log.Fatal(err)
 		}
 		log.Println("Config from file:", string(configJson))
 	}

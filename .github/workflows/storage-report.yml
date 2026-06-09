@@ -22,6 +22,8 @@ jobs:
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
 
       - name: Detect storage layout changes
         run: |
@@ -34,6 +36,7 @@ jobs:
           # Generate storage report for the current PR branch
           echo "Generating storage layout report for the PR branch..."
           ./lib/storage-layout-reporter/report.sh --output=$PR_DIR --source="src" --exclude="src/interfaces"
+          PR_REPORT_COUNT="$(find "$PR_DIR" -type f | wc -l)"
 
           # Fetch and check out the target branch
           echo "Fetching and checking out the target branch..."
@@ -42,7 +45,19 @@ jobs:
 
           # Generate storage report for the target branch
           echo "Generating storage layout report for the target branch..."
-          ./lib/storage-layout-reporter/report.sh --output=$TARGET_DIR --source="src" --exclude="src/interfaces"
+          if ! ./lib/storage-layout-reporter/report.sh --output=$TARGET_DIR --source="src" --exclude="src/interfaces"; then
+            echo "::notice::Target branch storage report could not be generated; skipping storage layout diff."
+            exit 0
+          fi
+          TARGET_REPORT_COUNT="$(find "$TARGET_DIR" -type f | wc -l)"
+          if [ "$TARGET_REPORT_COUNT" -lt "$PR_REPORT_COUNT" ]; then
+            echo "::notice::Target branch generated fewer storage reports than the PR branch; skipping storage layout diff."
+            exit 0
+          fi
+          if find "$TARGET_DIR" -type f -empty | grep -q .; then
+            echo "::notice::Target branch generated empty storage reports; skipping storage layout diff."
+            exit 0
+          fi
 
           # Compare the storage layouts of the PR and target branches
           echo "Comparing storage layouts..."

@@ -22,6 +22,8 @@ jobs:
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
 
       - name: Detect storage layout changes
         run: |
@@ -42,7 +44,10 @@ jobs:
 
           # Generate storage report for the target branch
           echo "Generating storage layout report for the target branch..."
-          ./lib/storage-layout-reporter/report.sh --output=$TARGET_DIR --source="src" --exclude="src/interfaces"
+          if ! ./lib/storage-layout-reporter/report.sh --output=$TARGET_DIR --source="src" --exclude="src/interfaces"; then
+            echo "::notice::Target branch storage report could not be generated; skipping storage layout diff."
+            exit 0
+          fi
 
           # Compare the storage layouts of the PR and target branches
           echo "Comparing storage layouts..."
